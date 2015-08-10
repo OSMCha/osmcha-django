@@ -4,7 +4,7 @@ osmcha-django
 A database and frontend to osmcha
 
 
-LICENSE: BSD
+LICENSE: GPLv3
 
 Settings
 ------------
