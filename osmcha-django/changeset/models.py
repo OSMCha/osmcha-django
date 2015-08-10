@@ -30,3 +30,9 @@ class Changeset(models.Model):
 
     def __str__(self):
         return '%s' % self.id
+
+    def osm_link(self):
+        return 'http://www.openstreetmap.org/changeset/%s' % self.id
+
+    def achavi_link(self):
+        return 'https://nrenner.github.io/achavi/?changeset=%s' % self.id

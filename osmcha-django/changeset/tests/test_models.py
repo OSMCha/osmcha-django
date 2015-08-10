@@ -32,5 +32,10 @@ class TestChangesetCreation(TestCase):
         self.assertIsInstance(self.changeset, Changeset)
         self.assertEqual(Changeset.objects.all().count(), 1)
         self.assertEqual(self.changeset.reasons.all().count(), 2)
+        self.assertFalse(self.changeset.checked)
+        self.assertEqual(self.changeset.achavi_link(),
+            'https://nrenner.github.io/achavi/?changeset=31982803')
+        self.assertEqual(self.changeset.osm_link(),
+            'http://www.openstreetmap.org/changeset/31982803')
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
 
