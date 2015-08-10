@@ -1,3 +1,10 @@
-from django.shortcuts import render
+from django.views.generic import ListView
 
-# Create your views here.
+from .models import Changeset
+
+
+class ChangesetListView(ListView):
+    """List Changesets"""
+    queryset = Changeset.objects.all().order_by('date')
+    context_object_name = 'changesets'
+    paginate_by = 15

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Changesets{% endblock %}
+
+{% block content %}
+<div class="container">
+  {% if changesets %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'ID' %}</th>
+            <th>{% trans 'Date' %}</th>
+            <th>{% trans 'User' %}</th>
+            <th>{% trans 'Count' %}</th>
+            <th>{% trans 'Reasons' %}</th>
+            <th>{% trans 'Checked' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for changeset in changesets %}
+            <tr>
+              <td>{{ changeset.id }}</a>
+              <td>{{ changeset.date|date:"SHORT_DATE_FORMAT" }}</td>
+              <td>{{ changeset.user }}</td>
+              <td>{{ changeset.created }} / {{ changeset.modified }} / {{ changeset.deleted }}</td>
+              <td>{{ changeset.reasons.all|join:", " }}</td>
+              <td>{{ changeset.checked }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-danger">{% trans 'No changesets found.' %}</div>
+  {% endif %}
+
+  {% if paginator %}
+    <p class="text-muted text-pagination">
+      {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}
+    </p>
+    <ul class="pager">
+      {% if page_obj.has_previous %}
+        <li><a href="?page={{ page_obj.previous_page_number }}&{{ queries.urlencode }}">&larr; {% trans 'Previous' %}</a></li>
+      {% endif %}
+
+      {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}&{{ queries.urlencode }}">{% trans 'Next' %} &rarr;</a></li>
+      {% endif %}
+    </ul>
+  {% endif %}
+
+</div>
+{% endblock content %}

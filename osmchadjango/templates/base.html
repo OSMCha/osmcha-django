@@ -46,14 +46,14 @@
           </button>
           <a class="navbar-brand" href="/">osmcha-django</a>
         </div>
-          
+
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-navbar-collapse-1">
           <ul class="nav navbar-nav">
-            <li><a href="{% url 'home' %}">Home</a></li>
+            <li><a href="{% url 'changeset:home' %}">Home</a></li>
             <li><a href="{% url 'about' %}">About</a></li>
           </ul>
-        
+
           <ul class="nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
@@ -100,4 +100,4 @@
     {% endblock javascript %}
   </body>
 </html>
- 
+
