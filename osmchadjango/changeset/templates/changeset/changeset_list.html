@@ -22,7 +22,12 @@
         <tbody>
           {% for changeset in changesets %}
             <tr>
-              <td>{{ changeset.id }}</a>
+              <td>
+                {{ changeset.id }}
+                <a href="{{ changeset.osm_link }}">
+                  <img src="{% static 'images/osm_logo.png' %}" alt="{% trans 'OSM Changeset Link' %}" height="20px">
+                </a>
+              </td>
               <td>{{ changeset.date|date:"SHORT_DATE_FORMAT" }}</td>
               <td>{{ changeset.user }}</td>
               <td>{{ changeset.created }} / {{ changeset.modified }} / {{ changeset.deleted }}</td>
