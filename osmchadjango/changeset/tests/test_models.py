@@ -15,6 +15,7 @@ class TestChangesetCreation(TestCase):
             id=31982803,
             user='test',
             editor='Potlatch 2',
+            powerfull_editor=False,
             date=datetime.now(),
             created=2000,
             modified=10,

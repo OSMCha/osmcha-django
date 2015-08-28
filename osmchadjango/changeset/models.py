@@ -15,7 +15,9 @@ class Changeset(models.Model):
 
     user = models.CharField(max_length=1000)
     editor = models.CharField(max_length=255)
-    comment = models.CharField(max_length=255, blank=True)
+    powerfull_editor = models.BooleanField(default=False)
+    comment = models.CharField(max_length=1000, blank=True)
+    source = models.CharField(max_length=1000, blank=True)
     date = models.DateTimeField()
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     created = models.IntegerField()
