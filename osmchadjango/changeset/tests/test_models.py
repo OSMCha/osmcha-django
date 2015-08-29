@@ -1,10 +1,12 @@
+from osmcha.changeset import Analyse
+
 from datetime import datetime
 
 from django.test import TestCase
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, GEOSGeometry
 
 from ..models import Changeset, SuspicionReasons
-
+from ..utils import create_changeset
 
 class TestChangesetCreation(TestCase):
 
@@ -17,9 +19,10 @@ class TestChangesetCreation(TestCase):
             editor='Potlatch 2',
             powerfull_editor=False,
             date=datetime.now(),
-            created=2000,
-            modified=10,
-            deleted=30,
+            create=2000,
+            modify=10,
+            delete=30,
+            is_suspect=True,
             bbox=Polygon([
                 (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
                 (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
@@ -40,3 +43,9 @@ class TestChangesetCreation(TestCase):
             'http://www.openstreetmap.org/changeset/31982803')
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
 
+
+class TestCreationFromAPI(TestCase):
+
+    def test_creation(self):
+        create_changeset(31450443)
+        self.assertEqual(Changeset.objects.count(), 1)

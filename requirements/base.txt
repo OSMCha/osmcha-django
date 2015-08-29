@@ -34,6 +34,5 @@ pytz==2015.4
 django-redis==4.2.0
 redis>=2.10.0
 
-
-
 # Your custom requirements go here
+git+https://github.com/willemarcel/osmcha
