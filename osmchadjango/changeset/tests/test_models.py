@@ -1,12 +1,10 @@
-from osmcha.changeset import Analyse
-
 from datetime import datetime
 
 from django.test import TestCase
-from django.contrib.gis.geos import Polygon, GEOSGeometry
+from django.contrib.gis.geos import Polygon
 
 from ..models import Changeset, SuspicionReasons
-from ..utils import create_changeset
+
 
 class TestChangesetCreation(TestCase):
 
@@ -42,10 +40,3 @@ class TestChangesetCreation(TestCase):
         self.assertEqual(self.changeset.osm_link(),
             'http://www.openstreetmap.org/changeset/31982803')
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
-
-
-class TestCreationFromAPI(TestCase):
-
-    def test_creation(self):
-        create_changeset(31450443)
-        self.assertEqual(Changeset.objects.count(), 1)

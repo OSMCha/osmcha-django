@@ -1,7 +1,15 @@
 # -*- coding: utf-8 -*-
 from osmcha.changeset import Analyse
 
+from os.path import join
+
 from .models import Changeset, SuspicionReasons
+
+
+def format_url(n):
+    n = str(n)
+    base_url = 'http://planet.openstreetmap.org/replication/changesets/'
+    return join(base_url, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
 
 
 def create_changeset(changeset_id):
