@@ -38,4 +38,4 @@ class Changeset(models.Model):
         return 'http://www.openstreetmap.org/changeset/%s' % self.id
 
     def achavi_link(self):
-        return 'https://nrenner.github.io/achavi/?changeset=%s' % self.id
+        return 'https://overpass-api.de/achavi/?changeset=%s' % self.id
