@@ -12,8 +12,12 @@ from django.conf import settings
 
 app = Celery('config',
     backend='rpc://',
-    broker='amqp://rabbitmq:rabbitmq@localhost:5672//'
+    broker='amqp://guest:guest@localhost:5672//'
     )
+
+app.conf.update(
+    CELERY_TASK_RESULT_EXPIRES=10000,
+)
 
 # Using a string here means the worker will not have to
 # pickle the object when using Windows.
