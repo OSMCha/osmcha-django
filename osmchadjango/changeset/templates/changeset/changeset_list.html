@@ -2,7 +2,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}Changesets{% endblock %}
+{% block title %}{% trans 'OSMCHA - Changeset List' %}{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -12,6 +12,7 @@
         <thead>
           <tr>
             <th>{% trans 'ID' %}</th>
+            <th>{% trans 'OSM / Achavi' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
             <th>{% trans 'Count' %}</th>
@@ -24,13 +25,22 @@
             <tr>
               <td>
                 {{ changeset.id }}
+              </td>
+              <td>
                 <a href="{{ changeset.osm_link }}">
                   <img src="{% static 'images/osm_logo.png' %}" alt="{% trans 'OSM Changeset Link' %}" height="20px">
                 </a>
+                <a href="{{ changeset.achavi_link }}">
+                  <span class="glyphicon glyphicon-search" alt="{% trans 'Achavi Link' %}">
+                </a>
               </td>
-              <td>{{ changeset.date|date:"SHORT_DATE_FORMAT" }}</td>
+              <td>{{ changeset.date }}</td>
               <td>{{ changeset.user }}</td>
-              <td>{{ changeset.created }} / {{ changeset.modified }} / {{ changeset.deleted }}</td>
+              <td>
+                <span class="label label-success">{{ changeset.create }}</span>
+                <span class="label label-warning">{{ changeset.modify }}</span>
+                <span class="label label-danger">{{ changeset.delete }}</span>
+              </td>
               <td>{{ changeset.reasons.all|join:", " }}</td>
               <td>{{ changeset.checked }}</td>
             </tr>
