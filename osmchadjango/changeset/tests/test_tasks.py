@@ -2,7 +2,7 @@
 from django.test import TestCase
 
 from ..models import Changeset
-from ..utils import create_changeset, format_url
+from ..tasks import create_changeset, format_url
 
 
 class TestFormatURL(TestCase):
