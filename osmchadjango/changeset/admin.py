@@ -7,7 +7,7 @@ class ChangesetAdmin(admin.OSMGeoAdmin):
     search_fields = ['id']
     list_display = ['id', 'user', 'create', 'modify', 'delete', 'checked',
         'date', 'check_user']
-    list_filter = ['checked', 'editor', 'is_suspect']
+    list_filter = ['checked', 'is_suspect', 'reasons']
     date_hierarchy = 'date'
 
 
