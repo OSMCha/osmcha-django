@@ -12,9 +12,9 @@
         <thead>
           <tr>
             <th>{% trans 'ID' %}</th>
-            <th>{% trans 'OSM / Achavi' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
+            <th>{% trans 'Editor' %}</th>
             <th>{% trans 'Count' %}</th>
             <th>{% trans 'Reasons' %}</th>
             <th>{% trans 'Checked' %}</th>
@@ -24,25 +24,24 @@
           {% for changeset in changesets %}
             <tr>
               <td>
-                {{ changeset.id }}
-              </td>
-              <td>
-                <a href="{{ changeset.osm_link }}">
-                  <img src="{% static 'images/osm_logo.png' %}" alt="{% trans 'OSM Changeset Link' %}" height="20px">
-                </a>
-                <a href="{{ changeset.achavi_link }}">
-                  <span class="glyphicon glyphicon-search" alt="{% trans 'Achavi Link' %}">
-                </a>
+                <a href="{% url 'changeset:detail' changeset.id %}">{{ changeset.id }}</a>
               </td>
               <td>{{ changeset.date }}</td>
               <td>{{ changeset.user }}</td>
+              <td>{{ changeset.editor }}</td>
               <td>
                 <span class="label label-success">{{ changeset.create }}</span>
                 <span class="label label-warning">{{ changeset.modify }}</span>
                 <span class="label label-danger">{{ changeset.delete }}</span>
               </td>
-              <td>{{ changeset.reasons.all|join:", " }}</td>
-              <td>{{ changeset.checked }}</td>
+              <td>{{ changeset.reasons.all|join:", "|capfirst }}</td>
+              <td>
+                {% if changeset.checked %}
+                  <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+                {% else %}
+                  <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+                {% endif %}
+              </td>
             </tr>
           {% endfor %}
         </tbody>

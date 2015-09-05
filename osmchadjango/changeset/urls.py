@@ -12,5 +12,9 @@ urlpatterns = [
         view=views.ChangesetListView.as_view(),
         name='home'
     ),
-
+    url(
+        regex=r'^(?P<pk>\w+)/$',
+        view=views.ChangesetDetailView.as_view(),
+        name='detail'
+    ),
 ]

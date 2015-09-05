@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Changeset {{ changeset.id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row">
+    <h2>Changeset {{ changeset.id }}</h2>
+    <h3>{% trans 'Elements created, modified and deleted' %}</h3>
+    <hr>
+    <h1>
+      <span class="label label-success">{{ changeset.create }}</span>
+      <span class="label label-warning">{{ changeset.modify }}</span>
+      <span class="label label-danger">{{ changeset.delete }}</span>
+    </h1>
+  </div>
+
+  {% if changeset.is_suspect %}
+    <div class="row">
+      <h3>{% trans 'Suspicion reasons' %}</h3>
+      <hr>
+      <ul>
+        {% for reason in changeset.reasons.all %}
+          <li>{{ reason.name|capfirst }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <div class="row">
+    <h3>{% trans 'Details' %}</h3>
+    <hr>
+    <div class="col-xs-12 col-md-6">
+      <div class="list-group">
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Date' %}</h4>
+              <p class="list-group-item-text">{{ changeset.date }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
+              <p class="list-group-item-text">{{ changeset.user }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Editor' %}</h4>
+              <p class="list-group-item-text">{{ changeset.editor }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'OpenStreetMap Link' %}</h4>
+              <p class="list-group-item-text">
+                <a href="{{ changeset.osm_link }}">{{ changeset.osm_link }}</a>
+              </p>
+          </div>
+      </div>
+    </div>
+    <div class="col-xs-12 col-md-6">
+      <div class="list-group">
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Source' %}</h4>
+              <p class="list-group-item-text">{{ changeset.source }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Comment' %}</h4>
+              <p class="list-group-item-text">{{ changeset.comment }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Imagery used' %}</h4>
+              <p class="list-group-item-text">{{ changeset.imagery_used }}</p>
+          </div>
+          <div class="list-group-item">
+              <h4 class="list-group-item-heading">{% trans 'Verified' %}</h4>
+              <p class="list-group-item-text">
+                {% if changeset.checked %}
+                  <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+                {% else %}
+                  <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+                {% endif %}
+              </p>
+          </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <h3>{% trans 'Visualization' %}</h3>
+    <hr>
+    <iframe src="{{ changeset.achavi_link }}" width="100%" height="500px"></iframe>
+    <a href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
+  </div>
+</div>
+{% endblock content %}
