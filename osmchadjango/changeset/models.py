@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.utils.translation import ugettext, ugettext_lazy as _
 
 from ..users.models import User
 
@@ -14,6 +15,7 @@ class SuspicionReasons(models.Model):
 class Changeset(models.Model):
 
     user = models.CharField(max_length=1000)
+    uid = models.CharField(_('User ID'), max_length=255)
     editor = models.CharField(max_length=255)
     powerfull_editor = models.BooleanField(default=False)
     comment = models.CharField(max_length=1000, blank=True)

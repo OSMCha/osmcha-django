@@ -13,6 +13,7 @@ class TestChangesetCreation(TestCase):
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
         self.changeset = Changeset.objects.create(
             id=31982803,
+            uid='123123',
             user='test',
             editor='Potlatch 2',
             powerfull_editor=False,
