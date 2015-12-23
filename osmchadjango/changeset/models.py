@@ -37,7 +37,9 @@ class Changeset(models.Model):
         return '%s' % self.id
 
     def osm_link(self):
+        """Return the link to the changeset page on OSM website."""
         return 'http://www.openstreetmap.org/changeset/%s' % self.id
 
     def achavi_link(self):
+        """Return the link to the changeset page on ACHAVI."""
         return 'https://overpass-api.de/achavi/?changeset=%s' % self.id

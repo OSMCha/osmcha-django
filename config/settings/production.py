@@ -79,3 +79,27 @@ CACHES = {
 }
 
 # Your production stuff: Below this line define 3rd party library settings
+
+
+# PYTHON SOCIAL AUTH
+INSTALLED_APPS += ('social.apps.django_app.default',)
+AUTHENTICATION_BACKENDS = (
+    'social.backends.openstreetmap.OpenStreetMapOAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
+SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
+SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.get_username',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details'
+)

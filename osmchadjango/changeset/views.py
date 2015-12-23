@@ -11,5 +11,6 @@ class ChangesetListView(ListView):
 
 
 class ChangesetDetailView(DetailView):
+    """DetailView of Changeset Model"""
     model = Changeset
     context_object_name = 'changeset'

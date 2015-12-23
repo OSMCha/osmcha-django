@@ -12,6 +12,7 @@ from .models import Changeset, SuspicionReasons
 
 @shared_task
 def create_changeset(changeset_id):
+    """Analyse and create the changeset in the database."""
     ch = Analyse(changeset_id)
     ch.full_analysis()
 
@@ -36,11 +37,15 @@ def create_changeset(changeset_id):
 
 @shared_task
 def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
+    """Filter the changesets of the replication file by the area defined in the
+    GeoJSON file.
+    """
     cl = ChangesetList(url, geojson_filter)
     group(create_changeset.s(c) for c in cl.changesets)()
 
 
 def format_url(n):
+    """Return the url of a replication file."""
     n = str(n)
     base_url = 'http://planet.openstreetmap.org/replication/changesets/'
     return join(base_url, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
@@ -48,6 +53,9 @@ def format_url(n):
 
 @shared_task
 def import_replications(start, end):
+    """Recieves a start and a end number and import each replication file in
+    this interval.
+    """
     urls = [format_url(n) for n in range(start, end + 1)]
     group(get_filter_changeset_file.s(url) for url in urls)()
 
