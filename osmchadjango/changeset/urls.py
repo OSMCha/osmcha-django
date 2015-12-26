@@ -17,4 +17,9 @@ urlpatterns = [
         view=views.ChangesetDetailView.as_view(),
         name='detail'
     ),
+    url(
+        regex=r'^harmfull/(?P<pk>\w+)/$',
+        view=views.SetHarmfullChangeset.as_view(),
+        name='set_harmfull'
+    ),
 ]

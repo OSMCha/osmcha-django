@@ -15,7 +15,7 @@ urlpatterns = [
 
     # User management
     url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
-    #url(r'^accounts/', include('allauth.urls')),
+    url(r'^accounts/', include('allauth.urls')),
     url('^social/', include('social.apps.django_app.urls', namespace='social')),
 
     # Your stuff: custom urls includes go here
