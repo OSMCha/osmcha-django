@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% blocktrans %}OSMCHA - Mark Changeset {{ changeset }} as {{ modification }}?{% endblocktrans %}{% endblock %}
+
+{% block content %}
+  <h2>{% blocktrans %}Do you really want to mark the changeset {{ changeset }} as {{ modification }}?{% endblocktrans %}</h2>
+  <form action="" method="post">{% csrf_token %}
+    <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
+    <a class="btn btn-default" href="{% url 'changeset:detail' changeset.pk %}">{% trans "No, don't mark it as" %} {{ modification }}</a>
+  </form>
+{% endblock content %}

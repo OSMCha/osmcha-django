@@ -69,12 +69,33 @@
               <p class="list-group-item-text">{{ changeset.imagery_used }}</p>
           </div>
           <div class="list-group-item">
-              <h4 class="list-group-item-heading">{% trans 'Verified' %}</h4>
+              <h4 class="list-group-item-heading">{% trans 'Verification' %}</h4>
               <p class="list-group-item-text">
                 {% if changeset.checked %}
-                  <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+                  {% if changeset.harmful %}
+                    <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Verified and marked as harmful' %}
+                  {% else %}
+                    <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Verified and marked as good' %}
+                  {% endif %}
                 {% else %}
-                  <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+                  <div class="btn-group">
+                    <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Not Verified <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li>
+                        <a href="{% url 'changeset:set_good' changeset.pk %}">
+                          <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
+                        </a>
+                      </li>
+                      <li>
+                        <a href="{% url 'changeset:set_harmful' changeset.pk %}">
+                          <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
+
                 {% endif %}
               </p>
           </div>
