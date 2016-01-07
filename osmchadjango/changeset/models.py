@@ -45,3 +45,17 @@ class Changeset(models.Model):
     def achavi_link(self):
         """Return the link to the changeset page on ACHAVI."""
         return 'https://overpass-api.de/achavi/?changeset=%s' % self.id
+
+
+class Import(models.Model):
+    """Class to register the import of Changesets."""
+    start = models.IntegerField()
+    end = models.IntegerField()
+    date = models.DateTimeField(_('Date of the import'), auto_now_add=True)
+
+    def __str__(self):
+        return '%s %i - %i' % (_('Import'), self.start, self.end)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(Import, self).save(*args, **kwargs)
