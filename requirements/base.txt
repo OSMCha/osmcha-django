@@ -1,5 +1,5 @@
 # Bleeding edge Django
-django==1.8.5
+django==1.8.8
 
 # Configuration
 django-environ==0.3.0
@@ -19,6 +19,7 @@ Pillow==2.9.0
 # For user registration, either via email or social
 # Well-built with regular release cycles!
 django-allauth==0.22.0
+python-social-auth==0.2.13
 
 # For the persistence stores
 psycopg2==2.6.1
@@ -31,7 +32,7 @@ django-autoslug==1.8.0
 pytz==2015.4
 
 # Celery support
-celery==3.1.18
+celery==3.1.19
 
 # Your custom requirements go here
 git+https://github.com/willemarcel/osmcha
