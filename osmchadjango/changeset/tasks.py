@@ -5,9 +5,13 @@ from osmcha.changeset import Analyse, ChangesetList
 
 from os.path import join
 
+import requests
+
+import re
+
 from django.conf import settings
 
-from .models import Changeset, SuspicionReasons
+from .models import Changeset, SuspicionReasons, Import
 
 
 @shared_task
@@ -56,7 +60,24 @@ def import_replications(start, end):
     """Recieves a start and a end number and import each replication file in
     this interval.
     """
+    Import(start=start, end=end).save()
     urls = [format_url(n) for n in range(start, end + 1)]
     group(get_filter_changeset_file.s(url) for url in urls)()
 
 
+@shared_task
+def fetch_latest():
+    try:
+        last_import = Import.objects.all().order_by('-end')[0].end
+    except:
+        last_import = None
+    state = requests.get('http://planet.openstreetmap.org/replication/changesets/state.yaml').content
+    print 'got state'
+    regex = re.compile(r'sequence: (.*)')
+    sequence = int(regex.findall(state)[0])
+    if last_import:
+        start = last_import + 1
+    else:
+        start = sequence - 1000
+    print "calling import_replication %d %d" % (start, sequence,)
+    import_replications(start, sequence)
