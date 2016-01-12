@@ -6,7 +6,6 @@ import yaml
 from osmcha.changeset import Analyse, ChangesetList
 
 import requests
-import re
 from os.path import join
 
 from django.conf import settings
