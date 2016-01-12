@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
-from celery import shared_task, group
+from __future__ import print_function
 
+from celery import shared_task, group
+import yaml
 from osmcha.changeset import Analyse, ChangesetList
 
-from os.path import join
-
 import requests
-
 import re
+from os.path import join
 
 from django.conf import settings
 
@@ -27,7 +27,7 @@ def create_changeset(changeset_id):
             ch_dict.pop(key)
     ch_dict.pop('suspicion_reasons')
 
-    #save changeset
+    # save changeset
     changeset = Changeset(**ch_dict)
     changeset.save()
 
@@ -65,19 +65,31 @@ def import_replications(start, end):
     group(get_filter_changeset_file.s(url) for url in urls)()
 
 
+def get_last_replication_id():
+    """Get the id number of the last replication file available on Planet OSM.
+    """
+    state = requests.get(
+        'http://planet.openstreetmap.org/replication/changesets/state.yaml'
+        ).content
+    state = yaml.load(state)
+    return state.get('sequence')
+
+
 @shared_task
 def fetch_latest():
+    """Function to import all the replication files since the last import or the
+    last 1000.
+    """
     try:
         last_import = Import.objects.all().order_by('-end')[0].end
     except:
         last_import = None
-    state = requests.get('http://planet.openstreetmap.org/replication/changesets/state.yaml').content
-    print 'got state'
-    regex = re.compile(r'sequence: (.*)')
-    sequence = int(regex.findall(state)[0])
+
+    sequence = get_last_replication_id()
+
     if last_import:
         start = last_import + 1
     else:
         start = sequence - 1000
-    print "calling import_replication %d %d" % (start, sequence,)
+    print("Importing replications from %d to %d" % (start, sequence,))
     import_replications(start, sequence)

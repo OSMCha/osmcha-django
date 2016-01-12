@@ -2,7 +2,7 @@
 from django.test import TestCase
 
 from ..models import Changeset
-from ..tasks import create_changeset, format_url
+from ..tasks import create_changeset, format_url, get_last_replication_id
 
 
 class TestFormatURL(TestCase):
@@ -19,3 +19,10 @@ class TestCreateChangeset(TestCase):
     def test_creation(self):
         create_changeset(31450443)
         self.assertEqual(Changeset.objects.count(), 1)
+
+
+class TestGetLastReplicationID(TestCase):
+    def test_get_last_replication_id(self):
+        sequence = get_last_replication_id()
+        self.assertIsNotNone(sequence)
+        self.assertIsInstance(sequence, int)
