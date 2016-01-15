@@ -6,28 +6,30 @@
 
 {% block content %}
 <div class="container">
+  <h2>Changeset {{ changeset.id }}</h2>
   <div class="row">
-    <h2>Changeset {{ changeset.id }}</h2>
-    <h3>{% trans 'Elements created, modified and deleted' %}</h3>
-    <hr>
-    <h1>
-      <span class="label label-success">{{ changeset.create }}</span>
-      <span class="label label-warning">{{ changeset.modify }}</span>
-      <span class="label label-danger">{{ changeset.delete }}</span>
-    </h1>
+    <div class="col-xs-12 col-md-6">
+      <h3>{% trans 'Elements created, modified and deleted' %}</h3>
+      <hr>
+      <h1>
+        <span class="label label-success">{{ changeset.create }}</span>
+        <span class="label label-warning">{{ changeset.modify }}</span>
+        <span class="label label-danger">{{ changeset.delete }}</span>
+      </h1>
+    </div>
+    {% if changeset.is_suspect %}
+    <div class="col-xs-12 col-md-6">
+      <h3>{% trans 'Suspicion reasons' %}</h3>
+      <hr>
+      <ul>
+        {% for reason in changeset.reasons.all %}
+        <li>{{ reason.name|capfirst }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
   </div>
 
-  {% if changeset.is_suspect %}
-  <div class="row">
-    <h3>{% trans 'Suspicion reasons' %}</h3>
-    <hr>
-    <ul>
-      {% for reason in changeset.reasons.all %}
-      <li>{{ reason.name|capfirst }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
 
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
