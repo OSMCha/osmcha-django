@@ -46,6 +46,12 @@ class Changeset(models.Model):
         """Return the link to the changeset page on ACHAVI."""
         return 'https://overpass-api.de/achavi/?changeset=%s' % self.id
 
+    def josm_link(self):
+        """Return link to open changeset in JOSM."""
+        josm_base = "http://127.0.0.1:8111/import?url="
+        changeset_url = "http://www.openstreetmap.org/api/0.6/changeset/%s/download" % self.id
+        return "%s%s" % (josm_base, changeset_url,)
+
 
 class Import(models.Model):
     """Class to register the import of Changesets."""

@@ -45,6 +45,12 @@ class TestChangesetModel(TestCase):
             self.changeset.osm_link(),
             'http://www.openstreetmap.org/changeset/31982803'
             )
+        self.assertEqual(
+            self.changeset.josm_link(),
+            ('http://127.0.0.1:8111/import?url='
+             'http://www.openstreetmap.org/api/0.6/changeset/31982803/download'
+             )
+            )
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
 
 
