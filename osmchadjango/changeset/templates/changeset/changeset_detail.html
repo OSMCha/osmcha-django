@@ -118,5 +118,6 @@
 {% endblock content %}
 
 {% block javascript %}
+  {{ block.super }}
 <script src="{% static 'js/josm_link.js' %}"></script>
 {% endblock javascript %}
