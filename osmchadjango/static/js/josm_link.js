@@ -11,7 +11,7 @@
                     //opened successfully, don't do anything
                 })
                 .fail(function(err) {
-                    alert("Failed to open in JOSM. Is JOSM running?");
+                    alert("Failed to open in JOSM. Is JOSM running and with remote control enabled?");
                 });
         });
     });
