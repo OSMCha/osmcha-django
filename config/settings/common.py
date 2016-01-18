@@ -255,4 +255,9 @@ LOGGING = {
     }
 }
 
+# PROJECT CONFIGURATION
+# If you want to filter the import of changesets to a defined area of the world,
+# define CHANGESETS_FILTER as a path to a GeoJSON file.
+CHANGESETS_FILTER = None
+
 # Your common stuff: Below this line define 3rd party library settings
