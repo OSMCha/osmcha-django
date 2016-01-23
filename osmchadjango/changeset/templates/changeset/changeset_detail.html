@@ -83,9 +83,9 @@
           <p class="list-group-item-text">
             {% if changeset.checked %}
               {% if changeset.harmful %}
-                <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Verified and marked as harmful' %}
+                <span class="glyphicon glyphicon-thumbs-down"></span> {% blocktrans with check_user=changeset.check_user%}Verified by <strong>{{ check_user }}</strong> and marked as harmful{% endblocktrans %}
               {% else %}
-                <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Verified and marked as good' %}
+                <span class="glyphicon glyphicon-thumbs-up"></span> {% blocktrans with check_user=changeset.check_user%}Verified by <strong>{{ check_user }}</strong> and marked as good{% endblocktrans %}
               {% endif %}
             {% else %}
               <div class="btn-group">
