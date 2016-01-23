@@ -29,7 +29,6 @@
     {% endif %}
   </div>
 
-
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
     <hr>
@@ -79,12 +78,18 @@
         </div>
         <div class="list-group-item">
           <h4 class="list-group-item-heading">{% trans 'Verification' %}</h4>
-          <p class="list-group-item-text">
+          <div class="list-group-item-text">
             {% if changeset.checked %}
               {% if changeset.harmful %}
-                <span class="glyphicon glyphicon-thumbs-down"></span> {% blocktrans with check_user=changeset.check_user%}Verified by <strong>{{ check_user }}</strong> and marked as harmful{% endblocktrans %}
+                <span class="glyphicon glyphicon-thumbs-down"></span>
+                {% blocktrans with check_user=changeset.check_user%}
+                  Verified by <strong>{{ check_user }}</strong> and marked as harmful
+                {% endblocktrans %}
               {% else %}
-                <span class="glyphicon glyphicon-thumbs-up"></span> {% blocktrans with check_user=changeset.check_user%}Verified by <strong>{{ check_user }}</strong> and marked as good{% endblocktrans %}
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+                {% blocktrans with check_user=changeset.check_user%}
+                  Verified by <strong>{{ check_user }}</strong> and marked as good
+                {% endblocktrans %}
               {% endif %}
             {% else %}
               <div class="btn-group">
@@ -118,7 +123,7 @@
               </div>
 
             {% endif %}
-          </p>
+          </div>
         </div>
       </div>
     </div>
