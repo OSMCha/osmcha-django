@@ -165,6 +165,9 @@
             </h4>
           </div>
           <div class="modal-body">
+            <div class="alert alert-danger" role="alert">
+              <p>{% trans 'Only mark a changeset as harmful if you have already fixed or reverted it.' %}</p>
+            </div>
             <form action="{% url 'changeset:set_harmful' changeset.pk %}" method="post">{% csrf_token %}
               <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
               <a class="btn btn-default" data-dismiss="modal">
