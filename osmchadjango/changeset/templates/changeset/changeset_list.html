@@ -37,6 +37,11 @@
               <td>
                 {% if changeset.checked %}
                   <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+                  {% if changeset.harmful %}
+                    <span class="glyphicon glyphicon-thumbs-down"></span>
+                  {% else %}
+                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                  {% endif %}
                 {% else %}
                   <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
                 {% endif %}
