@@ -119,6 +119,14 @@
                       <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
                     </a>
                   </li>
+                  {% if request.user.is_authenticated %}
+                  <li>
+                    <a class="whitelist-user" data-username="{{ changeset.user }}" href="#">
+                      <span class="glyphicon glyphicon-thumbs-up"></span>
+                      {% trans 'White-list this user' %}
+                    </a>
+                  </li>
+                  {% endif %}
                 </ul>
               </div>
 
@@ -192,4 +200,5 @@
 {% block javascript %}
   {{ block.super }}
 <script src="{% static 'js/josm_link.js' %}"></script>
+<script src="{% static 'js/whitelist_user.js' %}"></script>
 {% endblock javascript %}

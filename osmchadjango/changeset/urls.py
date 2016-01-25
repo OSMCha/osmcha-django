@@ -28,4 +28,9 @@ urlpatterns = [
         view=login_required(views.SetGoodChangeset.as_view()),
         name='set_good'
     ),
+    url(
+        regex=r'^whitelist-user$',
+        view='osmchadjango.changeset.views.whitelist_user',
+        name='whitelist_user'
+    )
 ]
