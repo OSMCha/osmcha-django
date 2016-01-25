@@ -1,1 +1,17 @@
 {% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans 'About OSMCHA' %}{% endblock %}
+
+{% block content %}
+<h2 class="page-header">{% trans 'About OSMCHA' %}</h2>
+<p>
+  {% blocktrans %}
+  OSMCHA is a tool to help identify OpenStreetMap changesets with a big number of changes or with suspect words like "import", "google", "waze", etc.
+  Furthermore, it can be used as a peer revision system, any OSM user can verify the edits of another user.
+  {% endblocktrans %}
+</p>
+<p>
+  {% trans 'OSMCHA is Open Source. Collaborate with us on' %} <a href="https://github.com/willemarcel/osmcha-django">GitHub</a>.
+</p>
+{% endblock content %}
