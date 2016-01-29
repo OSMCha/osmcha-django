@@ -5,6 +5,44 @@
 {% block title %}{% trans 'OSMCHA - Changeset List' %}{% endblock %}
 
 {% block content %}
+  <div class="filters">
+    <form action="." method="GET">
+      <div class="field-container">
+        <label for="create__gte">
+          Min. Additions:
+        </label>
+        <input name="create__gte" />
+      </div>
+      <div class="field-container">
+        <label for="modify__gte">
+          Min. Modifications:
+        </label>
+        <input name="modify__gte" />
+      </div>
+      <div class="field-container">
+        <label for="delete__gte">
+          Min. Deletions:
+        </label>
+        <input name="delete__gte" />
+      </div>
+      <div class="field-container">
+        <label for="reasons">
+          Reason:
+        </label>
+        <select name="reasons">
+          <option value="">---------</option>
+          {% for reason in suspicion_reasons %}
+            <option value="{{ reason.id }}">
+              {{ reason.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-container">
+        <input type="submit" />
+      </div>
+    </form>
+  </div>
   {% if changesets %}
     <div class="table-responsive">
       <table class="table table-striped">

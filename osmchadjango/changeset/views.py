@@ -6,8 +6,10 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 
-from .models import Changeset, UserWhitelist
+from .models import Changeset, UserWhitelist, SuspicionReasons
 from django.views.decorators.csrf import csrf_exempt
+from filters import ChangesetFilter
+
 
 class ChangesetListView(ListView):
     """List Changesets"""
@@ -15,8 +17,18 @@ class ChangesetListView(ListView):
     context_object_name = 'changesets'
     paginate_by = 15
 
+    def get_context_data(self, **kwargs):
+        context = super(ChangesetListView, self).get_context_data(**kwargs)
+        suspicion_reasons = SuspicionReasons.objects.all()
+        context.update({
+            'suspicion_reasons': suspicion_reasons
+        })
+        return context
+
     def get_queryset(self):
         queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
+        queryset = ChangesetFilter(self.request.GET, queryset=queryset).qs
+        # import pdb;pdb.set_trace()
         user = self.request.user
         if not user.is_authenticated():
             return queryset
