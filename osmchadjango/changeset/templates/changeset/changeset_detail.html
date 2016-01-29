@@ -44,6 +44,9 @@
             <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
               {{ changeset.user }}
             </a>
+            <a class="btn btn-warning btn-xs pull-right" target="_blank" href="http://hdyc.neis-one.org/user/{{ changeset.user }}">
+              {% trans 'HDYC' %}
+            </a>
           </p>
         </div>
         <div class="list-group-item">
@@ -83,12 +86,12 @@
               {% if changeset.harmful %}
                 <span class="glyphicon glyphicon-thumbs-down"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as harmful
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
                 {% endblocktrans %}
               {% else %}
                 <span class="glyphicon glyphicon-thumbs-up"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as good
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
                 {% endblocktrans %}
               {% endif %}
             {% else %}
