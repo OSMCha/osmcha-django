@@ -11,19 +11,37 @@
         <label for="create__gte">
           Min. Additions:
         </label>
-        <input name="create__gte" />
+        <input name="create__gte" value="{{ get.create__gte }}"/>
       </div>
       <div class="field-container">
         <label for="modify__gte">
           Min. Modifications:
         </label>
-        <input name="modify__gte" />
+        <input name="modify__gte" value="{{ get.modify__gte }}"/>
       </div>
       <div class="field-container">
         <label for="delete__gte">
           Min. Deletions:
         </label>
-        <input name="delete__gte" />
+        <input name="delete__gte" value="{{ get.delete__gte }}" />
+      </div>
+      <div class="field-container">
+        <label for="editor__icontains">
+          Editor:
+        </label>
+        <input name="editor__icontains" value="{{ get.editor__icontains }}" />
+      </div>
+      <div class="field-container">
+        <label for="comment__icontains">
+          Comment:
+        </label>
+        <input name="comment__icontains" value="{{ comment__icontains }}" />
+      </div>
+      <div class="field-container">
+        <label for="username">
+          User:
+        </label>
+        <input name="username" value="{{ username }}" />
       </div>
       <div class="field-container">
         <label for="reasons">
@@ -32,8 +50,21 @@
         <select name="reasons">
           <option value="">---------</option>
           {% for reason in suspicion_reasons %}
-            <option value="{{ reason.id }}">
+            <option value="{{ reason.id }}" {% if get.reason == reason.id %} selected="selected" {% endif %}>
               {{ reason.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-container">
+        <label for="sort">
+          Sort:
+        </label>
+        <select name="sort">
+          <option value="">---------</option>
+          {% for key, value in sorts.items %}
+            <option value="{{ key }}" {% if key == get.sort %} selected="selected" {% endif %}>
+              {{ value }}
             </option>
           {% endfor %}
         </select>

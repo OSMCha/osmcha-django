@@ -20,20 +20,38 @@ class ChangesetListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(ChangesetListView, self).get_context_data(**kwargs)
         suspicion_reasons = SuspicionReasons.objects.all()
+        get = self.request.GET
+        sorts = {
+            '-date': 'Recent First',
+            '-delete': 'Most Deletions First',
+            '-modify': 'Most Modifications First',
+            '-create': 'Most Creations First'
+        }
         context.update({
-            'suspicion_reasons': suspicion_reasons
+            'suspicion_reasons': suspicion_reasons,
+            'get': get,
+            'sorts': sorts
         })
         return context
 
     def get_queryset(self):
         queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-        queryset = ChangesetFilter(self.request.GET, queryset=queryset).qs
+        params = {}
+        for key in self.request.GET:
+            if self.request.GET.has_key(key) and self.request.GET[key] != '':
+                params[key] = self.request.GET[key]
+        if params.has_key('username'):
+            params['user'] = params['username']
+        queryset = ChangesetFilter(params, queryset=queryset).qs
         # import pdb;pdb.set_trace()
         user = self.request.user
         if not user.is_authenticated():
             return queryset
         whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-        return queryset.exclude(user__in=whitelisted_users)
+        queryset = queryset.exclude(user__in=whitelisted_users)
+        if self.request.GET.has_key('sort') and self.request.GET['sort'] != '':
+            queryset = queryset.order_by(self.request.GET['sort'])
+        return queryset
 
 
 class ChangesetDetailView(DetailView):
