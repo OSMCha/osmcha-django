@@ -80,7 +80,7 @@ CACHES = {
 
 
 # Your production stuff: Below this line define 3rd party library settings
-CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', None)
+CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
 # PYTHON SOCIAL AUTH
 INSTALLED_APPS += ('social.apps.django_app.default',)
