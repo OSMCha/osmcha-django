@@ -104,3 +104,10 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
 )
+
+CELERYBEAT_SCHEDULE = {
+    'schedule-name': {
+        'task': 'osmchadjango.changeset.tasks.fetch_latest',
+        'schedule': 60 #Run every 60 seconds
+    },
+}
