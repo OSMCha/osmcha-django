@@ -1,19 +1,57 @@
 from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 
-from .models import Changeset
+from .models import Changeset, UserWhitelist, SuspicionReasons
+from django.views.decorators.csrf import csrf_exempt
+from filters import ChangesetFilter
 
 
 class ChangesetListView(ListView):
     """List Changesets"""
-    queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
+    # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
     context_object_name = 'changesets'
     paginate_by = 15
+
+    def get_context_data(self, **kwargs):
+        context = super(ChangesetListView, self).get_context_data(**kwargs)
+        suspicion_reasons = SuspicionReasons.objects.all()
+        get = self.request.GET
+        sorts = {
+            '-date': 'Recent First',
+            '-delete': 'Most Deletions First',
+            '-modify': 'Most Modifications First',
+            '-create': 'Most Creations First'
+        }
+        context.update({
+            'suspicion_reasons': suspicion_reasons,
+            'get': get,
+            'sorts': sorts
+        })
+        return context
+
+    def get_queryset(self):
+        queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
+        params = {}
+        for key in self.request.GET:
+            if self.request.GET.has_key(key) and self.request.GET[key] != '':
+                params[key] = self.request.GET[key]
+        if params.has_key('username'):
+            params['user'] = params['username']
+        queryset = ChangesetFilter(params, queryset=queryset).qs
+        # import pdb;pdb.set_trace()
+        user = self.request.user
+        if not user.is_authenticated():
+            return queryset
+        whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
+        queryset = queryset.exclude(user__in=whitelisted_users)
+        if self.request.GET.has_key('sort') and self.request.GET['sort'] != '':
+            queryset = queryset.order_by(self.request.GET['sort'])
+        return queryset
 
 
 class ChangesetDetailView(DetailView):
@@ -74,3 +112,23 @@ class SetGoodChangeset(SingleObjectMixin, View):
             return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
         else:
             return render(request, 'changeset/not_allowed.html')
+
+
+@csrf_exempt
+def whitelist_user(request):
+    '''
+        View to mark a user as whitelisted.
+        Accepts a single post parameter with the 'name' of the user to be white-listed.
+        Whitelists that user for the currently logged in user.
+        TODO: can this be converted to a CBV?
+    '''
+    name = request.POST.get('name', None)
+    user = request.user
+    if not user.is_authenticated():
+        return JsonResponse({'error': 'Not authenciated'}, status=401)
+    if not name:
+        return JsonResponse({'error': 'Needs name parameter'}, status=403)
+    uw = UserWhitelist(user=user, whitelist_user=name)
+    uw.save()
+    return JsonResponse({'success': 'User %s has been white-listed' % name})
+

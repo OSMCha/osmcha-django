@@ -12,9 +12,20 @@ class SuspicionReasons(models.Model):
         return self.name
 
 
+class UserWhitelist(models.Model):
+    user = models.ForeignKey(User)
+    whitelist_user = models.CharField(max_length=1000)
+
+    def __str__(self):
+        return '%s' % self.whitelist_user
+
+    class Meta:
+        unique_together = ('user', 'whitelist_user',)
+
+
 class Changeset(models.Model):
 
-    user = models.CharField(max_length=1000)
+    user = models.CharField(max_length=1000, db_index=True)
     uid = models.CharField(_('User ID'), max_length=255)
     editor = models.CharField(max_length=255)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
