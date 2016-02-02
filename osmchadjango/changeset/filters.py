@@ -7,7 +7,7 @@ class ChangesetFilter(django_filters.FilterSet):
     class Meta:
         model = Changeset
         fields = {
-            'reasons': ['exact'],
+            # 'reasons': ['exact'],
             'create': ['gte'],
             'modify': ['gte'],
             'delete': ['gte'],

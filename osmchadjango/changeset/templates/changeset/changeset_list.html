@@ -35,13 +35,13 @@
         <label for="comment__icontains">
           Comment:
         </label>
-        <input name="comment__icontains" value="{{ comment__icontains }}" />
+        <input name="comment__icontains" value="{{ get.comment__icontains }}" />
       </div>
       <div class="field-container">
         <label for="username">
           User:
         </label>
-        <input name="username" value="{{ username }}" />
+        <input name="username" value="{{ get.username }}" />
       </div>
       <div class="field-container">
         <label for="reasons">
@@ -50,7 +50,7 @@
         <select name="reasons">
           <option value="">---------</option>
           {% for reason in suspicion_reasons %}
-            <option value="{{ reason.id }}" {% if get.reason == reason.id %} selected="selected" {% endif %}>
+            <option value="{{ reason.id }}" {% if get.reasons|add:"0" == reason.id %} selected="selected" {% endif %}>
               {{ reason.name }}
             </option>
           {% endfor %}

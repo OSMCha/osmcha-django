@@ -40,9 +40,11 @@ class ChangesetListView(ListView):
         for key in self.request.GET:
             if self.request.GET.has_key(key) and self.request.GET[key] != '':
                 params[key] = self.request.GET[key]
-        if params.has_key('username'):
+        if 'username' in params:
             params['user'] = params['username']
         queryset = ChangesetFilter(params, queryset=queryset).qs
+        if 'reasons' in params:
+            queryset = queryset.filter(reasons=int(params['reasons']))
         # import pdb;pdb.set_trace()
         user = self.request.user
         if not user.is_authenticated():
