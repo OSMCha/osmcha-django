@@ -261,3 +261,35 @@ LOGGING = {
 CHANGESETS_FILTER = None
 
 # Your common stuff: Below this line define 3rd party library settings
+
+CHANGESETS_FILTER = None
+
+CELERYBEAT_SCHEDULE = {
+    'schedule-name': {
+        'task': 'osmchadjango.changeset.tasks.fetch_latest',
+        'schedule': 60
+    },
+}
+
+INSTALLED_APPS += ('social.apps.django_app.default',)
+AUTHENTICATION_BACKENDS = (
+    'social.backends.openstreetmap.OpenStreetMapOAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
+SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+SOCIAL_AUTH_OPENSTREETMAP_KEY = '6khq3xFRlxl7uQDVdXCLkgiizM8VAjTM8V0YnXcl'
+SOCIAL_AUTH_OPENSTREETMAP_SECRET = 'xLvNHspGw7oT3ifrkx5jpeaM8FNO19d6UOyefv87'
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.get_username',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details'
+)
