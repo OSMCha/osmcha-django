@@ -13,5 +13,6 @@ class ChangesetFilter(django_filters.FilterSet):
             'delete': ['gte'],
             'editor': ['icontains'],
             'comment': ['icontains'],
+            'source': ['icontains'],
             'user': ['exact']
         }
