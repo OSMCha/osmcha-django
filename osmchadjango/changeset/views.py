@@ -20,7 +20,9 @@ class ChangesetListView(ListView):
     def get_context_data(self, **kwargs):
         context = super(ChangesetListView, self).get_context_data(**kwargs)
         suspicion_reasons = SuspicionReasons.objects.all()
-        get = self.request.GET
+        get = self.request.GET.dict()
+        if 'is_suspect' not in get:
+            get['is_suspect'] = 'True'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -35,13 +37,17 @@ class ChangesetListView(ListView):
         return context
 
     def get_queryset(self):
-        queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
+        # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
+        queryset = Changeset.objects.all()
         params = {}
-        for key in self.request.GET:
-            if self.request.GET.has_key(key) and self.request.GET[key] != '':
-                params[key] = self.request.GET[key]
+        GET_dict = self.request.GET.dict()
+        for key in GET_dict:
+            if key in GET_dict and GET_dict[key] != '':
+                params[key] = GET_dict[key]
         if 'username' in params:
             params['user'] = params['username']
+        if 'is_suspect' not in params:
+            params['is_suspect'] = 'True'
         queryset = ChangesetFilter(params, queryset=queryset).qs
         if 'reasons' in params:
             queryset = queryset.filter(reasons=int(params['reasons']))
@@ -51,8 +57,10 @@ class ChangesetListView(ListView):
             return queryset
         whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
         queryset = queryset.exclude(user__in=whitelisted_users)
-        if self.request.GET.has_key('sort') and self.request.GET['sort'] != '':
-            queryset = queryset.order_by(self.request.GET['sort'])
+        if 'sort' in GET_dict and GET_dict['sort'] != '':
+            queryset = queryset.order_by(GET_dict['sort'])
+        else:
+            queryset = queryset.order_by('-date')
         return queryset
 
 

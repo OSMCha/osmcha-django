@@ -50,6 +50,14 @@
         <input name="username" value="{{ get.username }}" />
       </div>
       <div class="field-container">
+        <label for="is_suspect">
+          Show changesets:
+        </label>
+        <br />
+        Show only suspicious: <input name="is_suspect" type="radio" value="True" {% if get.is_suspect == 'True' %} checked {% endif %} />
+        Show all: <input name="is_suspect" type="radio" value="False" {% if get.is_suspect == 'False' %} checked {% endif %} />
+      </div>
+      <div class="field-container">
         <label for="reasons">
           Reason:
         </label>

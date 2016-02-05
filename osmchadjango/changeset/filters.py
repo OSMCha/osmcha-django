@@ -14,5 +14,6 @@ class ChangesetFilter(django_filters.FilterSet):
             'editor': ['icontains'],
             'comment': ['icontains'],
             'source': ['icontains'],
-            'user': ['exact']
+            'user': ['exact'],
+            'is_suspect': ['exact']
         }
