@@ -1,4 +1,5 @@
 # Bleeding edge Django
+
 django==1.8.8
 
 # Configuration
@@ -38,3 +39,4 @@ celery==3.1.19
 PyYAML==3.11
 git+https://github.com/willemarcel/osmcha
 django-filter
+django-query-parameters

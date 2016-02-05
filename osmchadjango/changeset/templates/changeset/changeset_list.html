@@ -138,17 +138,18 @@
     <div class="alert alert-danger">{% trans 'No changesets found.' %}</div>
   {% endif %}
 
+  {% load query_parameters %}
   {% if paginator %}
     <p class="text-muted text-pagination">
       {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}
     </p>
     <ul class="pager">
       {% if page_obj.has_previous %}
-        <li><a href="?page={{ page_obj.previous_page_number }}&{{ queries.urlencode }}">&larr; {% trans 'Previous' %}</a></li>
+        <li><a href="?{% set_query_parameters page=page_obj.previous_page_number %}">&larr; {% trans 'Previous' %}</a></li>
       {% endif %}
 
       {% if page_obj.has_next %}
-        <li><a href="?page={{ page_obj.next_page_number }}&{{ queries.urlencode }}">{% trans 'Next' %} &rarr;</a></li>
+        <li><a href="?{% set_query_parameters page=page_obj.next_page_number %}">{% trans 'Next' %} &rarr;</a></li>
       {% endif %}
     </ul>
   {% endif %}
