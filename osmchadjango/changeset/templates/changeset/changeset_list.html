@@ -96,7 +96,8 @@
             <th>{% trans 'ID' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
-            <th>{% trans 'Editor' %}</th>
+            <!-- <th>{% trans 'Editor' %}</th> -->
+            <th>{% trans 'Comment' %}</th>
             <th>{% trans 'Count' %}</th>
             <th>{% trans 'Reasons' %}</th>
             <th>{% trans 'Verified' %}</th>
@@ -110,7 +111,10 @@
               </td>
               <td>{{ changeset.date }}</td>
               <td>{{ changeset.user }}</td>
-              <td>{{ changeset.editor }}</td>
+              <!-- <td>{{ changeset.editor }}</td> -->
+              <td>
+                {{ changeset.comment|truncatechars:22 }}
+              </td>
               <td>
                 <span class="label label-success">{{ changeset.create }}</span>
                 <span class="label label-warning">{{ changeset.modify }}</span>
