@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.db.models import Q, Count
 
 from .models import Changeset, UserWhitelist, SuspicionReasons
 from django.views.decorators.csrf import csrf_exempt
@@ -56,7 +57,8 @@ class ChangesetListView(ListView):
         if not user.is_authenticated():
             return queryset
         whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-        queryset = queryset.exclude(user__in=whitelisted_users)
+        users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
+        queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
         if 'sort' in GET_dict and GET_dict['sort'] != '':
             queryset = queryset.order_by(GET_dict['sort'])
         else:
