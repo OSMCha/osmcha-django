@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Stats %}{% endblock %}
+
+{% block content %}
+  <h2>{% trans 'Statistics' %}</h2>
+  <p>{% trans 'Total number of changesets checked' %}: {{ checked }}</p>
+  <p>{% trans 'Total number of harmful changesets found' %}: {{ harmful }}</p>
+  <p>{% trans 'Number of users white-listed' %}: {{ users_whitelisted}}</p>
+{% endblock content %}
