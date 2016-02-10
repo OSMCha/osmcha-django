@@ -12,6 +12,40 @@ from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
 
 
+class CheckedChangesetsView(ListView):
+    context_object_name = 'changesets'
+    paginate_by = 15
+    template_name = 'changeset/changeset_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(CheckedChangesetsView, self).get_context_data(**kwargs)
+        context.update({
+            'hide_filters': True,
+            'search_title': _('Checked Changesets')
+        })
+        return context
+
+    def get_queryset(self):
+        return Changeset.objects.filter(checked=True)
+
+
+class HarmfulChangesetsView(ListView):
+    context_object_name = 'changesets'
+    paginate_by = 15
+    template_name = 'changeset/changeset_list.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(HarmfulChangesetsView, self).get_context_data(**kwargs)
+        context.update({
+            'hide_filters': True,
+            'search_title': _('Harmful Changesets')
+        })
+        return context
+
+    def get_queryset(self):
+        return Changeset.objects.filter(harmful=True)
+
+
 class ChangesetListView(ListView):
     """List Changesets"""
     # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')

@@ -47,5 +47,15 @@ urlpatterns = [
         regex=r'^all-whitelist-users$',
         view='osmchadjango.changeset.views.all_whitelist_users',
         name='all_whitelist_users'
+    ),
+    url(
+        regex=r'^checked-changesets$',
+        view=views.CheckedChangesetsView.as_view(),
+        name='checked_changesets'
+    ),
+    url(
+        regex=r'^harmful-changesets$',
+        view=views.HarmfulChangesetsView.as_view(),
+        name='harmful_changesets'
     )
 ]

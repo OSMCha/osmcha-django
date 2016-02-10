@@ -5,6 +5,10 @@
 {% block title %}{% trans 'OSMCHA - Changeset List' %}{% endblock %}
 
 {% block content %}
+  {% if search_title %}
+    <h3>{{ search_title }}</h3>
+  {% endif %}
+  {% if not hide_filters %}
   <div class="filters">
     <form action="." method="GET">
       <div class="field-container">
@@ -88,6 +92,7 @@
       </div>
     </form>
   </div>
+  {% endif %}
   {% if changesets %}
     <div class="table-responsive">
       <table class="table table-striped">

@@ -5,8 +5,18 @@
 
 {% block content %}
   <h2>{% trans 'Statistics' %}</h2>
-  <p>{% trans 'Total number of changesets checked' %}: {{ checked }}</p>
-  <p>{% trans 'Total number of harmful changesets found' %}: {{ harmful }}</p>
+  <p>
+      {% trans 'Total number of changesets checked' %}: 
+      <a href="{% url 'changeset:checked_changesets' %}">
+          {{ checked }}
+      </a>
+  </p>
+  <p>
+      {% trans 'Total number of harmful changesets found' %}: 
+      <a href="{% url 'changeset:harmful_changesets' %}">
+          {{ harmful }}
+      </a>
+  </p>
   <p>
       {% trans 'Number of users white-listed' %}: 
       <a href="{% url 'changeset:all_whitelist_users' %}">
