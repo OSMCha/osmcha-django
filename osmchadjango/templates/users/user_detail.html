@@ -27,10 +27,47 @@
   </div>
 
 </div>
+
+<div>
+  <h3>Whitelisted Users:</h3>
+  {% for w in whitelist %}
+    <div>
+      <input type="checkbox" class="checkbox-user" data-username="{{ w.whitelist_user }}" />
+      {{ w.whitelist_user }}
+    </div>
+  {% endfor %}
+    <button class="btn btn-primary" id="removeFromWhitelist">
+      Remove selected users from whitelist
+    </button>
+</div>
 <!-- End Action buttons -->
 {% endif %}
 
-
 </div>
 {% endblock content %}
+
+{% block javascript %}
+  {{ block.super }}
+  <script>
+    $(function() {
+      $('#removeFromWhitelist').click(function() {
+        var names = [];
+        $('.checkbox-user').each(function() {
+          if ($(this).prop('checked')) {
+            var name = $(this).attr('data-username');
+            names.push(name);
+            $(this).parent().remove();
+          }
+        });
+        var namesString = names.join(',');
+        console.log('names', namesString);
+        $.post("/remove-from-whitelist", {
+          'names': namesString
+        }, function(response) {
+          console.log(response);
+        });
+      });
+    });
+  </script>
+{% endblock %}
 

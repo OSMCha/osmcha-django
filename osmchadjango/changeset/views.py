@@ -135,10 +135,21 @@ def whitelist_user(request):
     name = request.POST.get('name', None)
     user = request.user
     if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenciated'}, status=401)
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
     if not name:
         return JsonResponse({'error': 'Needs name parameter'}, status=403)
     uw = UserWhitelist(user=user, whitelist_user=name)
     uw.save()
     return JsonResponse({'success': 'User %s has been white-listed' % name})
 
+@csrf_exempt
+def remove_from_whitelist(request):
+    names = request.POST.get('names', None)
+    user = request.user
+    if not user.is_authenticated():
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if not names:
+        return JsonResponse({'error': 'Needs name parameter'}, status=403)    
+    names_array = names.split(',')
+    UserWhitelist.objects.filter(user=user).filter(whitelist_user__in=names_array).delete()
+    return JsonResponse({'success': 'Users removed from whitelist'})
