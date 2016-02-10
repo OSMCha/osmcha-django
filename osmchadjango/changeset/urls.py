@@ -42,5 +42,10 @@ urlpatterns = [
         regex=r'^stats$',
         view='osmchadjango.changeset.views.stats',
         name='stats'
+    ),
+    url(
+        regex=r'^all-whitelist-users$',
+        view='osmchadjango.changeset.views.all_whitelist_users',
+        name='all_whitelist_users'
     )
 ]

@@ -173,3 +173,10 @@ def stats(request):
         'users_whitelisted': users_whitelisted
     }
     return render(request, 'changeset/stats.html', context=context)
+
+def all_whitelist_users(request):
+    all_users = UserWhitelist.objects.values('whitelist_user').distinct()
+    context = {
+        'users': all_users
+    }
+    return render(request, 'changeset/all_whitelist_users.html', context=context)

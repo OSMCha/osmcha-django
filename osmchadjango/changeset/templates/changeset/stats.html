@@ -7,5 +7,10 @@
   <h2>{% trans 'Statistics' %}</h2>
   <p>{% trans 'Total number of changesets checked' %}: {{ checked }}</p>
   <p>{% trans 'Total number of harmful changesets found' %}: {{ harmful }}</p>
-  <p>{% trans 'Number of users white-listed' %}: {{ users_whitelisted}}</p>
+  <p>
+      {% trans 'Number of users white-listed' %}: 
+      <a href="{% url 'changeset:all_whitelist_users' %}">
+          {{ users_whitelisted}}
+      </a>
+  </p>
 {% endblock content %}
