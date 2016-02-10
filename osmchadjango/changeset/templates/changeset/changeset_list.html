@@ -115,7 +115,11 @@
                 <a href="{% url 'changeset:detail' changeset.id %}">{{ changeset.id }}</a>
               </td>
               <td>{{ changeset.date }}</td>
-              <td>{{ changeset.user }}</td>
+              <td>
+                <a href="?username={{ changeset.user }}&is_suspect=False">
+                  {{ changeset.user }}
+                </a>
+              </td>
               <!-- <td>{{ changeset.editor }}</td> -->
               <td>
                 {{ changeset.comment|truncatechars:22 }}
