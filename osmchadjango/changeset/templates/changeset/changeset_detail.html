@@ -15,6 +15,11 @@
         <span class="label label-warning">{{ changeset.modify }}</span>
         <span class="label label-danger">{{ changeset.delete }}</span>
       </h1>
+      {% if not changeset.checked and request.user.is_authenticated %}
+      <form class="pull-left" action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
+        <button class="btn btn-primary btn-success" type="submit">{% trans "Mark as Good" %}</button>
+      </form>
+      {% endif %}
     </div>
     {% if changeset.is_suspect %}
     <div class="col-xs-12 col-md-6">
