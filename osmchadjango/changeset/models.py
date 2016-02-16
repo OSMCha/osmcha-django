@@ -73,7 +73,7 @@ class Changeset(models.Model):
         return "%s%s" % (josm_base, changeset_url,)
 
     def save_user_details(self, ch):
-        user_details = ch.get('user_details', None)
+        user_details = ch.user_details
         if not user_details:
             return None
         data = {
