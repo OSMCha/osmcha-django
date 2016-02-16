@@ -23,10 +23,19 @@ class UserWhitelist(models.Model):
         unique_together = ('user', 'whitelist_user',)
 
 
+class UserDetail(models.Model):
+    name = models.CharField(max_length=1000)
+    blocks = models.IntegerField()
+
+    def __unicode__(self):
+        return self.name
+
+
 class Changeset(models.Model):
 
     user = models.CharField(max_length=1000, db_index=True)
     uid = models.CharField(_('User ID'), max_length=255)
+    user_detail = models.ForeignKey(UserDetail, blank=True, null=True)
     editor = models.CharField(max_length=255)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
     comment = models.CharField(max_length=1000, blank=True)
@@ -62,6 +71,20 @@ class Changeset(models.Model):
         josm_base = "http://127.0.0.1:8111/import?url="
         changeset_url = "http://www.openstreetmap.org/api/0.6/changeset/%s/download" % self.id
         return "%s%s" % (josm_base, changeset_url,)
+
+    def save_user_details(self, ch):
+        user_details = ch.get('user_details', None)
+        if not user_details:
+            return None
+        data = {
+            'blocks': user_details.get('blocks', 0),
+            'name': user_details.get('name')
+        }
+        user_detail = UserDetail(**data)
+        user_detail.save()
+        self.user_detail = user_detail
+        self.save()
+        return user_detail
 
 
 class Import(models.Model):
