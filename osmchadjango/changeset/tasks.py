@@ -26,6 +26,7 @@ def create_changeset(changeset_id):
             ch_dict.pop(key)
     ch_dict.pop('suspicion_reasons')
 
+    ch_dict.pop('user_details')
     # save changeset
     changeset = Changeset(**ch_dict)
     changeset.save()
@@ -34,6 +35,8 @@ def create_changeset(changeset_id):
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
+            
+    changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 

@@ -84,6 +84,8 @@ class ChangesetListView(ListView):
         if 'is_suspect' not in params:
             params['is_suspect'] = 'True'
         queryset = ChangesetFilter(params, queryset=queryset).qs
+        if 'user_blocks' in params:
+            queryset = queryset.filter(user_detail__blocks__gt=0)
         if 'reasons' in params:
             queryset = queryset.filter(reasons=int(params['reasons']))
         # import pdb;pdb.set_trace()
@@ -194,7 +196,7 @@ def remove_from_whitelist(request):
     if not user.is_authenticated():
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     if not names:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)    
+        return JsonResponse({'error': 'Needs name parameter'}, status=403)
     names_array = names.split(',')
     UserWhitelist.objects.filter(user=user).filter(whitelist_user__in=names_array).delete()
     return JsonResponse({'success': 'Users removed from whitelist'})
