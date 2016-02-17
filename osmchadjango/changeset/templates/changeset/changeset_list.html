@@ -54,6 +54,15 @@
         <input name="username" value="{{ get.username }}" />
       </div>
       <div class="field-container">
+        <label for="user_blocks">
+          User Blocked Before:
+        </label>
+        <input name="user_blocks" type="checkbox" value="True"
+          {% if get.user_blocks == 'True' %}
+          checked
+          {% endif %}
+        />
+      <div class="field-container">
         <label for="is_suspect">
           Show changesets:
         </label>
