@@ -26,6 +26,8 @@ class UserWhitelist(models.Model):
 class UserDetail(models.Model):
     name = models.CharField(max_length=1000, unique=True)
     blocks = models.IntegerField()
+    no = models.IntegerField(null=True, blank=True, help_text='Number of Changesets')
+    since = models.DateTimeField(null=True, blank=True, help_text='Mapper since')
 
     def __unicode__(self):
         return self.name
