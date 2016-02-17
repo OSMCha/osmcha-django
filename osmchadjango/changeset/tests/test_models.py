@@ -3,6 +3,7 @@ from datetime import datetime
 from django.test import TestCase
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
+from osmcha.changeset import Analyse
 
 from ..models import Changeset, SuspicionReasons, Import
 
@@ -52,6 +53,16 @@ class TestChangesetModel(TestCase):
              )
             )
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
+
+    def test_save_user_details(self):
+        ch = Analyse(changeset_id)
+        ch.full_analysis()
+        changeset = Changeset.objects.create(**ch_dict)
+        self.assertIsNone(changeset.user_detail)
+        changeset.save_user_details(ch)
+        self.assertIsNotNone(changeset.user_detail)
+        self.assertIsNotNone(changeset.user_detail['name'])
+        self.assertIsNotNone(changeset.user_detail['blocks'])
 
 
 class TestImportModel(TestCase):
