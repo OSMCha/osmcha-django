@@ -24,7 +24,7 @@ class UserWhitelist(models.Model):
 
 
 class UserDetail(models.Model):
-    name = models.CharField(max_length=1000)
+    name = models.CharField(max_length=1000, unique=True)
     blocks = models.IntegerField()
 
     def __unicode__(self):
@@ -80,8 +80,12 @@ class Changeset(models.Model):
             'blocks': user_details.get('blocks', 0),
             'name': user_details.get('name')
         }
-        user_detail = UserDetail(**data)
-        user_detail.save()
+        try:
+            user_detail = UserDetail.objects.get(name=data['name'])
+        except UserDetail.DoesNotExist:
+            user_detail = UserDetail.objects.create(**data)
+        # user_detail = UserDetail(**data)
+        # user_detail.save()
         self.user_detail = user_detail
         self.save()
         return user_detail
