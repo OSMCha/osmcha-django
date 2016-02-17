@@ -10,94 +10,114 @@
   {% endif %}
   {% if not hide_filters %}
   <div class="filters">
-    <form action="." method="GET">
-      <div class="field-container">
-        <label for="create__gte">
-          Min. Additions:
-        </label>
-        <input name="create__gte" value="{{ get.create__gte }}"/>
+    <form action="." method="GET" class="form-horizontal">
+
+      <div class="form-group">
+        <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
+        </div>
       </div>
-      <div class="field-container">
-        <label for="modify__gte">
-          Min. Modifications:
-        </label>
-        <input name="modify__gte" value="{{ get.modify__gte }}"/>
+
+      <div class="form-group">
+        <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="modify__gte" value="{{ get.modify__gte }}"/>
+        </div>
       </div>
-      <div class="field-container">
-        <label for="delete__gte">
-          Min. Deletions:
-        </label>
-        <input name="delete__gte" value="{{ get.delete__gte }}" />
+
+      <div class="form-group">
+        <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="delete__gte" value="{{ get.delete__gte }}" />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="editor__icontains">
-          Editor:
-        </label>
-        <input name="editor__icontains" value="{{ get.editor__icontains }}" />
+
+      <div class="form-group">
+        <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="source__icontains">
-          Imagery Source:
-        </label>
-        <input name="source__icontains" value="{{ get.source__icontains }}" />
+
+      <div class="form-group">
+        <label for="source__icontains" class="col-sm-2 control-label">Imagery Source</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="source__icontains" value="{{ get.source__icontains }}" />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="comment__icontains">
-          Comment:
-        </label>
-        <input name="comment__icontains" value="{{ get.comment__icontains }}" />
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="username">
-          User:
-        </label>
-        <input name="username" value="{{ get.username }}" />
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="username">User</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="username" value="{{ get.username }}" />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="user_blocks">
-          User Blocked Before:
-        </label>
-        <input name="user_blocks" type="checkbox" value="True"
-          {% if get.user_blocks == 'True' %}
-          checked
-          {% endif %}
-        />
-      <div class="field-container">
-        <label for="is_suspect">
-          Show changesets:
-        </label>
-        <br />
-        Show only suspicious: <input name="is_suspect" type="radio" value="True" {% if get.is_suspect == 'True' %} checked {% endif %} />
-        Show all: <input name="is_suspect" type="radio" value="False" {% if get.is_suspect == 'False' %} checked {% endif %} />
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="user_blocks">User Blocked Before</label>
+        <div class="col-sm-3">
+          <input name="user_blocks" type="checkbox" value="True"
+            {% if get.user_blocks == 'True' %}
+            checked
+            {% endif %}
+          />
+        </div>
       </div>
-      <div class="field-container">
-        <label for="reasons">
-          Reason:
-        </label>
-        <select name="reasons">
-          <option value="">---------</option>
-          {% for reason in suspicion_reasons %}
-            <option value="{{ reason.id }}" {% if get.reasons|add:"0" == reason.id %} selected="selected" {% endif %}>
-              {{ reason.name }}
-            </option>
-          {% endfor %}
-        </select>
+
+      <div class="form-group">
+        <label for="is_suspect" class="col-sm-2 control-label">Show changesets</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="is_suspect" type="radio" value="True" {% if get.is_suspect == 'True' %} checked {% endif %} />
+            Only suspicious
+          </label>
+          <label class="radio-inline">
+            <input name="is_suspect" type="radio" value="False" {% if get.is_suspect == 'False' %} checked {% endif %} />
+            All
+          </label>
+        </div>
       </div>
-      <div class="field-container">
-        <label for="sort">
-          Sort:
-        </label>
-        <select name="sort">
-          <option value="">---------</option>
-          {% for key, value in sorts.items %}
-            <option value="{{ key }}" {% if key == get.sort %} selected="selected" {% endif %}>
-              {{ value }}
-            </option>
-          {% endfor %}
-        </select>
+
+      <div class="form-group">
+        <label for="reasons" class="col-sm-2 control-label">Reason</label>
+        <div class="col-sm-3">
+          <select class="form-control" name="reasons">
+            <option value="">---------</option>
+            {% for reason in suspicion_reasons %}
+              <option value="{{ reason.id }}" {% if get.reasons|add:"0" == reason.id %} selected="selected" {% endif %}>
+                {{ reason.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
       </div>
-      <div class="field-container">
-        <input type="submit" />
+
+      <div class="form-group">
+        <label for="sort" class="col-sm-2 control-label">Sort</label>
+        <div class="col-sm-3">
+          <select class="form-control" name="sort">
+            <option value="">---------</option>
+            {% for key, value in sorts.items %}
+              <option value="{{ key }}" {% if key == get.sort %} selected="selected" {% endif %}>
+                {{ value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <input class="btn btn-primary" type="submit" />
+        </div>
       </div>
     </form>
   </div>
