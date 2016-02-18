@@ -48,7 +48,7 @@ class UserDetail(models.Model):
     changesets_mapping_days = models.CharField(max_length=128)
 
     def __unicode__(self):
-        return self.name
+        return self.contributor_name
 
 
 class Changeset(models.Model):

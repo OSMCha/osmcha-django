@@ -46,7 +46,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c) for c in cl.changesets)()
+    group(create_changeset.s(c['id']) for c in cl.changesets)()
 
 
 def format_url(n):
