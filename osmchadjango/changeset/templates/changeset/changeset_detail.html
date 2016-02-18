@@ -44,15 +44,37 @@
           <p class="list-group-item-text">{{ changeset.date }}</p>
         </div>
         <div class="list-group-item">
-          <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
-          <p class="list-group-item-text">
-            <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
-              {{ changeset.user }}
-            </a>
-            <a class="btn btn-warning btn-xs pull-right" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
-              {% trans 'HDYC' %}
-            </a>
-          </p>
+          <div class="row">
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User edits' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user_detail.changesets_no }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h4 class="list-group-item-heading">{% trans 'Mapper since' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user_detail.contributor_since.date }}
+                </a>
+              </p>
+              <p class="list-group-item-text">
+                <a class="btn btn-warning btn-xs pull-right" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
+                  {% trans 'HDYC' %}
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
         <div class="list-group-item">
           <h4 class="list-group-item-heading">{% trans 'Editor' %}</h4>
