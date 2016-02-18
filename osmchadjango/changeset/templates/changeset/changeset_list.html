@@ -17,6 +17,10 @@
         <div class="col-sm-3">
           <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
         </div>
+        <label for="create__lte" class="col-sm-2 control-label">Max. Additions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="create__lte" value="{{ get.create__lte }}"/>
+        </div>
       </div>
 
       <div class="form-group">
@@ -24,12 +28,20 @@
         <div class="col-sm-3">
           <input class="form-control" name="modify__gte" value="{{ get.modify__gte }}"/>
         </div>
+        <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="modify__lte" value="{{ get.modify__lte }}"/>
+        </div>
       </div>
 
       <div class="form-group">
         <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
         <div class="col-sm-3">
           <input class="form-control" name="delete__gte" value="{{ get.delete__gte }}" />
+        </div>
+        <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="delete__lte" value="{{ get.delete__lte }}" />
         </div>
       </div>
 
