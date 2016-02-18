@@ -9,7 +9,7 @@
     <h3>{{ search_title }}</h3>
   {% endif %}
   {% if not hide_filters %}
-  <div class="filters">
+  <div id="filters" class="filters">
     <form action="." method="GET" class="form-horizontal">
 
       <div class="form-group">
@@ -133,6 +133,8 @@
       </div>
     </form>
   </div>
+  <button class="btn btn-default" id="toggle-filters">Show / Hide Filters</button>
+
   {% endif %}
   {% if changesets %}
     <div class="table-responsive">
@@ -208,4 +210,10 @@
     </ul>
   {% endif %}
 
+<script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+<script>
+$('#toggle-filters').click(function() {
+    $('#filters').toggle();
+});
+</script>
 {% endblock content %}
