@@ -8,9 +8,9 @@ class ChangesetFilter(django_filters.FilterSet):
         model = Changeset
         fields = {
             # 'reasons': ['exact'],
-            'create': ['gte'],
-            'modify': ['gte'],
-            'delete': ['gte'],
+            'create': ['gte', 'lte'],
+            'modify': ['gte', 'lte'],
+            'delete': ['gte', 'lte'],
             'editor': ['icontains'],
             'comment': ['icontains'],
             'source': ['icontains'],
