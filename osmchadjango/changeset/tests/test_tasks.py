@@ -20,6 +20,15 @@ class TestCreateChangeset(TestCase):
         create_changeset(31450443)
         self.assertEqual(Changeset.objects.count(), 1)
 
+    def test_user_details(self):
+        self.assertEqual(Changeset.objects.count(), 0)
+        create_changeset(31450443)
+        self.assertEqual(Changeset.objects.count(), 1)
+
+        changeset = Changeset.objects.all()[:1].get()
+        self.assertIsNotNone(changeset.user_detail)
+        self.assertEqual(changeset.user_detail.contributor_name, 'Tobsen Laufi')
+
 
 class TestGetLastReplicationID(TestCase):
     def test_get_last_replication_id(self):

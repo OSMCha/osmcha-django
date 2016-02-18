@@ -24,10 +24,28 @@ class UserWhitelist(models.Model):
 
 
 class UserDetail(models.Model):
-    name = models.CharField(max_length=1000, unique=True)
-    blocks = models.IntegerField()
-    no = models.IntegerField(null=True, blank=True, help_text='Number of Changesets')
-    since = models.DateTimeField(null=True, blank=True, help_text='Mapper since')
+    contributor_name = models.CharField(max_length=1000, unique=True)
+    contributor_blocks = models.IntegerField()
+    contributor_since = models.DateTimeField(null=True, blank=True)
+    contributor_traces = models.IntegerField(null=True, blank=True)
+
+    nodes_c = models.IntegerField(null=True, blank=True)
+    nodes_m = models.IntegerField(null=True, blank=True)
+    nodes_d = models.IntegerField(null=True, blank=True)
+
+    ways_c = models.IntegerField(null=True, blank=True)
+    ways_m = models.IntegerField(null=True, blank=True)
+    ways_d = models.IntegerField(null=True, blank=True)
+
+    relations_c = models.IntegerField(null=True, blank=True)
+    relations_m = models.IntegerField(null=True, blank=True)
+    relations_d = models.IntegerField(null=True, blank=True)
+
+    changesets_no = models.IntegerField(null=True, blank=True, help_text='Number of changesets')
+    changesets_changes = models.IntegerField(null=True, blank=True)
+    changesets_f_tstamp = models.DateTimeField(null=True, blank=True)
+    changesets_l_tstamp = models.DateTimeField(null=True, blank=True)
+    changesets_mapping_days = models.CharField(max_length=128)
 
     def __unicode__(self):
         return self.name
@@ -76,18 +94,13 @@ class Changeset(models.Model):
 
     def save_user_details(self, ch):
         user_details = ch.user_details
-        if not user_details:
-            return None
-        data = {
-            'blocks': user_details.get('blocks', 0),
-            'name': user_details.get('name')
-        }
-        try:
-            user_detail = UserDetail.objects.get(name=data['name'])
-        except UserDetail.DoesNotExist:
-            user_detail = UserDetail.objects.create(**data)
-        # user_detail = UserDetail(**data)
-        # user_detail.save()
+        # If UserDetail with contributor_name exists, update it with latest data.
+        # Else, create a new UserDetail object
+        print user_details
+        user_detail, created = UserDetail.objects.update_or_create(
+            contributor_name=user_details['contributor_name'],
+            defaults=user_details,
+        )
         self.user_detail = user_detail
         self.save()
         return user_detail
