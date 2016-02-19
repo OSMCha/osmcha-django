@@ -58,6 +58,8 @@ class ChangesetListView(ListView):
         get = self.request.GET.dict()
         if 'is_suspect' not in get:
             get['is_suspect'] = 'True'
+        if 'is_whitelisted' not in get:
+            get['is_whitelisted'] = 'True'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -83,6 +85,8 @@ class ChangesetListView(ListView):
             params['user'] = params['username']
         if 'is_suspect' not in params:
             params['is_suspect'] = 'True'
+        if 'is_whitelisted' not in params:
+            params['is_whitelisted'] = 'True'
         queryset = ChangesetFilter(params, queryset=queryset).qs
         if 'user_blocks' in params:
             queryset = queryset.filter(user_detail__blocks__gt=0)
@@ -92,11 +96,13 @@ class ChangesetListView(ListView):
         user = self.request.user
         if not user.is_authenticated():
             return queryset
-        whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-        users_on_multiple_whitelists = UserWhitelist.objects.values('whitelist_user').annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
 
-        # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
-        queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
+        if params['is_whitelisted'] == 'True':
+            whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
+            users_on_multiple_whitelists = UserWhitelist.objects.values('whitelist_user').annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
+
+            # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
+            queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
         if 'sort' in GET_dict and GET_dict['sort'] != '':
             queryset = queryset.order_by(GET_dict['sort'])
         else:
