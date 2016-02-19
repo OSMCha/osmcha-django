@@ -11,7 +11,7 @@
   {% if not hide_filters %}
   <button class="btn btn-default" id="toggle-filters">Show Filters</button>
   <div id="filters" class="filters">
-    <form action="." method="GET" class="form-horizontal">
+    <form action="." id="filtersForm" method="GET" class="form-horizontal">
 
       <div class="form-group">
         <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
@@ -244,6 +244,13 @@ $('#toggle-filters').click(function() {
     $filters.show();
     $this.text('Hide Filters');
   }
+});
+
+// avoid adding empty parameters to URL to make URL cleaner.
+$('#filtersForm').submit(function() {
+    $(':input', this).each(function() {
+        this.disabled = !($(this).val());
+    });
 });
 </script>
 
