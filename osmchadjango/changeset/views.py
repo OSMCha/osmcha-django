@@ -95,10 +95,8 @@ class ChangesetListView(ListView):
 
         # import pdb;pdb.set_trace()
         user = self.request.user
-        if not user.is_authenticated():
-            return queryset
 
-        if params['is_whitelisted'] == 'True':
+        if params['is_whitelisted'] == 'True' and user.is_authenticated():
             whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
             users_on_multiple_whitelists = UserWhitelist.objects.values('whitelist_user').annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
 
