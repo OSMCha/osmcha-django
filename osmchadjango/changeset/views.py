@@ -92,6 +92,7 @@ class ChangesetListView(ListView):
             queryset = queryset.filter(user_detail__blocks__gt=0)
         if 'reasons' in params:
             queryset = queryset.filter(reasons=int(params['reasons']))
+
         # import pdb;pdb.set_trace()
         user = self.request.user
         if not user.is_authenticated():

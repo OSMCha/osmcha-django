@@ -11,6 +11,8 @@ class ChangesetFilter(django_filters.FilterSet):
             'create': ['gte', 'lte'],
             'modify': ['gte', 'lte'],
             'delete': ['gte', 'lte'],
+            'user_detail__changesets_no': ['lte'],
+            'user_detail__changesets_changes': ['lte'],
             'editor': ['icontains'],
             'comment': ['icontains'],
             'source': ['icontains'],
