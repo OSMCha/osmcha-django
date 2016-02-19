@@ -9,6 +9,7 @@
     <h3>{{ search_title }}</h3>
   {% endif %}
   {% if not hide_filters %}
+  <button class="btn btn-default" id="toggle-filters">Show / Hide Filters</button>
   <div id="filters" class="filters">
     <form action="." method="GET" class="form-horizontal">
 
@@ -133,7 +134,6 @@
       </div>
     </form>
   </div>
-  <button class="btn btn-default" id="toggle-filters">Show / Hide Filters</button>
 
   {% endif %}
   {% if changesets %}
