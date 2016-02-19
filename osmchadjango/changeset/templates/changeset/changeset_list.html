@@ -51,23 +51,6 @@
         <div class="col-sm-3">
           <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
         </div>
-      </div>
-
-      <div class="form-group">
-        <label for="source__icontains" class="col-sm-2 control-label">Imagery Source</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="source__icontains" value="{{ get.source__icontains }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
         <label class="col-sm-2 control-label" for="username">User</label>
         <div class="col-sm-3">
           <input class="form-control" name="username" value="{{ get.username }}" />
@@ -75,17 +58,10 @@
       </div>
 
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="user_blocks">User Blocked Before</label>
+        <label for="source__icontains" class="col-sm-2 control-label">Imagery Source</label>
         <div class="col-sm-3">
-          <input name="user_blocks" type="checkbox" value="True"
-            {% if get.user_blocks == 'True' %}
-            checked
-            {% endif %}
-          />
+          <input class="form-control" name="source__icontains" value="{{ get.source__icontains }}" />
         </div>
-      </div>
-
-      <div class="form-group">
         <label class="col-sm-2 control-label" for="user_detail__changesets_no__lte">
           User changeset count (max):
         </label>
@@ -95,11 +71,26 @@
       </div>
 
       <div class="form-group">
+        <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
+        </div>
         <label class="col-sm-2 control-label" for="user_detail__changesets_changes__lte">
           User edit count (max):
         </label>
         <div class="col-sm-3">
           <input class="form-control" name="user_detail__changesets_changes__lte" value="{{ get.user_detail__changesets_changes__lte }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="user_blocks">User Has Blocks</label>
+        <div class="col-sm-3">
+          <input name="user_blocks" type="checkbox" value="True"
+            {% if get.user_blocks == 'True' %}
+            checked
+            {% endif %}
+          />
         </div>
       </div>
 
@@ -115,9 +106,6 @@
             All
           </label>
         </div>
-      </div>
-
-      <div class="form-group">
         <label for="is_whitelisted" class="col-sm-2 control-label">White-list:</label>
         <div class="col-sm-3">
           <label class="radio-inline">
@@ -143,9 +131,6 @@
             {% endfor %}
           </select>
         </div>
-      </div>
-
-      <div class="form-group">
         <label for="sort" class="col-sm-2 control-label">Sort</label>
         <div class="col-sm-3">
           <select class="form-control" name="sort">
