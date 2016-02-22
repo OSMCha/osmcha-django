@@ -75,7 +75,7 @@ class ChangesetListView(ListView):
 
     def get_queryset(self):
         # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-        queryset = Changeset.objects.all()
+        queryset = Changeset.objects.all().select_related('user_detail')
         params = {}
         GET_dict = self.request.GET.dict()
         for key in GET_dict:
