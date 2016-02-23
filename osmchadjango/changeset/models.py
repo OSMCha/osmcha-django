@@ -99,7 +99,6 @@ class Changeset(models.Model):
         # Else, create a new UserDetail object
         print user_details
         user_detail, created = UserDetail.objects.update_or_create(
-            contributor_uid=user_details['contributor_uid'],
             contributor_name=user_details['contributor_name'],
             defaults=user_details,
         )
