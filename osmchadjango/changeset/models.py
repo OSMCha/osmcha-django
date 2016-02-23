@@ -24,6 +24,7 @@ class UserWhitelist(models.Model):
 
 
 class UserDetail(models.Model):
+    contributor_uid = models.IntegerField(blank=True, null=True, db_index=True)
     contributor_name = models.CharField(max_length=1000, unique=True)
     contributor_blocks = models.IntegerField()
     contributor_since = models.DateTimeField(null=True, blank=True)
@@ -98,6 +99,7 @@ class Changeset(models.Model):
         # Else, create a new UserDetail object
         print user_details
         user_detail, created = UserDetail.objects.update_or_create(
+            contributor_uid=user_details['contributor_uid'],
             contributor_name=user_details['contributor_name'],
             defaults=user_details,
         )
