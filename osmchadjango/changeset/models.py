@@ -24,6 +24,7 @@ class UserWhitelist(models.Model):
 
 
 class UserDetail(models.Model):
+    contributor_uid = models.IntegerField(blank=True, null=True, db_index=True)
     contributor_name = models.CharField(max_length=1000, unique=True)
     contributor_blocks = models.IntegerField()
     contributor_since = models.DateTimeField(null=True, blank=True)
