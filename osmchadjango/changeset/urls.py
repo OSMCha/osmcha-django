@@ -29,6 +29,11 @@ urlpatterns = [
         name='set_good'
     ),
     url(
+        regex=r'^api/suspicion$',
+        view='osmchadjango.changeset.views.suspicion_create',
+        name='create_suspicion'
+    ),
+    url(
         regex=r'^whitelist-user$',
         view='osmchadjango.changeset.views.whitelist_user',
         name='whitelist_user'

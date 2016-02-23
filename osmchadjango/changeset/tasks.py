@@ -24,11 +24,12 @@ def create_changeset(changeset_id):
     for key in ch.__dict__:
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
-    ch_dict.pop('suspicion_reasons')
 
+    ch_dict.pop('suspicion_reasons')
     ch_dict.pop('user_details')
+
     # save changeset
-    changeset = Changeset.objects.create(**ch_dict)
+    changeset, created = Changeset.objects.update_or_create(id=ch['id'], defaults=ch_dict)
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
