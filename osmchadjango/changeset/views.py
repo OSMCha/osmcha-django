@@ -1,7 +1,7 @@
 from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -10,6 +10,9 @@ from django.db.models import Q, Count
 from .models import Changeset, UserWhitelist, SuspicionReasons
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
+
+import json
+import datetime
 
 
 class CheckedChangesetsView(ListView):
@@ -223,3 +226,53 @@ def all_whitelist_users(request):
         'users': all_users
     }
     return render(request, 'changeset/all_whitelist_users.html', context=context)
+
+@csrf_exempt
+def suspicion_create(request):
+    if request.method=='POST':
+        try:
+            data = json.loads(request.body)
+        except:
+            return HttpResponse("Improperly formatted JSON body", 400)
+
+        if 'feature' not in data or 'properties' not in data['feature']:
+            return HttpResponse("Expecting a single GeoJSON feature", 400)
+
+        feature = data['feature']
+        properties = feature.get('properties', {})
+        changeset_id = properties.get('osm:changeset')
+
+        if not changeset_id:
+            return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", 400)
+        # TODO: Would it be better to do this conversion of the output of the feature processor
+        # to "reason text" on the feature processor side? It would consolidate the checks/filters
+        # and the "reasons" in one place.
+        reasons_texts = set()
+        if properties.get('result:significant_tag'):
+            reasons_texts.add('edited an object with a significant tag')
+        if properties.get('result:location_changed'):
+            reasons_texts.add('moved an object a significant amount')
+        if properties.get('result:signficant_place'):
+            reasons_texts.add('edited an object with a significant place tag')
+
+        reasons = set()
+        for reason_text in reasons_texts:
+            reason, created = SuspicionReasons.objects.get_or_create(name=reason_text)
+            reasons.add(reason)
+
+        try:
+            changeset = Changeset.objects.get(id=changeset_id)
+        except Changeset.DoesNotExist:
+            changeset = Changeset.objects.create(
+                id=changeset_id,
+                date=datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+                uid=properties.get('osm:uid'),
+            )
+
+        changeset.is_suspect = True
+        changeset.reasons.add(*reasons)
+        changeset.save()
+
+        return JsonResponse({'success': "Suspicion created."})
+    else:
+        return HttpResponse(401)
