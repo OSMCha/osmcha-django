@@ -244,16 +244,17 @@ def suspicion_create(request):
 
         if not changeset_id:
             return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", 400)
-        # TODO: Would it be better to do this conversion of the output of the feature processor
-        # to "reason text" on the feature processor side? It would consolidate the checks/filters
-        # and the "reasons" in one place.
+
+        # Each changed feature should have a "suspicions" array of objects in its properties
+        suspicions = properties.get('suspicions')
         reasons_texts = set()
-        if properties.get('result:significant_tag'):
-            reasons_texts.add('edited an object with a significant tag')
-        if properties.get('result:location_changed'):
-            reasons_texts.add('moved an object a significant amount')
-        if properties.get('result:signficant_place'):
-            reasons_texts.add('edited an object with a significant place tag')
+        if suspicions:
+            # Each "suspicion" object should two attributes: a "reason" describing
+            # the suspicion and a "score" roughly describing the badness.
+            # For now, I'm ignoring the score, but in the future it could be used
+            # by osmcha to compute an overall changeset badness score
+            for suspicion in suspicions:
+                reasons_texts.add(suspicion['reason'])
 
         reasons = set()
         for reason_text in reasons_texts:
