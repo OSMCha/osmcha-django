@@ -28,4 +28,39 @@ urlpatterns = [
         view=login_required(views.SetGoodChangeset.as_view()),
         name='set_good'
     ),
+    url(
+        regex=r'^api/suspicion$',
+        view='osmchadjango.changeset.views.suspicion_create',
+        name='create_suspicion'
+    ),
+    url(
+        regex=r'^whitelist-user$',
+        view='osmchadjango.changeset.views.whitelist_user',
+        name='whitelist_user'
+    ),
+    url(
+        regex=r'^remove-from-whitelist$',
+        view='osmchadjango.changeset.views.remove_from_whitelist',
+        name='remove_from_whitelist'
+    ),
+    url(
+        regex=r'^stats$',
+        view='osmchadjango.changeset.views.stats',
+        name='stats'
+    ),
+    url(
+        regex=r'^all-whitelist-users$',
+        view='osmchadjango.changeset.views.all_whitelist_users',
+        name='all_whitelist_users'
+    ),
+    url(
+        regex=r'^checked-changesets$',
+        view=views.CheckedChangesetsView.as_view(),
+        name='checked_changesets'
+    ),
+    url(
+        regex=r'^harmful-changesets$',
+        view=views.HarmfulChangesetsView.as_view(),
+        name='harmful_changesets'
+    )
 ]

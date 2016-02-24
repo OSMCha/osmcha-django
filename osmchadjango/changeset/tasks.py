@@ -24,16 +24,19 @@ def create_changeset(changeset_id):
     for key in ch.__dict__:
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
+
     ch_dict.pop('suspicion_reasons')
+    ch_dict.pop('user_details')
 
     # save changeset
-    changeset = Changeset(**ch_dict)
-    changeset.save()
+    changeset, created = Changeset.objects.update_or_create(id=ch['id'], defaults=ch_dict)
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
+
+    changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 
@@ -44,7 +47,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c) for c in cl.changesets)()
+    group(create_changeset.s(c['id']) for c in cl.changesets)()
 
 
 def format_url(n):

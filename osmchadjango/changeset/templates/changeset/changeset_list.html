@@ -5,6 +5,154 @@
 {% block title %}{% trans 'OSMCHA - Changeset List' %}{% endblock %}
 
 {% block content %}
+  {% if search_title %}
+    <h3>{{ search_title }}</h3>
+  {% endif %}
+  {% if not hide_filters %}
+  <button class="btn btn-default" id="toggle-filters">Show Filters</button>
+  <div id="filters" class="filters">
+    <form action="." id="filtersForm" method="GET" class="form-horizontal">
+
+      <div class="form-group">
+        <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
+        </div>
+        <label for="create__lte" class="col-sm-2 control-label">Max. Additions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="create__lte" value="{{ get.create__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="modify__gte" value="{{ get.modify__gte }}"/>
+        </div>
+        <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="modify__lte" value="{{ get.modify__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="delete__gte" value="{{ get.delete__gte }}" />
+        </div>
+        <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="delete__lte" value="{{ get.delete__lte }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
+        </div>
+        <label class="col-sm-2 control-label" for="username">User</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="username" value="{{ get.username }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="source__icontains" class="col-sm-2 control-label">Imagery Source</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="source__icontains" value="{{ get.source__icontains }}" />
+        </div>
+        <label class="col-sm-2 control-label" for="user_detail__changesets_no__lte">
+          User changeset count (max):
+        </label>
+        <div class="col-sm-3">
+          <input class="form-control" name="user_detail__changesets_no__lte" value="{{ get.user_detail__changesets_no__lte }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
+        </div>
+        <label class="col-sm-2 control-label" for="user_detail__changesets_changes__lte">
+          User edit count (max):
+        </label>
+        <div class="col-sm-3">
+          <input class="form-control" name="user_detail__changesets_changes__lte" value="{{ get.user_detail__changesets_changes__lte }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="col-sm-2 control-label" for="user_blocks">User Has Blocks</label>
+        <div class="col-sm-3">
+          <input name="user_blocks" type="checkbox" value="True"
+            {% if get.user_blocks == 'True' %}
+            checked
+            {% endif %}
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="is_suspect" class="col-sm-2 control-label">Show changesets</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="is_suspect" type="radio" value="True" {% if get.is_suspect == 'True' %} checked {% endif %} />
+            Only suspicious
+          </label>
+          <label class="radio-inline">
+            <input name="is_suspect" type="radio" value="False" {% if get.is_suspect == 'False' %} checked {% endif %} />
+            All
+          </label>
+        </div>
+        <label for="is_whitelisted" class="col-sm-2 control-label">White-list:</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="is_whitelisted" type="radio" value="True" {% if get.is_whitelisted == 'True' %} checked {% endif %} />
+            Hide White-listed Users
+          </label>
+          <label class="radio-inline">
+            <input name="is_whitelisted" type="radio" value="False" {% if get.is_whitelisted == 'False' %} checked {% endif %} />
+            Show All
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reasons" class="col-sm-2 control-label">Reason</label>
+        <div class="col-sm-3">
+          <select class="form-control" name="reasons">
+            <option value="">---------</option>
+            {% for reason in suspicion_reasons %}
+              <option value="{{ reason.id }}" {% if get.reasons|add:"0" == reason.id %} selected="selected" {% endif %}>
+                {{ reason.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <label for="sort" class="col-sm-2 control-label">Sort</label>
+        <div class="col-sm-3">
+          <select class="form-control" name="sort">
+            <option value="">---------</option>
+            {% for key, value in sorts.items %}
+              <option value="{{ key }}" {% if key == get.sort %} selected="selected" {% endif %}>
+                {{ value }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <input class="btn btn-primary" type="submit" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% endif %}
   {% if changesets %}
     <div class="table-responsive">
       <table class="table table-striped">
@@ -13,7 +161,8 @@
             <th>{% trans 'ID' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
-            <th>{% trans 'Editor' %}</th>
+            <!-- <th>{% trans 'Editor' %}</th> -->
+            <th>{% trans 'Comment' %}</th>
             <th>{% trans 'Count' %}</th>
             <th>{% trans 'Reasons' %}</th>
             <th>{% trans 'Verified' %}</th>
@@ -26,8 +175,15 @@
                 <a href="{% url 'changeset:detail' changeset.id %}">{{ changeset.id }}</a>
               </td>
               <td>{{ changeset.date }}</td>
-              <td>{{ changeset.user }}</td>
-              <td>{{ changeset.editor }}</td>
+              <td>
+                <a href="?username={{ changeset.user }}&is_suspect=False">
+                  {{ changeset.user }}
+                </a>
+              </td>
+              <!-- <td>{{ changeset.editor }}</td> -->
+              <td>
+                {{ changeset.comment|truncatechars:22 }}
+              </td>
               <td>
                 <span class="label label-success">{{ changeset.create }}</span>
                 <span class="label label-warning">{{ changeset.modify }}</span>
@@ -55,19 +211,47 @@
     <div class="alert alert-danger">{% trans 'No changesets found.' %}</div>
   {% endif %}
 
+  {% load query_parameters %}
   {% if paginator %}
     <p class="text-muted text-pagination">
       {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}
     </p>
     <ul class="pager">
       {% if page_obj.has_previous %}
-        <li><a href="?page={{ page_obj.previous_page_number }}&{{ queries.urlencode }}">&larr; {% trans 'Previous' %}</a></li>
+        <li><a href="?{% set_query_parameters page=page_obj.previous_page_number %}">&larr; {% trans 'Previous' %}</a></li>
       {% endif %}
 
       {% if page_obj.has_next %}
-        <li><a href="?page={{ page_obj.next_page_number }}&{{ queries.urlencode }}">{% trans 'Next' %} &rarr;</a></li>
+        <li><a href="?{% set_query_parameters page=page_obj.next_page_number %}">{% trans 'Next' %} &rarr;</a></li>
       {% endif %}
     </ul>
   {% endif %}
 
+
 {% endblock content %}
+
+{% block javascript %}
+
+  {{ block.super }}
+<script>
+$('#toggle-filters').click(function() {
+  var $filters = $('#filters');
+  var $this = $(this);
+  if ($filters.is(':visible')) {
+    $filters.hide();
+    $this.text('Show Filters');
+  } else {
+    $filters.show();
+    $this.text('Hide Filters');
+  }
+});
+
+// avoid adding empty parameters to URL to make URL cleaner.
+$('#filtersForm').submit(function() {
+    $(':input', this).each(function() {
+        this.disabled = !($(this).val());
+    });
+});
+</script>
+
+{% endblock %}

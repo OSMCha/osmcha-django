@@ -15,6 +15,11 @@
         <span class="label label-warning">{{ changeset.modify }}</span>
         <span class="label label-danger">{{ changeset.delete }}</span>
       </h1>
+      {% if not changeset.checked and request.user.is_authenticated %}
+      <form class="pull-left" action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
+        <button class="btn btn-primary btn-success" type="submit">{% trans "Mark as Good" %}</button>
+      </form>
+      {% endif %}
     </div>
     {% if changeset.is_suspect %}
     <div class="col-xs-12 col-md-6">
@@ -39,12 +44,37 @@
           <p class="list-group-item-text">{{ changeset.date }}</p>
         </div>
         <div class="list-group-item">
-          <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
-          <p class="list-group-item-text">
-            <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
-              {{ changeset.user }}
-            </a>
-          </p>
+          <div class="row">
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User edits' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user_detail.changesets_no }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h4 class="list-group-item-heading">{% trans 'Mapper since' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user_detail.contributor_since.date }}
+                </a>
+              </p>
+              <p class="list-group-item-text">
+                <a class="btn btn-warning btn-xs pull-right" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
+                  {% trans 'HDYC' %}
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
         <div class="list-group-item">
           <h4 class="list-group-item-heading">{% trans 'Editor' %}</h4>
@@ -83,12 +113,12 @@
               {% if changeset.harmful %}
                 <span class="glyphicon glyphicon-thumbs-down"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as harmful
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
                 {% endblocktrans %}
               {% else %}
                 <span class="glyphicon glyphicon-thumbs-up"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as good
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
                 {% endblocktrans %}
               {% endif %}
             {% else %}
@@ -119,6 +149,14 @@
                       <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
                     </a>
                   </li>
+                  {% if request.user.is_authenticated %}
+                  <li>
+                    <a class="whitelist-user" data-username="{{ changeset.user }}" href="#">
+                      <span class="glyphicon glyphicon-thumbs-up"></span>
+                      {% trans 'White-list this user' %}
+                    </a>
+                  </li>
+                  {% endif %}
                 </ul>
               </div>
 
@@ -192,4 +230,5 @@
 {% block javascript %}
   {{ block.super }}
 <script src="{% static 'js/josm_link.js' %}"></script>
+<script src="{% static 'js/whitelist_user.js' %}"></script>
 {% endblock javascript %}
