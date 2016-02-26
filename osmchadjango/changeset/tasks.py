@@ -29,7 +29,7 @@ def create_changeset(changeset_id):
     ch_dict.pop('user_details')
 
     # save changeset
-    changeset, created = Changeset.objects.update_or_create(id=ch['id'], defaults=ch_dict)
+    changeset, created = Changeset.objects.update_or_create(id=ch_dict['id'], defaults=ch_dict)
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
