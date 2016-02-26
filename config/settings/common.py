@@ -40,6 +40,7 @@ THIRD_PARTY_APPS = (
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+    'query_parameters'  #django-query-parameters
 )
 
 # Apps specific for this project go here.

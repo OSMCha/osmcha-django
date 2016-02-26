@@ -63,8 +63,9 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'osmcha',
-         'USER': 'postgres',
-         'PASSWORD': '',
+         'USER': env('PGUSER'),
+         'PASSWORD': env('PGPASSWORD'),
+         'HOST': env('PGHOST')
      }
 }
 
@@ -80,7 +81,7 @@ CACHES = {
 
 
 # Your production stuff: Below this line define 3rd party library settings
-CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', None)
+CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
 # PYTHON SOCIAL AUTH
 INSTALLED_APPS += ('social.apps.django_app.default',)
@@ -104,3 +105,10 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
 )
+
+CELERYBEAT_SCHEDULE = {
+    'schedule-name': {
+        'task': 'osmchadjango.changeset.tasks.fetch_latest',
+        'schedule': 60 #Run every 60 seconds
+    },
+}
