@@ -233,17 +233,17 @@ def suspicion_create(request):
         try:
             data = json.loads(request.body)
         except:
-            return HttpResponse("Improperly formatted JSON body", 400)
+            return HttpResponse("Improperly formatted JSON body", status=400)
 
         if 'feature' not in data or 'properties' not in data['feature']:
-            return HttpResponse("Expecting a single GeoJSON feature", 400)
+            return HttpResponse("Expecting a single GeoJSON feature", status=400)
 
         feature = data['feature']
         properties = feature.get('properties', {})
         changeset_id = properties.get('osm:changeset')
 
         if not changeset_id:
-            return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", 400)
+            return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", status=400)
 
         # Each changed feature should have a "suspicions" array of objects in its properties
         suspicions = properties.get('suspicions')
@@ -261,14 +261,13 @@ def suspicion_create(request):
             reason, created = SuspicionReasons.objects.get_or_create(name=reason_text)
             reasons.add(reason)
 
-        try:
-            changeset = Changeset.objects.get(id=changeset_id)
-        except Changeset.DoesNotExist:
-            changeset = Changeset.objects.create(
-                id=changeset_id,
-                date=datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-                uid=properties.get('osm:uid'),
-            )
+        defaults = {
+            "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+            "uid": properties.get('osm:uid'),
+            "is_suspect": True,
+        }
+
+        changeset, created = Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
 
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
