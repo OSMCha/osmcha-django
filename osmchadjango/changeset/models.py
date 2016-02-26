@@ -46,7 +46,7 @@ class UserDetail(models.Model):
     changesets_changes = models.IntegerField(null=True, blank=True, db_index=True)
     changesets_f_tstamp = models.DateTimeField(null=True, blank=True)
     changesets_l_tstamp = models.DateTimeField(null=True, blank=True)
-    changesets_mapping_days = models.CharField(max_length=128)
+    changesets_mapping_days = models.CharField(max_length=128, blank=True, null=True)
 
     def __unicode__(self):
         return self.contributor_name
