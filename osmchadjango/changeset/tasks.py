@@ -36,7 +36,8 @@ def create_changeset(changeset_id):
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
 
-    changeset.save_user_details(ch)
+    if ch.user_details:
+        changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 
