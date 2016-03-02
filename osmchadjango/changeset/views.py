@@ -60,7 +60,7 @@ class ChangesetListView(ListView):
         suspicion_reasons = SuspicionReasons.objects.all()
         get = self.request.GET.dict()
         if 'is_suspect' not in get:
-            get['is_suspect'] = 'False'
+            get['is_suspect'] = 'True'
         if 'is_whitelisted' not in get:
             get['is_whitelisted'] = 'True'
         sorts = {
@@ -87,7 +87,7 @@ class ChangesetListView(ListView):
         if 'username' in params:
             params['user'] = params['username']
         if 'is_suspect' not in params:
-            params['is_suspect'] = 'False'
+            params['is_suspect'] = 'True'
         if 'is_whitelisted' not in params:
             params['is_whitelisted'] = 'True'
         queryset = ChangesetFilter(params, queryset=queryset).qs
