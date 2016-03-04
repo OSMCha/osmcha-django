@@ -167,13 +167,6 @@ class SetGoodChangeset(SingleObjectMixin, View):
             self.object.check_user = request.user
             self.object.check_date = timezone.now()
             self.object.save()
-            good_changesets_by_user = Changeset.objects.filter(check_user=request.user).filter(user=self.object.user).filter(harmful=False).count()
-            if good_changesets_by_user > 1:
-                try:
-                    uw = UserWhitelist(user=request.user, whitelist_user=self.object.user)
-                    uw.save()
-                except:
-                    pass
             return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
         else:
             return render(request, 'changeset/not_allowed.html')
