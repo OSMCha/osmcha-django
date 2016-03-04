@@ -224,14 +224,13 @@ def all_whitelist_users(request):
 def suspicion_create(request):
     if request.method=='POST':
         try:
-            data = json.loads(request.body)
+            feature = json.loads(request.body)
         except:
             return HttpResponse("Improperly formatted JSON body", status=400)
 
-        if 'feature' not in data or 'properties' not in data['feature']:
+        if 'properties' not in feature:
             return HttpResponse("Expecting a single GeoJSON feature", status=400)
 
-        feature = data['feature']
         properties = feature.get('properties', {})
         changeset_id = properties.get('osm:changeset')
 
