@@ -248,7 +248,7 @@
             {% endfor %}
           </td>
           <td>
-            <a href="/{{ changeset.id }}/suspicious_feature/{{ feature.osm_id }}/geojson" target="_blank">
+            <a href="{% url 'changeset:suspicious_feature_geojson' changeset_id=changeset.id osm_id=feature.osm_id %}" target="_blank">
               View GeoJSON
             </a>
           </td>
