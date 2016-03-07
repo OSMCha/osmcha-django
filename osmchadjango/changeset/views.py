@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.models import Q, Count
 from django.contrib.gis.geos import GEOSGeometry
+from django.shortcuts import get_object_or_404
 from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
@@ -219,6 +220,12 @@ def all_whitelist_users(request):
         'users': all_users
     }
     return render(request, 'changeset/all_whitelist_users.html', context=context)
+
+def suspicious_feature_geojson(request, changeset_id, osm_id):
+    suspicious_feature = get_object_or_404(SuspiciousFeature, changeset_id=changeset_id, osm_id=osm_id)
+    geojson = suspicious_feature.geojson
+    indented_geojson = json.dumps(json.loads(geojson), indent=2)
+    return HttpResponse(indented_geojson, content_type='text/plain')
 
 @csrf_exempt
 def suspicion_create(request):

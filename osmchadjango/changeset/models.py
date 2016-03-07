@@ -135,8 +135,22 @@ class SuspiciousFeature(models.Model):
     geometry = models.GeometryField()
     geojson = models.TextField()
 
+    @property
+    def osm_link(self):
+        return "https://openstreetmap.org/%s/%d" % (self.get_type(), self.osm_id)
+
+    def get_type(self):
+        '''
+        Returns either 'node' or 'way' based on geometry type
+        '''
+        if self.geometry.geom_type == 'Point':
+            return 'node'
+        else:
+            return 'way'
+
     def __unicode__(self):
         return "%d" % self.osm_id
+
 
 
 class Import(models.Model):

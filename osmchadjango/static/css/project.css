@@ -36,3 +36,7 @@
 #filters {
   display: none;
 }
+
+td, th {
+  padding: 10px;
+}

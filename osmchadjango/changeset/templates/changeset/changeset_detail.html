@@ -218,6 +218,46 @@
     </div>
   {% endif %}
 
+  {% if changeset.suspiciousfeature_set.all %}
+  <div class="row">
+    <table>
+      <thead>
+        <tr>
+          <th>
+            OSM ID
+          </th>
+          <th>
+            Suspicious Reasons
+          </th>
+          <th>
+            GeoJSON
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for feature in changeset.suspiciousfeature_set.all %}
+        <tr>
+          <td>
+            <a href="{{ feature.osm_link }}" target="_blank">
+              {{ feature.osm_id }}
+            </a>
+          </td>
+          <td>
+            {% for reason in feature.reasons.all %}
+              {{ reason.name }} <br />
+            {% endfor %}
+          </td>
+          <td>
+            <a href="/{{ changeset.id }}/suspicious_feature/{{ feature.osm_id }}/geojson" target="_blank">
+              View GeoJSON
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
   <div class="row">
     <h3>{% trans 'Visualization' %}</h3>

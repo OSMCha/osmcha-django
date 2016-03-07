@@ -19,6 +19,11 @@ urlpatterns = [
         name='detail'
     ),
     url(
+        regex=r'^(?P<changeset_id>\w+)/suspicious_feature/(?P<osm_id>\w+)/geojson$',
+        view='osmchadjango.changeset.views.suspicious_feature_geojson',
+        name='suspicious_feature_geojson'
+    ),
+    url(
         regex=r'^set-harmful/(?P<pk>\w+)/$',
         view=login_required(views.SetHarmfulChangeset.as_view()),
         name='set_harmful'
