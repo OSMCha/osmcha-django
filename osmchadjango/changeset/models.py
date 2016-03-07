@@ -127,6 +127,18 @@ class Changeset(models.Model):
         return user_detail
 
 
+class SuspiciousFeature(models.Model):
+    changeset = models.ForeignKey('Changeset')
+    reasons = models.ManyToManyField('SuspicionReasons')
+    score = models.IntegerField(blank=True, null=True)
+    osm_id = models.IntegerField()
+    geometry = models.GeometryField()
+    geojson = models.TextField()
+
+    def __unicode__(self):
+        return "%d" % self.osm_id
+
+
 class Import(models.Model):
     """Class to register the import of Changesets."""
     start = models.IntegerField()

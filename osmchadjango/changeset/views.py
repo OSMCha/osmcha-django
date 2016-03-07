@@ -6,8 +6,8 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.models import Q, Count
-
-from .models import Changeset, UserWhitelist, SuspicionReasons
+from django.contrib.gis.geos import GEOSGeometry
+from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
 
@@ -260,10 +260,15 @@ def suspicion_create(request):
         }
 
         changeset, created = Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
-
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
         changeset.save()
+        suspicious_feature = SuspiciousFeature(changeset=changeset)
+        suspicious_feature.osm_id = properties['osm:id']
+        suspicious_feature.geometry = GEOSGeometry(json.dumps(feature['geometry']))
+        suspicious_feature.geojson = json.dumps(feature)
+        suspicious_feature.save()
+        suspicious_feature.reasons.add(*reasons)
 
         return JsonResponse({'success': "Suspicion created."})
     else:
