@@ -48,7 +48,7 @@
             <div class="col-md-3">
               <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
               <p class="list-group-item-text">
-                <a href="?username={{ changeset.user }}&is_suspect=False">
+                <a href="/?username={{ changeset.user }}&is_suspect=False">
                   {{ changeset.user }}
                 </a>
               </p>
@@ -56,7 +56,7 @@
             <div class="col-md-3">
               <h4 class="list-group-item-heading">{% trans 'User edits' %}</h4>
               <p class="list-group-item-text">
-                <a href="?username={{ changeset.user }}&is_suspect=False">
+                <a href="/?username={{ changeset.user }}&is_suspect=False">
                   {{ changeset.user_detail.changesets_no }}
                 </a>
               </p>
