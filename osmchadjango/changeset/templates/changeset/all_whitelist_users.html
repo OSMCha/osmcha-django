@@ -7,7 +7,11 @@
   <h2>{% trans 'Whitelisted Users' %}</h2>
   <ul>
       {% for u in users %}
-          <li>{{ u.whitelist_user }}</li>
+          <li>
+              <a href="/?user={{ u.whitelist_user }}">
+                  {{ u.whitelist_user }}
+              </a>
+          </li>
       {% endfor %}
   </ul>
 {% endblock content %}
