@@ -93,7 +93,7 @@ class ChangesetListView(ListView):
             params['is_whitelisted'] = 'True'
         queryset = ChangesetFilter(params, queryset=queryset).qs
         if 'user_blocks' in params:
-            queryset = queryset.filter(user_detail__blocks__gt=0)
+            queryset = queryset.filter(user_detail__contributor_blocks__gt=0)
         if 'reasons' in params:
             queryset = queryset.filter(reasons=int(params['reasons']))
 
