@@ -68,6 +68,8 @@ class UserDetail(models.Model):
     changesets_l_tstamp = models.DateTimeField(null=True, blank=True)
     changesets_mapping_days = models.CharField(max_length=128, blank=True, null=True)
 
+    score = models.IntegerField(null=True, blank=True)
+
     def __unicode__(self):
         return self.contributor_name
 
@@ -94,6 +96,7 @@ class Changeset(models.Model):
     checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(User, null=True, blank=True)
     check_date = models.DateTimeField(null=True, blank=True)
+    score = models.IntegerField(null=True, blank=True)
     objects = models.GeoManager()
 
     def __str__(self):
@@ -115,6 +118,7 @@ class Changeset(models.Model):
 
     def save_user_details(self, ch):
         user_details = ch.user_details
+        user_details['score'] = ch.user_score
         # If UserDetail with contributor_name exists, update it with latest data.
         # Else, create a new UserDetail object
         print user_details
