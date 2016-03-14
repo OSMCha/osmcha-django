@@ -59,6 +59,11 @@ urlpatterns = [
         name='all_whitelist_users'
     ),
     url(
+        regex=r'^all-blacklist-users$',
+        view='osmchadjango.changeset.views.all_blacklist_users',
+        name='all_blacklist_users'
+    ),
+    url(
         regex=r'^checked-changesets$',
         view=views.CheckedChangesetsView.as_view(),
         name='checked_changesets'

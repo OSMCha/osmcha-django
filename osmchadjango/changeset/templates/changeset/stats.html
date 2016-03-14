@@ -23,4 +23,10 @@
           {{ users_whitelisted}}
       </a>
   </p>
+  <p>
+      {% trans 'Number of users with harmful changesets' %}: 
+      <a href="{% url 'changeset:all_blacklist_users' %}">
+          {{ users_blacklisted }}
+      </a>
+  </p>
 {% endblock content %}

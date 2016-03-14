@@ -207,10 +207,12 @@ def stats(request):
     total_checked = Changeset.objects.filter(checked=True).count()
     total_harmful = Changeset.objects.filter(harmful=True).count()
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
+    users_blacklisted = Changeset.objects.filter(harmful=True).values('user').distinct().count()
     context = {
         'checked': total_checked,
         'harmful': total_harmful,
-        'users_whitelisted': users_whitelisted
+        'users_whitelisted': users_whitelisted,
+        'users_blacklisted': users_blacklisted
     }
     return render(request, 'changeset/stats.html', context=context)
 
@@ -220,6 +222,13 @@ def all_whitelist_users(request):
         'users': all_users
     }
     return render(request, 'changeset/all_whitelist_users.html', context=context)
+
+def all_blacklist_users(request):
+    blacklist_users = Changeset.objects.filter(harmful=True).values('user').distinct()
+    context = {
+        'users': blacklist_users
+    }
+    return render(request, 'changeset/all_blacklist_users.html', context=context)
 
 def suspicious_feature_geojson(request, changeset_id, osm_id):
     suspicious_feature = get_object_or_404(SuspiciousFeature, changeset_id=changeset_id, osm_id=osm_id)
