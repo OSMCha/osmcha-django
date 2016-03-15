@@ -103,7 +103,10 @@ class ChangesetListView(ListView):
         if 'user_blocks' in params:
             queryset = queryset.filter(user_detail__contributor_blocks__gt=0)
         if 'reasons' in params:
-            queryset = queryset.filter(reasons=int(params['reasons']))
+            if params['reasons'] == 'None':
+                queryset = queryset.filter(reasons=None)
+            else:
+                queryset = queryset.filter(reasons=int(params['reasons']))
 
         user = self.request.user
 
@@ -219,10 +222,12 @@ def stats(request):
     counts = {}
     for reason in SuspicionReasons.objects.all():
         counts[reason.name] = {}
+        counts[reason.name]['id'] = reason.id
         counts[reason.name]['checked'] = Changeset.objects.filter(reasons=reason, checked=True).count()
         counts[reason.name]['harmful'] = Changeset.objects.filter(reasons=reason, harmful=True).count()
 
     counts['None'] = {}
+    counts['None']['id'] = 'None'
     counts['None']['checked'] = Changeset.objects.filter(reasons=None, checked=True).count()
     counts['None']['harmful'] = Changeset.objects.filter(reasons=None, harmful=True).count()
 
