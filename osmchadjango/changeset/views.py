@@ -64,6 +64,10 @@ class ChangesetListView(ListView):
             get['is_suspect'] = 'True'
         if 'is_whitelisted' not in get:
             get['is_whitelisted'] = 'True'
+        if 'harmful' not in get:
+            get['harmful'] = 'False'
+        if 'checked' not in get:
+            get['checked'] = 'False'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -91,13 +95,16 @@ class ChangesetListView(ListView):
             params['is_suspect'] = 'True'
         if 'is_whitelisted' not in params:
             params['is_whitelisted'] = 'True'
+        if 'harmful' not in params:
+            params['harmful'] = 'False'
+        if 'checked' not in params:
+            params['checked'] = 'False'
         queryset = ChangesetFilter(params, queryset=queryset).qs
         if 'user_blocks' in params:
             queryset = queryset.filter(user_detail__contributor_blocks__gt=0)
         if 'reasons' in params:
             queryset = queryset.filter(reasons=int(params['reasons']))
 
-        # import pdb;pdb.set_trace()
         user = self.request.user
 
         if params['is_whitelisted'] == 'True' and user.is_authenticated():
