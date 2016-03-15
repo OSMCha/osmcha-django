@@ -209,23 +209,33 @@ def stats(request):
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
     users_blacklisted = Changeset.objects.filter(harmful=True).values('user').distinct().count()
 
-    # Count by suspicion reason.
-    values = Changeset.objects.values('id', 'reasons__name', 'checked', 'harmful')
-    counts_by_reason = dict()
-    for value in values:
-        if value['reasons__name'] not in counts_by_reason:
-            counts_by_reason[value['reasons__name']] = dict([('checked', 0), ('harmful', 0)])
+    counts = {}
+    for reason in SuspicionReasons.objects.all():
+        counts[reason.name] = {}
+        counts[reason.name]['checked'] = Changeset.objects.filter(reasons=reason, checked=True).count()
+        counts[reason.name]['harmful'] = Changeset.objects.filter(reasons=reason, harmful=True).count()
 
-        if value['checked']:
-            counts_by_reason[value['reasons__name']]['checked'] += 1
+    counts['None'] = {}
+    counts['None']['checked'] = Changeset.objects.filter(reasons=None, checked=True).count()
+    counts['None']['harmful'] = Changeset.objects.filter(reasons=None, harmful=True).count()
 
-        if value['harmful']:
-            counts_by_reason[value['reasons__name']]['harmful'] += 1
+    # # Count by suspicion reason.
+    # values = Changeset.objects.values('id', 'reasons__name', 'checked', 'harmful')
+    # counts_by_reason = dict()
+    # for value in values:
+    #     if value['reasons__name'] not in counts_by_reason:
+    #         counts_by_reason[value['reasons__name']] = dict([('checked', 0), ('harmful', 0)])
 
-    counts = list()
-    for key, value in sorted(counts_by_reason.items()):
-        counts.append([key, value['checked'], value['harmful']])
-    print sorted(counts, key=lambda x: x[0])
+    #     if value['checked']:
+    #         counts_by_reason[value['reasons__name']]['checked'] += 1
+
+    #     if value['harmful']:
+    #         counts_by_reason[value['reasons__name']]['harmful'] += 1
+
+    # counts = list()
+    # for key, value in sorted(counts_by_reason.items()):
+    #     counts.append([key, value['checked'], value['harmful']])
+    # print sorted(counts, key=lambda x: x[0])
 
     context = {
         'checked': total_checked,

@@ -39,11 +39,11 @@
       <th>Checked</th>
       <th>Verified Harmful</th>
     </tr>
-    {% for count in counts %}
+    {% for key, value in counts.items %}
     <tr>
-        <td>{{ count.0 }}</td>
-        <td>{{ count.1 }}</td>
-        <td>{{ count.2 }}</td>
+        <td>{{ key }}</td>
+        <td>{{ value.checked }}</td>
+        <td>{{ value.harmful }}</td>
     </tr>
     {% endfor %}
   </table>
