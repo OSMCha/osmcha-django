@@ -25,6 +25,7 @@ class ChangesetFilter(django_filters.FilterSet):
             'create': ['gte', 'lte'],
             'modify': ['gte', 'lte'],
             'delete': ['gte', 'lte'],
+            'date': ['gte', 'lte'],
             'max_score': [],
             'max_user_score': [],
             'user_detail__score': ['lte'],
