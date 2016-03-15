@@ -42,8 +42,16 @@
     {% for key, value in counts.items %}
     <tr>
         <td>{{ key }}</td>
-        <td>{{ value.checked }}</td>
-        <td>{{ value.harmful }}</td>
+        <td>
+          <a href="/?checked=True&is_suspect=False&reasons={{ value.id }}">
+            {{ value.checked }}
+          </a>
+        </td>
+        <td>
+          <a href="/?harmful=True&is_suspect=False&reasons={{ value.id }}">
+            {{ value.harmful }}
+          </a>
+        </td>
     </tr>
     {% endfor %}
   </table>

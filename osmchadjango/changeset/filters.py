@@ -7,6 +7,9 @@ class ChangesetFilter(django_filters.FilterSet):
 
     max_score = filters.MethodFilter()
     max_user_score = filters.MethodFilter()
+    checked = filters.MethodFilter()
+    harmful = filters.MethodFilter()
+    is_suspect = filters.MethodFilter()
 
     def filter_max_score(self, queryset, value):
         if value:
@@ -16,6 +19,21 @@ class ChangesetFilter(django_filters.FilterSet):
     def filter_max_user_score(self, queryset, value):
         if value:
             return queryset.filter(user_detail__score__lte=value).exclude(user_detail__score__isnull=True)
+        return queryset
+
+    def filter_checked(self, queryset, value):
+        if value and value == 'True':
+            return queryset.filter(checked=True)
+        return queryset
+
+    def filter_harmful(self, queryset, value):
+        if value and value == 'True':
+            return queryset.filter(harmful=True)
+        return queryset
+
+    def filter_is_suspect(self, queryset, value):
+        if value and value == 'True':
+            return queryset.filter(is_suspect=True)
         return queryset
 
     class Meta:
@@ -35,6 +53,8 @@ class ChangesetFilter(django_filters.FilterSet):
             'comment': ['icontains'],
             'source': ['icontains'],
             'user': ['exact'],
-            'is_suspect': ['exact']
+            'harmful': [],
+            'checked': [],
+            'is_suspect': []
         }
 

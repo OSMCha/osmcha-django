@@ -142,6 +142,31 @@
       </div>
 
       <div class="form-group">
+        <label for="harmful" class="col-sm-2 control-label">Harmful changesets:</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="harmful" type="radio" value="True" {% if get.harmful == 'True' %} checked {% endif %} />
+            Only harmful
+          </label>
+          <label class="radio-inline">
+            <input name="harmful" type="radio" value="False" {% if get.harmful == 'False' %} checked {% endif %} />
+            All
+          </label>
+        </div>
+        <label for="checked" class="col-sm-2 control-label">Checked changesets:</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="True" {% if get.checked == 'True' %} checked {% endif %} />
+            Only checked
+          </label>
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="False" {% if get.checked == 'False' %} checked {% endif %} />
+            All
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="reasons" class="col-sm-2 control-label">Reason</label>
         <div class="col-sm-3">
           <select class="form-control" name="reasons">
