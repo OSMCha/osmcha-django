@@ -47,6 +47,17 @@
       </div>
 
       <div class="form-group">
+        <label for="max_score" class="col-sm-2 control-label">Changeset Score (Max)</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="max_score" value="{{ get.max_score }}" />
+        </div>
+        <label for="max_user_score" class="col-sm-2 control-label">User Score (Max)</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="max_user_score" value="{{ get.max_user_score }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
         <div class="col-sm-3">
           <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
