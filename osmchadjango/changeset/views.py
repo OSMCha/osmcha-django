@@ -208,11 +208,31 @@ def stats(request):
     total_harmful = Changeset.objects.filter(harmful=True).count()
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
     users_blacklisted = Changeset.objects.filter(harmful=True).values('user').distinct().count()
+
+    # Count by suspicion reason.
+    values = Changeset.objects.values('id', 'reasons__name', 'checked', 'harmful')
+    counts_by_reason = dict()
+    for value in values:
+        if value['reasons__name'] not in counts_by_reason:
+            counts_by_reason[value['reasons__name']] = dict([('checked', 0), ('harmful', 0)])
+
+        if value['checked']:
+            counts_by_reason[value['reasons__name']]['checked'] += 1
+
+        if value['harmful']:
+            counts_by_reason[value['reasons__name']]['harmful'] += 1
+
+    counts = list()
+    for key, value in sorted(counts_by_reason.items()):
+        counts.append([key, value['checked'], value['harmful']])
+    print sorted(counts, key=lambda x: x[0])
+
     context = {
         'checked': total_checked,
         'harmful': total_harmful,
         'users_whitelisted': users_whitelisted,
-        'users_blacklisted': users_blacklisted
+        'users_blacklisted': users_blacklisted,
+        'counts': counts,
     }
     return render(request, 'changeset/stats.html', context=context)
 
