@@ -14,6 +14,17 @@
     <form action="." id="filtersForm" method="GET" class="form-horizontal">
 
       <div class="form-group">
+        <label for="date__gte" class="col-sm-2 control-label">From</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="date__gte" type="date" value="{{ get.date__gte }}"/>
+        </div>
+        <label for="date__lte" class="col-sm-2 control-label">To</label>
+        <div class="col-sm-3">
+          <input class="form-control" name="date__lte" type="date" value="{{ get.date__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
         <div class="col-sm-3">
           <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
