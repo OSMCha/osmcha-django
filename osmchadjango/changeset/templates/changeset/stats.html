@@ -6,27 +6,47 @@
 {% block content %}
   <h2>{% trans 'Statistics' %}</h2>
   <p>
-      {% trans 'Total number of changesets checked' %}: 
+      {% trans 'Total number of changesets checked' %}:
       <a href="{% url 'changeset:checked_changesets' %}">
           {{ checked }}
       </a>
   </p>
   <p>
-      {% trans 'Total number of harmful changesets found' %}: 
+      {% trans 'Total number of harmful changesets found' %}:
       <a href="{% url 'changeset:harmful_changesets' %}">
           {{ harmful }}
       </a>
   </p>
   <p>
-      {% trans 'Number of users white-listed' %}: 
+      {% trans 'Number of users white-listed' %}:
       <a href="{% url 'changeset:all_whitelist_users' %}">
           {{ users_whitelisted}}
       </a>
   </p>
   <p>
-      {% trans 'Number of users with harmful changesets' %}: 
+      {% trans 'Number of users with harmful changesets' %}:
       <a href="{% url 'changeset:all_blacklist_users' %}">
           {{ users_blacklisted }}
       </a>
   </p>
+
+  <br>
+
+  <h3>Count by Suspicion Reason</h3>
+  <table class="table table-striped table-bordered">
+    <tr>
+      <th>Suspicion reason</th>
+      <th>Checked</th>
+      <th>Verified Harmful</th>
+    </tr>
+    {% for key, value in counts.items %}
+    <tr>
+        <td>{{ key }}</td>
+        <td>{{ value.checked }}</td>
+        <td>{{ value.harmful }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <br>
 {% endblock content %}
