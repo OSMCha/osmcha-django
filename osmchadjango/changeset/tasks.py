@@ -10,7 +10,7 @@ from os.path import join
 
 from django.conf import settings
 
-from .models import Changeset, SuspicionReasons, Import
+from .models import Changeset, SuspicionReasons, Import, SuspicionScore, UserSuspicionScore
 
 
 @shared_task
