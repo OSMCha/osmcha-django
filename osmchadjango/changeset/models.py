@@ -67,18 +67,26 @@ class UserDetail(models.Model):
     contributor_blocks = models.IntegerField()
     contributor_since = models.DateTimeField(null=True, blank=True)
     contributor_traces = models.IntegerField(null=True, blank=True)
+    contributor_img = models.CharField(max_length=512, blank=True, null=True)
 
     nodes_c = models.IntegerField(null=True, blank=True)
     nodes_m = models.IntegerField(null=True, blank=True)
     nodes_d = models.IntegerField(null=True, blank=True)
+    nodes_rank = models.IntegerField(null=True, blank=True)
 
     ways_c = models.IntegerField(null=True, blank=True)
     ways_m = models.IntegerField(null=True, blank=True)
     ways_d = models.IntegerField(null=True, blank=True)
+    ways_rank = models.IntegerField(null=True, blank=True)
 
     relations_c = models.IntegerField(null=True, blank=True)
     relations_m = models.IntegerField(null=True, blank=True)
     relations_d = models.IntegerField(null=True, blank=True)
+    relations_rank = models.IntegerField(null=True, blank=True)
+
+    notes_opened = models.IntegerField(null=True, blank=True)
+    notes_commented = models.IntegerField(null=True, blank=True)
+    notes_closed = models.IntegerField(null=True, blank=True)
 
     changesets_no = models.IntegerField(null=True, blank=True, help_text='Number of changesets', db_index=True)
     changesets_changes = models.IntegerField(null=True, blank=True, db_index=True)
@@ -142,7 +150,7 @@ class Changeset(models.Model):
         print user_details
         user_detail, created = UserDetail.objects.update_or_create(
             contributor_name=user_details['contributor_name'],
-            defaults=user_details,
+            defaults=user_details
         )
         self.user_detail = user_detail
         self.save()
