@@ -30,6 +30,8 @@ def create_changeset(changeset_id):
     ch_dict.pop('user_details')
     ch_dict.pop('user_score')
     ch_dict.pop('changeset_score')
+    ch_dict.pop('user_score_details')
+    ch_dict.pop('changeset_score_details')
 
     # save changeset
     changeset, created = Changeset.objects.update_or_create(id=ch_dict['id'], defaults=ch_dict)
@@ -38,6 +40,13 @@ def create_changeset(changeset_id):
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
+
+    SuspicionScore.objects.filter(changeset=changeset).delete()
+    for detail in ch.changeset_score_details:
+        s = SuspicionScore(changeset=changeset)
+        s.score = detail['score']
+        s.reason = detail['reason']
+        s.save()
 
     if ch.user_details:
         changeset.save_user_details(ch)
