@@ -32,6 +32,24 @@ class SuspicionReasons(models.Model):
                     same_reason.delete()
 
 
+class SuspicionScore(models.Model):
+    changeset = models.ForeignKey("Changeset")
+    score = models.IntegerField()
+    reason = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('changeset', 'score', 'reason',)
+
+
+class UserSuspicionScore(models.Model):
+    user = models.ForeignKey("UserDetail")
+    score = models.IntegerField()
+    reason = models.CharField(max_length=255)
+
+    class Meta:
+        unique_together = ('user', 'score', 'reason',)
+
+
 class UserWhitelist(models.Model):
     user = models.ForeignKey(User)
     whitelist_user = models.CharField(max_length=1000)
@@ -128,6 +146,14 @@ class Changeset(models.Model):
         )
         self.user_detail = user_detail
         self.save()
+
+        UserSuspicionScore.objects.filter(user=user_detail).delete()
+        for detail in ch.user_score_details:
+            uss = UserSuspicionScore(user=user_detail)
+            uss.score = detail['score']
+            uss.reason = detail['reason']
+            uss.save()
+            
         return user_detail
 
 

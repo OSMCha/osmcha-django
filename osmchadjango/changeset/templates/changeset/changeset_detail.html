@@ -33,6 +33,20 @@
     </div>
     {% endif %}
   </div>
+  <div class="row">
+    <div class="col-6">
+      Changeset Score: <span class="label label-warning has_tooltip" title="
+        {% for ss in changeset.suspicionscore_set.all %}
+          {{ ss.reason }}: {{ ss.score }}<br />
+        {% endfor %}
+      ">{{ changeset.score }}</span>
+      User Score: <span class="label label-warning has_tooltip" title="
+        {% for uss in changeset.user_detail.usersuspicionscore_set.all %}
+          {{ uss.reason }}: {{ uss.score }}<br />
+        {% endfor %}
+      ">{{ changeset.user_detail.score }}</span>
+    </div>
+  </div>
 
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
@@ -269,6 +283,12 @@
 
 {% block javascript %}
   {{ block.super }}
+<script>
+$('.has_tooltip').tooltip({
+  'html': true,
+  'placement': 'bottom'
+});
+</script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>
 {% endblock javascript %}
