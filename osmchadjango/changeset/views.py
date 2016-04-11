@@ -30,7 +30,13 @@ class CheckedChangesetsView(ListView):
         return context
 
     def get_queryset(self):
-        return Changeset.objects.filter(checked=True)
+        from_date = self.request.GET.get('from', '')
+        to_date = self.request.GET.get('to', datetime.datetime.now())
+        if from_date and from_date != '':
+            qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+        else:
+            qset = Changeset.objects.all()
+        return qset.filter(checked=True)
 
 
 class HarmfulChangesetsView(ListView):
@@ -47,7 +53,13 @@ class HarmfulChangesetsView(ListView):
         return context
 
     def get_queryset(self):
-        return Changeset.objects.filter(harmful=True)
+        from_date = self.request.GET.get('from', '')
+        to_date = self.request.GET.get('to', datetime.datetime.now())
+        if from_date and from_date != '':
+            qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+        else:
+            qset = Changeset.objects.all()
+        return qset.filter(harmful=True)
 
 
 class ChangesetListView(ListView):

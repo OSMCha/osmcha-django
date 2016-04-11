@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
-{% block title %}OSMCHA - Stats %}{% endblock %}
+{% block title %}OSMCHA - Stats{% endblock %}
 
 {% block content %}
   <h2>{% trans 'Statistics' %}</h2>
@@ -32,12 +32,6 @@
       </a>
   </p>
   <p>
-      {% trans 'Number of users white-listed' %}:
-      <a href="{% url 'changeset:all_whitelist_users' %}">
-          {{ users_whitelisted}}
-      </a>
-  </p>
-  <p>
       {% trans 'Number of users with harmful changesets' %}:
       <a href="{% url 'changeset:all_blacklist_users' %}">
           {{ users_blacklisted }}
@@ -57,12 +51,12 @@
     <tr>
         <td>{{ key }}</td>
         <td>
-          <a href="/?checked=True&is_suspect=False&reasons={{ value.id }}">
+          <a href="/?checked=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
             {{ value.checked }}
           </a>
         </td>
         <td>
-          <a href="/?harmful=True&is_suspect=False&reasons={{ value.id }}">
+          <a href="/?harmful=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
             {{ value.harmful }}
           </a>
         </td>
