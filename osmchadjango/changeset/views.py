@@ -214,22 +214,31 @@ def remove_from_whitelist(request):
     return JsonResponse({'success': 'Users removed from whitelist'})
 
 def stats(request):
-    total_checked = Changeset.objects.filter(checked=True).count()
-    total_harmful = Changeset.objects.filter(harmful=True).count()
+    from_date = request.GET.get('from', None)
+    to_date = request.GET.get('to', datetime.datetime.now())
+    reviewer = request.GET.get('reviewer', '')
+    if from_date:
+        changesets_qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+    else:
+        changesets_qset = Changeset.objects.all()
+    if reviewer != '':
+        changesets_qset = changesets_qset.filter(check_user__name=reviewer)
+    total_checked = changesets_qset.filter(checked=True).count()
+    total_harmful = changesets_qset.filter(harmful=True).count()
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
-    users_blacklisted = Changeset.objects.filter(harmful=True).values('user').distinct().count()
+    users_blacklisted = changesets_qset.filter(harmful=True).values('user').distinct().count()
 
     counts = {}
     for reason in SuspicionReasons.objects.all():
         counts[reason.name] = {}
         counts[reason.name]['id'] = reason.id
-        counts[reason.name]['checked'] = Changeset.objects.filter(reasons=reason, checked=True).count()
-        counts[reason.name]['harmful'] = Changeset.objects.filter(reasons=reason, harmful=True).count()
+        counts[reason.name]['checked'] = changesets_qset.filter(reasons=reason, checked=True).count()
+        counts[reason.name]['harmful'] = changesets_qset.filter(reasons=reason, harmful=True).count()
 
     counts['None'] = {}
     counts['None']['id'] = 'None'
-    counts['None']['checked'] = Changeset.objects.filter(reasons=None, checked=True).count()
-    counts['None']['harmful'] = Changeset.objects.filter(reasons=None, harmful=True).count()
+    counts['None']['checked'] = changesets_qset.filter(reasons=None, checked=True).count()
+    counts['None']['harmful'] = changesets_qset.filter(reasons=None, harmful=True).count()
 
     context = {
         'checked': total_checked,
@@ -237,6 +246,7 @@ def stats(request):
         'users_whitelisted': users_whitelisted,
         'users_blacklisted': users_blacklisted,
         'counts': counts,
+        'get': request.GET.dict()
     }
     return render(request, 'changeset/stats.html', context=context)
 

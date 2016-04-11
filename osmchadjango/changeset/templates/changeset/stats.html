@@ -6,6 +6,20 @@
 {% block content %}
   <h2>{% trans 'Statistics' %}</h2>
   <p>
+    <form action="" method="GET">
+      <label for="from" class="control-label">From</label>
+      <input class="form-control" name="from" type="date" value="{{ get.from }}"/>
+      <br />
+      <label for="to" class="control-label">To</label>
+      <input class="form-control" name="to" type="date" value="{{ get.to }}"/>
+      <br />
+      <label for="reviewer" class="control-label">Reviewer Username</label>
+      <input class="form-control" name="reviewer" type="text" value="{{ get.reviewer }}"/>
+      <br />
+      <input type="submit" />
+    </form>
+  </p>
+  <p>
       {% trans 'Total number of changesets checked' %}:
       <a href="{% url 'changeset:checked_changesets' %}">
           {{ checked }}
