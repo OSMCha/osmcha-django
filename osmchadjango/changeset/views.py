@@ -234,7 +234,7 @@ def stats(request):
     else:
         changesets_qset = Changeset.objects.all()
     if reviewer != '':
-        changesets_qset = changesets_qset.filter(check_user__name=reviewer)
+        changesets_qset = changesets_qset.filter(check_user__username=reviewer)
     total_checked = changesets_qset.filter(checked=True).count()
     total_harmful = changesets_qset.filter(harmful=True).count()
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
