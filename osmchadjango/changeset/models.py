@@ -134,7 +134,7 @@ class Changeset(models.Model):
 
     def achavi_link(self):
         """Return the link to the changeset page on ACHAVI."""
-        return 'https://overpass-api.de/achavi/?changeset=%s' % self.id
+        return 'https://osmlab.github.io/changeset-map/#%s' % self.id
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""
