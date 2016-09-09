@@ -106,6 +106,8 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.user.user_details'
 )
 
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
+
 CELERYBEAT_SCHEDULE = {
     'schedule-name': {
         'task': 'osmchadjango.changeset.tasks.fetch_latest',
