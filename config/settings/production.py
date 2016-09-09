@@ -79,6 +79,8 @@ CACHES = {
     }
 }
 
+# Marks the request as secure if it gets the X_FORWARDED_PROTO header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Your production stuff: Below this line define 3rd party library settings
 CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
@@ -105,8 +107,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
 )
-
-ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 
 CELERYBEAT_SCHEDULE = {
     'schedule-name': {
