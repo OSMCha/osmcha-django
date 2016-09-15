@@ -33,3 +33,11 @@ if settings.DEBUG:
         url(r'^404/$', 'django.views.defaults.page_not_found'),
         url(r'^500/$', 'django.views.defaults.server_error'),
     ]
+
+
+# If static files are not intercepted by the web-server, serve them with the dev-server:
+if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
+    urlpatterns += [
+        url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+    ]
+
