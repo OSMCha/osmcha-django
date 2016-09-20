@@ -11,6 +11,7 @@ from django.shortcuts import get_object_or_404
 from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
+from django.contrib.gis.geos import Polygon
 
 import json
 import datetime
@@ -119,6 +120,9 @@ class ChangesetListView(ListView):
                 queryset = queryset.filter(reasons=None)
             else:
                 queryset = queryset.filter(reasons=int(params['reasons']))
+        if 'bbox' in params:
+            bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
+            queryset = queryset.filter(bbox__overlaps=bbox)
 
         user = self.request.user
 
