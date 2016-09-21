@@ -122,7 +122,7 @@ class ChangesetListView(ListView):
                 queryset = queryset.filter(reasons=int(params['reasons']))
         if 'bbox' in params:
             bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            queryset = queryset.filter(bbox__overlaps=bbox)
+            queryset = queryset.filter(bbox__bboverlaps=bbox)
 
         user = self.request.user
 
