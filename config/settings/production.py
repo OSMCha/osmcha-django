@@ -74,10 +74,12 @@ DATABASES = {
 # Heroku URL does not pass the DB number, so we parse it in
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': ''
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'TIMEOUT': 60
     }
 }
+
 
 # Marks the request as secure if it gets the X_FORWARDED_PROTO header
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
