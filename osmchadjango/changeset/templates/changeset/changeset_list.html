@@ -1,10 +1,14 @@
 {% extends "base.html" %}
 {% load static %}
 {% load i18n %}
+{% load cache %}
 
 {% block title %}{% trans 'OSMCHA - Changeset List' %}{% endblock %}
 
 {% block content %}
+
+  {% with cache_timeout=user.is_authenticated|yesno:"0,300" %}
+  {% cache cache_timeout changesets user.is_authenticated %}
   {% if search_title %}
     <h3>{{ search_title }}</h3>
   {% endif %}
@@ -220,7 +224,7 @@
           </tr>
         </thead>
         <tbody>
-          {% for changeset in changesets %}
+              {% for changeset in changesets %}
             <tr>
               <td>
                 <a href="{% url 'changeset:detail' changeset.id %}">{{ changeset.id }}</a>
@@ -254,7 +258,8 @@
                 {% endif %}
               </td>
             </tr>
-          {% endfor %}
+              {% endfor %}
+
         </tbody>
       </table>
     </div>
@@ -277,8 +282,8 @@
       {% endif %}
     </ul>
   {% endif %}
-
-
+  {% endcache %}
+  {% endwith %}
 {% endblock content %}
 
 {% block javascript %}
