@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
 from django.views import defaults
+from django.views import static as static_views
 
 urlpatterns = [
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name="about"),
@@ -39,6 +40,6 @@ if settings.DEBUG:
 # If static files are not intercepted by the web-server, serve them with the dev-server:
 if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
     urlpatterns += [
-        url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root': settings.STATIC_ROOT}),
+        url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
     ]
 
