@@ -173,6 +173,9 @@ class SuspiciousFeature(models.Model):
     geometry = models.GeometryField()
     geojson = models.TextField()
 
+    #timestamp when feature was added to db
+    timestamp = models.DateTimeField(blank=True, null=True, auto_now_add=True)
+
     @property
     def osm_link(self):
         return "https://openstreetmap.org/%s/%d" % (self.get_type(), self.osm_id)
