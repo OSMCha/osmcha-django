@@ -8,7 +8,7 @@
 {% block content %}
 
   {% with cache_timeout=user.is_authenticated|yesno:"0,300" %}
-  {% cache cache_timeout changesets user.is_authenticated %}
+  {% cache cache_timeout changesets user.is_authenticated request.get_full_path %}
   {% if search_title %}
     <h3>{{ search_title }}</h3>
   {% endif %}
