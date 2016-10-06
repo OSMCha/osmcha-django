@@ -102,8 +102,6 @@ class ChangesetListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
-        if 'username' in params:
-            params['user'] = params['username']
         if 'is_suspect' not in params:
             params['is_suspect'] = 'True'
         if 'is_whitelisted' not in params:

@@ -10,6 +10,7 @@ class ChangesetFilter(django_filters.FilterSet):
     checked = filters.MethodFilter()
     harmful = filters.MethodFilter()
     is_suspect = filters.MethodFilter()
+    usernames = filters.MethodFilter()
 
     def filter_max_score(self, queryset, value):
         if value:
@@ -36,6 +37,12 @@ class ChangesetFilter(django_filters.FilterSet):
             return queryset.filter(is_suspect=True)
         return queryset
 
+    def filter_usernames(self, queryset, value):
+        if value:
+            users_array = [t.strip() for t in value.split(',')]
+            return queryset.filter(user__in=users_array)
+        return queryset
+
     class Meta:
         model = Changeset
         fields = {
@@ -52,7 +59,6 @@ class ChangesetFilter(django_filters.FilterSet):
             'editor': ['icontains'],
             'comment': ['icontains'],
             'source': ['icontains'],
-            'user': ['exact'],
             'harmful': [],
             'checked': [],
             'is_suspect': []
