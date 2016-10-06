@@ -20,7 +20,7 @@ urlpatterns = [
     ),
     url(
         regex=r'^(?P<changeset_id>\w+)/suspicious_feature/(?P<osm_id>\w+)/geojson$',
-        view='osmchadjango.changeset.views.suspicious_feature_geojson',
+        view=views.suspicious_feature_geojson,
         name='suspicious_feature_geojson'
     ),
     url(
@@ -35,32 +35,32 @@ urlpatterns = [
     ),
     url(
         regex=r'^api/suspicion$',
-        view='osmchadjango.changeset.views.suspicion_create',
+        view=views.suspicion_create,
         name='create_suspicion'
     ),
     url(
         regex=r'^whitelist-user$',
-        view='osmchadjango.changeset.views.whitelist_user',
+        view=views.whitelist_user,
         name='whitelist_user'
     ),
     url(
         regex=r'^remove-from-whitelist$',
-        view='osmchadjango.changeset.views.remove_from_whitelist',
+        view=views.remove_from_whitelist,
         name='remove_from_whitelist'
     ),
     url(
         regex=r'^stats$',
-        view='osmchadjango.changeset.views.stats',
+        view=views.stats,
         name='stats'
     ),
     url(
         regex=r'^all-whitelist-users$',
-        view='osmchadjango.changeset.views.all_whitelist_users',
+        view=views.all_whitelist_users,
         name='all_whitelist_users'
     ),
     url(
         regex=r'^all-blacklist-users$',
-        view='osmchadjango.changeset.views.all_blacklist_users',
+        view=views.all_blacklist_users,
         name='all_blacklist_users'
     ),
     url(
