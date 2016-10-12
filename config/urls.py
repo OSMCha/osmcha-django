@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Your stuff: custom urls includes go here
     url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
+    url(r'^', include("osmchadjango.feature.urls", namespace="feature")),
 
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

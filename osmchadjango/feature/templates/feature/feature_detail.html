@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Feature {{ feature.id }}{% endblock %}
+
+{% block content %}
+  <h2>Feature {{ feature.id }}</h2>
+  <h4> A {{ feature.geojson_obj.geometry.type }} was edited on {{ feature.changeset.date }} by {{ feature.changeset.user }}</h4>
+  <div class="row">
+    <h3>{% trans 'Details' %}</h3>
+    <hr>
+    <div class="col-xs-12 col-md-6">
+      <div class="list-group">
+        <div class="list-group-item">
+          <div class="row">
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ feature.changeset.user }}">
+                  {{ feature.changeset.user }}
+                </a>
+              </p>
+              <hr>
+              <p class="list-group-item-text">
+                <a class="btn btn-warning btn-xs pull-left" target="_blank" href="http://hdyc.neis-one.org/?{{ feature.changeset.user }}">
+                  {% trans 'HDYC' %}
+                </a>
+              </p>
+             </div>
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'Changeset' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/changeset/{{ feature.changeset_id }}">
+                  {{ feature.changeset_id }}
+                </a>
+              </p>
+              <hr>
+              <p class="list-group-item-text">
+                <a class="btn btn-warning btn-xs pull-left" target="_blank" href="http://osmlab.github.io/changeset-map/#{{ feature.changeset_id }}">
+                  {% trans 'Changeset Map' %}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h4 class="list-group-item-heading">{% trans 'Feature' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/{{ feature.geojson_obj.properties.osm_type}}/{{ feature.id }}">
+                  {{ feature.geojson_obj.properties.osm_type }}
+                  {{ feature.id }}
+                </a>
+              </p>
+              <hr>
+              <p class="list-group-item-text">
+	            <a class="btn btn-warning btn-xs pull-left openInJOSM" target="_blank" href="{{ feature.changeset.josm_link }}">
+                  {% trans 'Open in JOSM' %}
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}
+
+{% block javascript %}
+  {{ block.super }}
+<script>
+$('.has_tooltip').tooltip({
+  'html': true,
+  'placement': 'bottom'
+});
+</script>
+{% endblock javascript %}
