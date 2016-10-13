@@ -22,4 +22,19 @@ urlpatterns = [
         view=views.suspicion_create,
         name='create_suspicion'
     ),
+    url(
+        regex=r'^features/set-harmful/(?P<pk>\w+)/$',
+        view=login_required(views.SetHarmfulFeature.as_view()),
+        name='set_harmful'
+    ),
+    url(
+        regex=r'^features/set-good/(?P<pk>\w+)/$',
+        view=login_required(views.SetGoodFeature.as_view()),
+        name='set_good'
+    ),
+    url(
+        regex=r'^features/whitelist-user$',
+        view=views.whitelist_user,
+        name='whitelist_user'
+    ),
 ]

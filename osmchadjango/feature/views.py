@@ -72,14 +72,14 @@ class FeatureDetailView(DetailView):
 
 @csrf_exempt
 def suspicion_create(request):
-    # if request.method!='POST':
-        # try:
-        #     feature = json.loads(request.body)
-        # except:
-        #     return HttpResponse("Improperly formatted JSON body", status=400)
+    if request.method!='POST':
+        try:
+            feature = json.loads(request.body)
+        except:
+            return HttpResponse("Improperly formatted JSON body", status=400)
 
-        # if 'properties' not in feature:
-        #    return HttpResponse("Expecting a single GeoJSON feature", status=400)
+        if 'properties' not in feature:
+           return HttpResponse("Expecting a single GeoJSON feature", status=400)
         properties = feature.get('properties', {})
         changeset_id = properties.get('osm:changeset')
 
@@ -120,5 +120,74 @@ def suspicion_create(request):
         suspicious_feature.reasons.add(*reasons)
 
         return JsonResponse({properties})
-    # else:
-    #     return HttpResponse(401)
+
+
+class SetHarmfulFeature(SingleObjectMixin, View):
+    model = Feature
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+            return render(
+                request,
+                'feature/confirm_modify.html',
+                {'feature': self.object, 'modification': _('harmful')}
+                )
+        else:
+            return render(request, 'feature/not_allowed.html')
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+            self.object.checked = True
+            self.object.harmful = True
+            self.object.check_user = request.user
+            self.object.check_date = timezone.now()
+            self.object.save()
+            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.pk]))
+        else:
+            return render(request, 'feature/not_allowed.html')
+
+@csrf_exempt
+def whitelist_user(request):
+    '''
+        View to mark a user as whitelisted.
+        Accepts a single post parameter with the 'name' of the user to be white-listed.
+        Whitelists that user for the currently logged in user.
+        TODO: can this be converted to a CBV?
+    '''
+    name = request.POST.get('name', None)
+    user = request.user
+    if not user.is_authenticated():
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    if not name:
+        return JsonResponse({'error': 'Needs name parameter'}, status=403)
+    uw = UserWhitelist(user=user, whitelist_user=name)
+    uw.save()
+    return JsonResponse({'success': 'User %s has been white-listed' % name})
+
+class SetGoodFeature(SingleObjectMixin, View):
+    model = Feature
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+            return render(
+                request,
+                'feature/confirm_modify.html',
+                {'feature': self.object, 'modification': _('good')}
+                )
+        else:
+            return render(request, 'feature/not_allowed.html')
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+            self.object.checked = True
+            self.object.harmful = False
+            self.object.check_user = request.user
+            self.object.check_date = timezone.now()
+            self.object.save()
+            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.pk]))
+        else:
+            return render(request, 'feature/not_allowed.html')
