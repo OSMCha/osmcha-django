@@ -27,7 +27,7 @@
                   {% trans 'HDYC' %}
                 </a>
               </p>
-             </div>
+            </div>
             <div class="col-md-3">
               <h4 class="list-group-item-heading">{% trans 'Changeset' %}</h4>
               <p class="list-group-item-text">
@@ -59,9 +59,118 @@
             </div>
           </div>
         </div>
+        <div class="list-group-item">
+          <h4 class="list-group-item-heading">{% trans 'Verification' %}</h4>
+          <div class="list-group-item-text">
+            {% if feature.checked %}
+              {% if feature.harmful %}
+                <span class="glyphicon glyphicon-thumbs-down"></span>
+                {% blocktrans with check_user=feature.check_user%}
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
+                {% endblocktrans %}
+              {% else %}
+                <span class="glyphicon glyphicon-thumbs-up"></span>
+                {% blocktrans with check_user=feature.check_user%}
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
+                {% endblocktrans %}
+              {% endif %}
+            {% else %}
+              <div class="btn-group">
+                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Not Verified <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a
+                    {% if request.user.is_authenticated %}
+                      data-toggle="modal" data-target="#notHarmfulModal"
+                    {% else %}
+                      href="{% url 'feature:feature/set_good' feature.pk %}"
+                    {% endif %}
+                    >
+                      <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                    {% if request.user.is_authenticated %}
+                      data-toggle="modal" data-target="#harmfulModal"
+                    {% else %}
+                      href="{% url 'feature:feature/set_harmful' feature.pk %}"
+                    {% endif %}
+                    >
+                      <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
+                    </a>
+                  </li>
+                  {% if request.user.is_authenticated %}
+                  <li>
+                    <a class="whitelist-user" data-username="{{ feature.changeset.user }}" href="#">
+                      <span class="glyphicon glyphicon-thumbs-up"></span>
+                      {% trans 'White-list this user' %}
+                    </a>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            {% endif %}
+          </div>
+        </div>
       </div>
     </div>
+    <div class="col-xs-12 col-md-6">
+      <div id='map' style='width: 400px; height: 300px;'></div>
+    </div>
   </div>
+  {% if request.user.is_authenticated and not feature.checked %}
+    <div class="modal fade" id="notHarmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+              {% blocktrans %}Do you really want to mark the feature {{ feature }} as good?{% endblocktrans %}
+            </h4>
+          </div>
+          <div class="modal-body">
+            <form action="{% url 'feature:set_good' feature.pk %}" method="post">{% csrf_token %}
+              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
+              <a class="btn btn-default" data-dismiss="modal">
+                {% trans "No, don't mark it as good" %}
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="harmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+              {% blocktrans %}Do you really want to mark the feature {{ feature }} as harmful?{% endblocktrans %}
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger" role="alert">
+              <p>{% trans 'Only mark a feature as harmful if you have already fixed or reverted it.' %}</p>
+            </div>
+            <form action="{% url 'feature:set_harmful' feature.pk %}" method="post">{% csrf_token %}
+              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
+              <a class="btn btn-default" data-dismiss="modal">
+                {% trans "No, don't mark it as harmful" %}
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
 {% endblock content %}
 
 {% block javascript %}
@@ -70,6 +179,50 @@
 $('.has_tooltip').tooltip({
   'html': true,
   'placement': 'bottom'
+});
+</script>
+<script src="{% static 'js/josm_link.js' %}"></script>
+<script src="{% static 'js/whitelist_user.js' %}"></script>
+<script type="text/javascript" src="https://api.mapbox.com/mapbox-gl-js/v0.25.1/mapbox-gl.js"></script>
+<link rel='stylesheet' href="https://api.mapbox.com/mapbox-gl-js/v0.25.1/mapbox-gl.css" />
+<script type="text/javascript" src="https://npmcdn.com/@turf/turf@3.5.1/turf.min.js"></script>
+<script type="text/javascript">
+mapboxgl.accessToken = 'pk.eyJ1IjoiYW1pc2hhIiwiYSI6ImNpcWt1bWc4bjAzOXNmdG04bng4dHVhZ3EifQ.bJK6rpjNmiP3kW2pROdScg';
+var map = new mapboxgl.Map({
+    container: document.getElementById('map'),
+    style: 'mapbox://styles/mapbox/streets-v9'
+});
+map.on('load', function() {
+  var data = {
+        "type": "Feature",
+        "properties": {},
+        "geometry": {
+          "type": '{{feature.geojson_obj.geometry.type}}',
+          "coordinates": {{feature.geojson_obj.geometry.coordinates}}
+        }
+      };
+
+  map.addSource('feature',
+    {
+      "type": "geojson",
+      "data": data
+    });
+
+  map.addLayer({
+      'id': 'feature',
+      'type': 'line',
+      'source': 'feature',
+      'layout': {
+          'visibility': 'visible',
+          'line-join': 'round',
+          'line-cap': 'round'
+      },
+      'paint': {
+          'line-color': '#877b59',
+          'line-width': 1
+      }
+  });
+  map.fitBounds(turf.bbox(data));
 });
 </script>
 {% endblock javascript %}
