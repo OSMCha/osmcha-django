@@ -115,10 +115,94 @@
             {% endif %}
           </div>
         </div>
+        <div class="list-group-item">
+          <h4>{% trans 'Suspicion reasons' %}</h4>
+          <hr>
+          <ul>
+            {% for reason in feature.reasons.all %}
+            <li>{{ reason.name|capfirst }}</li>
+            {% endfor %}
+          </ul>
+        </div>
       </div>
     </div>
     <div class="col-xs-12 col-md-6">
       <div id='map' style='width: 400px; height: 300px;'></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="table-responsive">
+    <h4>{% trans 'Modified tags' %}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'Tag' %}</th>
+            <th>{% trans 'Old Value' %}</th>
+            <th>{% trans 'New Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% if feature.properties.oldVersion %}
+              {% for property in feature.properties.oldVersion.properties %}
+              {% ifnotequal feature.properties.oldVersion.properties.property feature.properties.property %}
+            <tr>
+              <td>
+                property
+              </td>
+              <td>{{ feature.properties.oldVersion.properties.property }}</td>
+              <td>{{ feature.properties.property }}</td>
+            </tr>
+              {% endifnotequal %}
+              {% endfor %}
+              {% endif %}
+        </tbody>
+      </table>
+    <h4>{% trans 'Deleted tags' %}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'Tag' %}</th>
+            <th>{% trans 'Old Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% if feature.properties.oldVersion %}
+              {% for property in feature.properties.oldVersion.properties %}
+              {% if feature.properties.property is null %}
+            <tr>
+              <td>
+                property
+              </td>
+              <td>{{ feature.properties.oldVersion.properties.property }}</td>
+            </tr>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+        </tbody>
+      </table>
+    <h4>{% trans 'Added tags' %}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'Tag' %}</th>
+            <th>{% trans 'New Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% if feature.properties.oldVersion %}
+              {% for property in feature.properties %}
+              {% if feature.properties.oldVersion.properties.property is null %}
+            <tr>
+              <td>
+              property
+              </td>
+              <td>{{ feature.properties.property }}</td>
+            </tr>
+              {% endif %}
+              {% endfor %}
+              {% endif %}
+        </tbody>
+      </table>
     </div>
   </div>
   {% if request.user.is_authenticated and not feature.checked %}
