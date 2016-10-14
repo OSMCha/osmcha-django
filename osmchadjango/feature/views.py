@@ -72,7 +72,7 @@ class FeatureDetailView(DetailView):
 
 @csrf_exempt
 def suspicion_create(request):
-    if request.method!='POST':
+    if request.method=='POST':
         try:
             feature = json.loads(request.body)
         except:
