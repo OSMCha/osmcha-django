@@ -6,7 +6,7 @@
 
 {% block content %}
   <h2>Feature {{ feature.id }}</h2>
-  <h4> A {{ feature.geojson_obj.geometry.type }} was edited on {{ feature.changeset.date }} by {{ feature.changeset.user }}</h4>
+  <h4> A {{ feature.geojson_obj.properties.osm_type }} was edited on {{ feature.changeset.date }} by {{ feature.changeset.user }}</h4>
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
     <hr>
@@ -52,7 +52,7 @@
               </p>
               <hr>
               <p class="list-group-item-text">
-	            <a class="btn btn-warning btn-xs pull-left openInJOSM" target="_blank" href="{{ feature.changeset.josm_link }}">
+              <a class="btn btn-warning btn-xs pull-left openInJOSM" target="_blank" href="{{ feature.changeset.josm_link }}">
                   {% trans 'Open in JOSM' %}
                 </a>
               </p>
@@ -85,7 +85,7 @@
                     {% if request.user.is_authenticated %}
                       data-toggle="modal" data-target="#notHarmfulModal"
                     {% else %}
-                      href="{% url 'feature:feature/set_good' feature.pk %}"
+                      href="{% url 'feature:set_good' feature.pk %}"
                     {% endif %}
                     >
                       <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
@@ -96,7 +96,7 @@
                     {% if request.user.is_authenticated %}
                       data-toggle="modal" data-target="#harmfulModal"
                     {% else %}
-                      href="{% url 'feature:feature/set_harmful' feature.pk %}"
+                      href="{% url 'feature:set_harmful' feature.pk %}"
                     {% endif %}
                     >
                       <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
@@ -132,6 +132,7 @@
   </div>
   <div class="row">
     <div class="table-responsive">
+    {% if feature.diff_tags.modified %}
     <h4>{% trans 'Modified tags' %}</h4>
       <table class="table table-striped">
         <thead>
@@ -142,67 +143,43 @@
           </tr>
         </thead>
         <tbody>
-              {% if feature.properties.oldVersion %}
-              {% for property in feature.properties.oldVersion.properties %}
-              {% ifnotequal feature.properties.oldVersion.properties.property feature.properties.property %}
+              {% for record in feature.diff_tags.modified %}
             <tr>
               <td>
-                property
+                {{record.tag}}
               </td>
-              <td>{{ feature.properties.oldVersion.properties.property }}</td>
-              <td>{{ feature.properties.property }}</td>
+              <td>{{record.oldValue}}</td>
+              <td>{{record.newValue}}</td>
             </tr>
-              {% endifnotequal %}
               {% endfor %}
-              {% endif %}
         </tbody>
       </table>
+    {% else %}
+    <h4>{% trans 'No Modified tags' %}</h4>
+    {% endif %}
+    {% if feature.diff_tags.deleted %}
     <h4>{% trans 'Deleted tags' %}</h4>
       <table class="table table-striped">
         <thead>
           <tr>
             <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'Old Value' %}</th>
+            <th>{% trans 'Value' %}</th>
           </tr>
         </thead>
         <tbody>
-              {% if feature.properties.oldVersion %}
-              {% for property in feature.properties.oldVersion.properties %}
-              {% if feature.properties.property is null %}
+              {% for record in feature.diff_tags.deleted %}
             <tr>
               <td>
-                property
-              </td>
-              <td>{{ feature.properties.oldVersion.properties.property }}</td>
+                {{ record.tag }}
+               </td>
+              <td>{{ record.Value }}</td>
             </tr>
-              {% endif %}
               {% endfor %}
-              {% endif %}
         </tbody>
       </table>
-    <h4>{% trans 'Added tags' %}</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'New Value' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-              {% if feature.properties.oldVersion %}
-              {% for property in feature.properties %}
-              {% if feature.properties.oldVersion.properties.property is null %}
-            <tr>
-              <td>
-              property
-              </td>
-              <td>{{ feature.properties.property }}</td>
-            </tr>
-              {% endif %}
-              {% endfor %}
-              {% endif %}
-        </tbody>
-      </table>
+    {% else %}
+    <h4>{% trans 'No Deleted tags' %}</h4>
+    {% endif %}
     </div>
   </div>
   {% if request.user.is_authenticated and not feature.checked %}
