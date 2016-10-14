@@ -120,6 +120,8 @@ def suspicion_create(request):
         suspicious_feature.reasons.add(*reasons)
 
         return JsonResponse({properties})
+    else:
+        return HttpResponse(401)
 
 
 class SetHarmfulFeature(SingleObjectMixin, View):
