@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
 
 from ..users.models import User
+from osmchadjango.feature import models as feature_models
 
 
 class SuspicionReasons(models.Model):
@@ -163,6 +164,10 @@ class Changeset(models.Model):
             uss.save()
             
         return user_detail
+
+    @property
+    def features(self):
+        return feature_models.Feature.objects.all().filter(changeset_id=self.id)
 
 
 class SuspiciousFeature(models.Model):

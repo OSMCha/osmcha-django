@@ -126,7 +126,7 @@
               {% for feature in features %}
             <tr>
               <td>
-                <a href="{% url 'feature:detail' feature.id %}">{{ feature.id }}</a>
+                <a href="{% url 'feature:detail' feature.changeset_id feature.url %}">{{ feature.osm_id }}</a>
               </td>
               <td>{{ feature.changeset.date }}</td>
               <td>
