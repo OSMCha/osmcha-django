@@ -27,7 +27,7 @@ def create_changeset(changeset_id):
 
     ch_dict['score'] = ch_dict['changeset_score']
     ch_dict.pop('suspicion_reasons')
-    ch_dict.pop('user_details')
+    # ch_dict.pop('user_details')
     ch_dict.pop('user_score')
     ch_dict.pop('changeset_score')
     ch_dict.pop('user_score_details')
@@ -48,8 +48,8 @@ def create_changeset(changeset_id):
         s.reason = detail['reason']
         s.save()
 
-    if ch.user_details:
-        changeset.save_user_details(ch)
+    # if ch.user_details:
+    #     changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 
