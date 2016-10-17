@@ -167,7 +167,7 @@ class Changeset(models.Model):
 
     @property
     def features(self):
-        return feature_models.Feature.objects.all().filter(changeset_id=self.id)
+        return self.feature_set.all()
 
 
 class SuspiciousFeature(models.Model):

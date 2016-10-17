@@ -252,7 +252,7 @@
         {% for feature in changeset.features %}
         <tr>
           <td>
-            <a href="features/{{ feature.osm_type }}-{{ feature.osm_id }}" target="_blank">
+            <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
               {{ feature.osm_id }}
             </a>
           </td>
