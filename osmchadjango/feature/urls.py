@@ -13,7 +13,7 @@ urlpatterns = [
         name='features'
     ),
     url(
-        regex=r'^features/(?P<pk>\d+)$',
+        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=views.FeatureDetailView.as_view(),
         name='detail'
     ),
@@ -23,12 +23,12 @@ urlpatterns = [
         name='create_suspicion'
     ),
     url(
-        regex=r'^features/set-harmful/(?P<pk>\w+)/$',
+        regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=login_required(views.SetHarmfulFeature.as_view()),
         name='set_harmful'
     ),
     url(
-        regex=r'^features/set-good/(?P<pk>\w+)/$',
+        regex=r'^set-good/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=login_required(views.SetGoodFeature.as_view()),
         name='set_good'
     ),

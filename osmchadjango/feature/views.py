@@ -68,6 +68,12 @@ class FeatureDetailView(DetailView):
     context_object_name = 'feature'
     template_name = 'feature/feature_detail.html'
 
+    def get_object(self):
+        changeset = self.kwargs['changeset']
+        url = self.kwargs['slug']
+
+        return get_object_or_404(Feature, changeset= changeset, url = url )
+
 
 
 @csrf_exempt
@@ -113,9 +119,12 @@ def suspicion_create(request):
         changeset.reasons.add(*reasons)
         changeset.save()
         suspicious_feature = Feature(changeset=changeset)
-        suspicious_feature.id = properties['osm:id']
+        suspicious_feature.osm_id = properties['osm:id']
+        suspicious_feature.osm_type = properties['osm:type']
+        suspicious_feature.osm_version = properties['osm:version']
         suspicious_feature.geometry = GEOSGeometry(json.dumps(feature['geometry']))
         suspicious_feature.geojson = json.dumps(feature)
+        suspicious_feature.url = suspicious_feature.osm_type + '-' + suspicious_feature.osm_id
         suspicious_feature.save()
         suspicious_feature.reasons.add(*reasons)
 
@@ -126,6 +135,12 @@ def suspicion_create(request):
 
 class SetHarmfulFeature(SingleObjectMixin, View):
     model = Feature
+
+    def get_object(self):
+        changeset = self.kwargs['changeset']
+        url = self.kwargs['slug']
+
+        return get_object_or_404(Feature, changeset= changeset, url = url )
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -146,7 +161,7 @@ class SetHarmfulFeature(SingleObjectMixin, View):
             self.object.check_user = request.user
             self.object.check_date = timezone.now()
             self.object.save()
-            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.pk]))
+            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.changeset, self.object.url]))
         else:
             return render(request, 'feature/not_allowed.html')
 
@@ -171,8 +186,13 @@ def whitelist_user(request):
 class SetGoodFeature(SingleObjectMixin, View):
     model = Feature
 
+    def get_object(self):
+        changeset = self.kwargs['changeset']
+        url = self.kwargs['slug']
+
+        return get_object_or_404(Feature, changeset= changeset, url = url )
+
     def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
         if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
             return render(
                 request,
@@ -190,6 +210,6 @@ class SetGoodFeature(SingleObjectMixin, View):
             self.object.check_user = request.user
             self.object.check_date = timezone.now()
             self.object.save()
-            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.pk]))
+            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.changeset, self.object.url]))
         else:
             return render(request, 'feature/not_allowed.html')

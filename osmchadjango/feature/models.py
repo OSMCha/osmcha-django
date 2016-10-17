@@ -11,6 +11,9 @@ class Feature(models.Model):
     user_detail = models.ForeignKey('changeset.UserDetail', blank=True, null=True)
     
     changeset = models.ForeignKey('changeset.Changeset')
+    osm_id = models.IntegerField()
+    osm_type = models.CharField(max_length=1000)
+    osm_version = models.IntegerField()
     geometry = models.GeometryField()
     geojson = JSONField()
     reasons = models.ManyToManyField(
@@ -20,9 +23,13 @@ class Feature(models.Model):
     check_user = models.ForeignKey(User, null=True, blank=True)
     check_date = models.DateTimeField(null=True, blank=True)
     score = models.IntegerField(null=True, blank=True)
- 
+    url = models.SlugField(max_length=1000)
+
+    class Meta:
+        unique_together = ('changeset', 'osm_id', 'osm_type',)
+
     def __str__(self):
-        return '%s' % self.id
+        return '%s' % self.osm_id
 
     @classmethod
     def decode_string(value):

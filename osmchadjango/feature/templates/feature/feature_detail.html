@@ -2,10 +2,10 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}OSMCHA - Feature {{ feature.id }}{% endblock %}
+{% block title %}OSMCHA - Feature {{ feature.osm_id }}{% endblock %}
 
 {% block content %}
-  <h2>Feature {{ feature.id }}</h2>
+  <h2>Feature {{ feature.osm_id }}</h2>
   <h4> A {{ feature.geojson_obj.properties.osm_type }} was edited on {{ feature.changeset.date }} by {{ feature.changeset.user }}</h4>
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
@@ -45,9 +45,9 @@
             <div class="col-md-6">
               <h4 class="list-group-item-heading">{% trans 'Feature' %}</h4>
               <p class="list-group-item-text">
-                <a href="https://www.openstreetmap.org/{{ feature.geojson_obj.properties.osm_type}}/{{ feature.id }}">
+                <a href="https://www.openstreetmap.org/{{ feature.geojson_obj.properties.osm_type}}/{{ feature.osm_id }}">
                   {{ feature.geojson_obj.properties.osm_type }}
-                  {{ feature.id }}
+                  {{ feature.osm_id }}
                 </a>
               </p>
               <hr>
@@ -85,7 +85,7 @@
                     {% if request.user.is_authenticated %}
                       data-toggle="modal" data-target="#notHarmfulModal"
                     {% else %}
-                      href="{% url 'feature:set_good' feature.pk %}"
+                      href="{% url 'feature:set_good' feature.changeset_id feature.url %}"
                     {% endif %}
                     >
                       <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
@@ -96,7 +96,7 @@
                     {% if request.user.is_authenticated %}
                       data-toggle="modal" data-target="#harmfulModal"
                     {% else %}
-                      href="{% url 'feature:set_harmful' feature.pk %}"
+                      href="{% url 'feature:set_harmful' feature.changeset_id feature.url %}"
                     {% endif %}
                     >
                       <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
@@ -195,7 +195,7 @@
             </h4>
           </div>
           <div class="modal-body">
-            <form action="{% url 'feature:set_good' feature.pk %}" method="post">{% csrf_token %}
+            <form action="{% url 'feature:set_good' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
               <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
               <a class="btn btn-default" data-dismiss="modal">
                 {% trans "No, don't mark it as good" %}
@@ -221,7 +221,7 @@
             <div class="alert alert-danger" role="alert">
               <p>{% trans 'Only mark a feature as harmful if you have already fixed or reverted it.' %}</p>
             </div>
-            <form action="{% url 'feature:set_harmful' feature.pk %}" method="post">{% csrf_token %}
+            <form action="{% url 'feature:set_harmful' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
               <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
               <a class="btn btn-default" data-dismiss="modal">
                 {% trans "No, don't mark it as harmful" %}

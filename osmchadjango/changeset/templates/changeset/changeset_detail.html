@@ -232,7 +232,7 @@
     </div>
   {% endif %}
 
-  {% if changeset.suspiciousfeature_set.all %}
+  {% if changeset.features %}
   <div class="row">
     <table>
       <thead>
@@ -249,10 +249,10 @@
         </tr>
       </thead>
       <tbody>
-        {% for feature in changeset.suspiciousfeature_set.all %}
+        {% for feature in changeset.features %}
         <tr>
           <td>
-            <a href="{{ feature.osm_link }}" target="_blank">
+            <a href="features/{{ feature.osm_type }}-{{ feature.osm_id }}" target="_blank">
               {{ feature.osm_id }}
             </a>
           </td>
