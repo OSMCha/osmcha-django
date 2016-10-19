@@ -1,8 +1,4 @@
-from social.apps.django_app.default.models import UserSocialAuth
-from django.test import TestCase, RequestFactory, Client
-from .models import Feature
-from .views import suspicion_create
-from ..users.models import User
+from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 
 import json
@@ -182,4 +178,3 @@ class TestFeatureSuspicionCreate(TestCase):
         }
         response = self.client.post(reverse('feature:create_suspicion'), data = json.dumps(fixture), content_type="application/json")
         self.assertNotEqual(response.status_code, 400)
-
