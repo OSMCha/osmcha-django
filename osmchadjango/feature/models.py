@@ -15,7 +15,9 @@ class Feature(models.Model):
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()
     geometry = models.GeometryField()
+    oldGeometry = models.GeometryField(null=True, blank=True)
     geojson = JSONField()
+    oldGeojson = JSONField(null=True, blank=True)
     reasons = models.ManyToManyField(
         'changeset.SuspicionReasons', related_name='features')
     harmful = models.NullBooleanField()
@@ -31,10 +33,6 @@ class Feature(models.Model):
     def __str__(self):
         return '%s' % self.osm_id
 
-    @classmethod
-    def decode_string(value):
-        return codecs.decode(value, 'unicode-escape')
-
     @property
     def geojson_obj(self):
         return json.loads((self.geojson).replace('osm:', 'osm_'))
@@ -42,10 +40,11 @@ class Feature(models.Model):
     @property
     def diff_tags(self):
         geojson = json.loads((self.geojson))
+        oldGeojson = json.loads((self.oldGeojson))
         modified_tags = []
         deleted_tags = []
         tags = {}
-        for key, value in geojson['properties']['oldVersion']['properties'].iteritems():
+        for key, value in oldGeojson['properties'].iteritems():
             if key in geojson['properties']:
                 if value != geojson['properties'][key]:
                     record = {}
