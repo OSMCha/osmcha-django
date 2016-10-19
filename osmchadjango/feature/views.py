@@ -83,7 +83,6 @@ def suspicion_create(request):
             feature = json.loads(request.body)
         except:
             return HttpResponse("Improperly formatted JSON body", status=400)
-
         if 'properties' not in feature:
            return HttpResponse("Expecting a single GeoJSON feature", status=400)
         properties = feature.get('properties', {})
@@ -122,15 +121,19 @@ def suspicion_create(request):
         suspicious_feature.osm_id = properties['osm:id']
         suspicious_feature.osm_type = properties['osm:type']
         suspicious_feature.osm_version = properties['osm:version']
+        if 'oldVersion' in properties.keys():
+            suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
+            suspicious_feature.oldGeojson= json.dumps(feature['properties'].pop("oldVersion"))
         suspicious_feature.geometry = GEOSGeometry(json.dumps(feature['geometry']))
         suspicious_feature.geojson = json.dumps(feature)
-        suspicious_feature.url = suspicious_feature.osm_type + '-' + suspicious_feature.osm_id
+        print suspicious_feature.oldGeojson
+        print suspicious_feature.geojson
+        suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
         suspicious_feature.save()
         suspicious_feature.reasons.add(*reasons)
-
-        return JsonResponse({properties})
+        return JsonResponse({'success': "Suspicion created."})
     else:
-        return HttpResponse(401)
+        return HttpResponse(400)
 
 
 class SetHarmfulFeature(SingleObjectMixin, View):
