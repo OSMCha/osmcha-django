@@ -180,6 +180,29 @@
     {% else %}
     <h4>{% trans 'No Deleted tags' %}</h4>
     {% endif %}
+    {% if feature.diff_tags.added %}
+    <h4>{% trans 'Added tags' %}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'Tag' %}</th>
+            <th>{% trans 'Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% for record in feature.diff_tags.added %}
+            <tr>
+              <td>
+                {{record.tag}}
+              </td>
+              <td>{{record.Value}}</td>
+            </tr>
+              {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+    <h4>{% trans 'No Added tags' %}</h4>
+    {% endif %}
     </div>
   </div>
   {% if request.user.is_authenticated and not feature.checked %}
