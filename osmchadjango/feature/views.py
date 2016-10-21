@@ -107,6 +107,8 @@ def suspicion_create(request):
             reason, created = changeset_models.SuspicionReasons.objects.get_or_create(name=reason_text)
             reasons.add(reason)
 
+        feature['properties'].pop("suspicions")
+
         defaults = {
             "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
             "uid": properties.get('osm:uid'),
