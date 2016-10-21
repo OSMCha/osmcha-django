@@ -35,9 +35,16 @@ class FeatureListView(ListView):
             get['harmful'] = 'False'
         if 'checked' not in get:
             get['checked'] = 'False'
+        sorts = {
+            '-date': 'Recent First',
+            '-delete': 'Most Deletions First',
+            '-modify': 'Most Modifications First',
+            '-create': 'Most Creations First'
+        }
         context.update({
             'suspicion_reasons': suspicion_reasons,
             'get': get,
+            'sorts': sorts
         })
         return context
 
@@ -60,6 +67,11 @@ class FeatureListView(ListView):
         if 'changeset__username' in params:
             params['changeset__user'] = params['changeset__username']
         queryset = FeatureFilter(params, queryset=queryset).qs
+
+        if 'sort' in GET_dict and GET_dict['sort'] != '':
+            queryset = queryset.order_by(GET_dict['sort'])
+        else:
+            queryset = queryset.order_by('-changeset__date')
         return queryset
 
 
