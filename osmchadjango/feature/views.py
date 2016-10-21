@@ -23,6 +23,7 @@ import datetime
 class FeatureListView(ListView):
     context_object_name = 'features'
     template_name = 'feature/feature_list.html'
+    paginate_by = 15
 
     def get_context_data(self, **kwargs):
         context = super(FeatureListView, self).get_context_data(**kwargs)
