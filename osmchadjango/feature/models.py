@@ -43,6 +43,7 @@ class Feature(models.Model):
         oldGeojson = json.loads((self.oldGeojson))
         modified_tags = []
         deleted_tags = []
+        added_tags = []
         tags = {}
         for key, value in oldGeojson['properties'].iteritems():
             if key in geojson['properties']:
@@ -58,6 +59,14 @@ class Feature(models.Model):
                 record["Value"] =  value
                 deleted_tags.append(record)
 
+        for key, value in geojson['properties'].iteritems():
+            if key not in oldGeojson['properties']:
+                record = {}
+                record["tag"] = key
+                record["Value"] = value
+                added_tags.append(record)
+
         tags["modified"] = modified_tags
         tags["deleted"] = deleted_tags
+        tags["added"] = added_tags
         return tags
