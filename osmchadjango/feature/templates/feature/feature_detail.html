@@ -132,6 +132,25 @@
   </div>
   <div class="row">
     <div class="table-responsive">
+    <h4>{% trans 'All tags' %}</h4>
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'Tag' %}</th>
+            <th>{% trans 'Value' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% for record in feature.all_tags %}
+            <tr>
+              <td>
+                {{record.tag}}
+              </td>
+              <td>{{record.Value}}</td>
+            </tr>
+              {% endfor %}
+        </tbody>
+      </table>
     {% if feature.diff_tags.modified %}
     <h4>{% trans 'Modified tags' %}</h4>
       <table class="table table-striped">

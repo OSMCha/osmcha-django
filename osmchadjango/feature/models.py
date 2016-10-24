@@ -38,6 +38,17 @@ class Feature(models.Model):
         return json.loads((self.geojson).replace('osm:', 'osm_'))
 
     @property
+    def all_tags(self):
+        geojson = json.loads((self.geojson))
+        tags = []
+        for key, value in geojson['properties'].iteritems():
+            record = {}
+            record["tag"] = key
+            record["Value"] =  value
+            tags.append(record)
+        return tags
+
+    @property
     def diff_tags(self):
         geojson = json.loads((self.geojson))
         oldGeojson = json.loads((self.oldGeojson))

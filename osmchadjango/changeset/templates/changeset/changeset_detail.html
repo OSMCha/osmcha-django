@@ -243,9 +243,6 @@
           <th>
             Suspicious Reasons
           </th>
-          <th>
-            GeoJSON
-          </th>
         </tr>
       </thead>
       <tbody>
@@ -260,11 +257,6 @@
             {% for reason in feature.reasons.all %}
               {{ reason.name }} <br />
             {% endfor %}
-          </td>
-          <td>
-            <a href="{% url 'changeset:suspicious_feature_geojson' changeset_id=changeset.id osm_id=feature.osm_id %}" target="_blank">
-              View GeoJSON
-            </a>
           </td>
         </tr>
         {% endfor %}
