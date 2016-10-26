@@ -26,6 +26,7 @@ class Feature(models.Model):
     check_date = models.DateTimeField(null=True, blank=True)
     score = models.IntegerField(null=True, blank=True)
     url = models.SlugField(max_length=1000)
+    osm_compare = models.CharField(max_length=1000, blank=True, null=True)
 
     class Meta:
         unique_together = ('changeset', 'osm_id', 'osm_type',)
