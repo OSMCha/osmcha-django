@@ -241,6 +241,9 @@
             OSM ID
           </th>
           <th>
+            Map
+          </th>
+          <th>
             Suspicious Reasons
           </th>
         </tr>
@@ -251,6 +254,11 @@
           <td>
             <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
               {{ feature.osm_id }}
+            </a>
+          </td>
+          <td>
+            <a id='select-feature' data-id='{{ feature.url }}' href="">
+              Show on map
             </a>
           </td>
           <td>
@@ -275,17 +283,24 @@
 
 {% block javascript %}
   {{ block.super }}
-<script>
-$('.has_tooltip').tooltip({
-  'html': true,
-  'placement': 'bottom'
-});
-</script>
 <script src="{% static 'js/changeset-map.js' %}"></script>
 <script>
   var mapContainer = document.getElementById('map');
   var containerWidth = mapContainer.innerWidth + 'px';
-  changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
+  var cMap = changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
+  $('.has_tooltip').tooltip({
+    'html': true,
+    'placement': 'bottom'
+  });
+
+  cMap.on('load', function () {
+    $('#select-feature').on('click', function (e) {
+      e.preventDefault();
+      var type = e.currentTarget.dataset.id.split('-')[0];
+      var id = e.currentTarget.dataset.id.split('-')[1];
+      cMap.emit('selectFeature', type, id);
+    });
+  });
 </script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>
