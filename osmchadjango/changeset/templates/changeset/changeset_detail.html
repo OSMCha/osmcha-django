@@ -268,7 +268,7 @@
   <div class="row">
     <h3>{% trans 'Visualization' %}</h3>
     <hr>
-    <iframe src="{{ changeset.achavi_link }}" width="100%" height="500px"></iframe>
+    <div id="map"></div>
     <a href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
   </div>
 {% endblock content %}
@@ -280,6 +280,12 @@ $('.has_tooltip').tooltip({
   'html': true,
   'placement': 'bottom'
 });
+</script>
+<script src="{% static 'js/changeset-map.js' %}"></script>
+<script>
+  var mapContainer = document.getElementById('map');
+  var containerWidth = mapContainer.innerWidth + 'px';
+  changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
 </script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>

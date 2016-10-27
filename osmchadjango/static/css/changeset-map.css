@@ -1,0 +1,125 @@
+.cmap-container {
+    margin:0;
+    padding:0;
+    font: 13px 'Open Sans', sans-serif;
+    position: relative;
+}
+
+.cmap-map {
+    position:absolute;
+    top:0;
+    bottom:0;
+    width:100%;
+}
+
+.cmap-loading {
+    position: absolute;
+    top:0;
+    bottom:0;
+    width:100%;
+    z-index: 100;
+    background: rgba(255,255,255,0.9);
+}
+
+.cmap-loading img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translateX(-50%) translateY(-50%);
+    -webkit-transform: translateX(-50%) translateY(-50%);
+    transform: translateX(-50%) translateY(-50%);
+}
+
+.cmap-diff {
+    position: absolute;
+    z-index: 1;
+    top: 10px;
+    right: 10px;
+    padding: 20px;
+    background: #f5f5f5;
+    border-radius: 5px;
+    max-height: 90%;
+    overflow-y: scroll;
+}
+
+.cmap-info {
+    z-index: 1;
+    padding: 20px;
+    width: 250px;
+}
+
+.cmap-sidebar {
+    position: absolute;
+    top: 0;
+}
+
+.cmap-layer-selector ul {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    border: 0 solid #c1dad7;
+    border-width: 0 0 1px 1px;
+}
+
+.cmap-layer-selector li {
+    border: 0 solid #c1dad7;
+    border-width: 1px 1px 0 0;
+    padding: 6px 12px;
+}
+
+.cmap-diff-table {
+    border-collapse: collapse;
+}
+
+.cmap-diff-table,
+.cmap-diff-table th,
+.cmap-diff-table td {
+    border: 1px solid #c1dad7;
+    padding: 6px 12px;
+}
+
+.cmap-diff-table tr:nth-of-type(even) {
+    background: #fff;
+}
+.cmap-diff-table tr:nth-of-type(odd) {
+    background: #f5fafa;
+}
+
+.cmap-diff-table tr:hover {
+    background: #e5f3f3;
+}
+
+.cmap-color-box {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+}
+
+.cmap-color-box.added {
+    background: #859900;
+}
+
+.cmap-color-box.deleted {
+    background: #dc322f;
+}
+
+.cmap-color-box.modified-old {
+    background: #fff;
+}
+
+.cmap-color-box.modified-new {
+    background: #b58900;
+}
+
+.cmap-fill-grey {
+    background:#eee;
+}
+
+.cmap-pad1 {
+    padding:10px;
+}
+
+.cmap-fr {
+    float:right;
+}
