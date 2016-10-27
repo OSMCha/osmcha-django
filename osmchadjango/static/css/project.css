@@ -32,3 +32,17 @@
   background-color: #f2dede;
   border-color: #eed3d7;
 }
+
+#filters {
+  display: none;
+}
+
+td, th {
+  padding: 10px;
+}
+
+
+.cmap-diff {
+  max-width: 400px;
+  font-size: 10px;
+}
