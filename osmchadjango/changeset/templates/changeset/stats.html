@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Stats{% endblock %}
+
+{% block content %}
+  <h2>{% trans 'Statistics' %}</h2>
+  <p>
+    <form action="" method="GET">
+      <label for="from" class="control-label">From</label>
+      <input class="form-control" name="from" type="date" value="{{ get.from }}"/>
+      <br />
+      <label for="to" class="control-label">To</label>
+      <input class="form-control" name="to" type="date" value="{{ get.to }}"/>
+      <br />
+      <label for="reviewer" class="control-label">Reviewer Username</label>
+      <input class="form-control" name="reviewer" type="text" value="{{ get.reviewer }}"/>
+      <br />
+      <input type="submit" />
+    </form>
+  </p>
+  <p>
+      {% trans 'Total number of changesets checked' %}:
+      <a href="{% url 'changeset:checked_changesets' %}">
+          {{ checked }}
+      </a>
+  </p>
+  <p>
+      {% trans 'Total number of harmful changesets found' %}:
+      <a href="{% url 'changeset:harmful_changesets' %}">
+          {{ harmful }}
+      </a>
+  </p>
+  <p>
+      {% trans 'Number of users with harmful changesets' %}:
+      <a href="{% url 'changeset:all_blacklist_users' %}">
+          {{ users_blacklisted }}
+      </a>
+  </p>
+
+  <br>
+
+  <h3>Count by Suspicion Reason</h3>
+  <table class="table table-striped table-bordered">
+    <tr>
+      <th>Suspicion reason</th>
+      <th>Checked</th>
+      <th>Verified Harmful</th>
+    </tr>
+    {% for key, value in counts.items %}
+    <tr>
+        <td>{{ key }}</td>
+        <td>
+          <a href="/?checked=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
+            {{ value.checked }}
+          </a>
+        </td>
+        <td>
+          <a href="/?harmful=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
+            {{ value.harmful }}
+          </a>
+        </td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <br>
+{% endblock content %}
