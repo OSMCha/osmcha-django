@@ -9,6 +9,9 @@
 
   {% with cache_timeout=user.is_authenticated|yesno:"0,300" %}
   {% cache cache_timeout changesets user.is_authenticated request.get_full_path %}
+  <div>
+    {% include "./bbox_map.html" %}
+  </div>
   {% if search_title %}
     <h3>{{ search_title }}</h3>
   {% endif %}
@@ -120,7 +123,12 @@
         </div>
         <label class="col-sm-2 control-label" for="bbox">BBox</label>
         <div class="col-sm-3">
-          <input class="form-control" name="bbox" value="{{ get.bbox }}" />        
+          <div class="input-group">
+            <input class="form-control" name="bbox" id="bbox" value="{{ get.bbox }}" />
+            <span class="input-group-btn">
+            <button class="btn btn-default" type="button" data-toggle="modal" data-target="#bboxMap">Map</button>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -307,6 +315,30 @@ $('#filtersForm').submit(function() {
     $(':input', this).each(function() {
         this.disabled = !($(this).val());
     });
+});
+
+// init the map for bbox modal after it's ready
+var map = null;
+$('#bboxMap').on('shown.bs.modal', function () {
+  mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VvaGFja2VyIiwiYSI6ImFIN0hENW8ifQ.GGpH9gLyEg0PZf3NPQ7Vrg';
+  if (map) {
+    return;
+  } else {
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v9'
+    });
+
+    map.on('load', function () {
+      $('#save').on('click', function () {
+        var bounds = map.getBounds();
+        var bbox = bounds.toArray().join(',');
+        $('#bbox').val(bbox);
+        $('#bboxMap').modal('hide')
+      });
+    });
+  }
+
 });
 </script>
 
