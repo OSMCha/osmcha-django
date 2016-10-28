@@ -17,19 +17,3 @@
 </div><!-- /.modal -->
 <script src='https://api.mapbox.com/mapbox-gl-js/v0.26.0/mapbox-gl.js'></script>
 <link href='https://api.mapbox.com/mapbox-gl-js/v0.26.0/mapbox-gl.css' rel='stylesheet' />
-<script>
-mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VvaGFja2VyIiwiYSI6ImFIN0hENW8ifQ.GGpH9gLyEg0PZf3NPQ7Vrg';
-var map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v9'
-});
-
-map.on('load', function () {
-  $('#save').on('click', function () {
-    var bounds = map.getBounds();
-    var bbox = bounds.toArray().join(',');
-    $('#bbox').val(bbox);
-    $('#bboxMap').modal('hide')
-  });
-});
-</script>
