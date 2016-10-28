@@ -318,21 +318,27 @@ $('#filtersForm').submit(function() {
 });
 
 // init the map for bbox modal after it's ready
+var map;
 $('#bboxMap').on('shown.bs.modal', function () {
   mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VvaGFja2VyIiwiYSI6ImFIN0hENW8ifQ.GGpH9gLyEg0PZf3NPQ7Vrg';
-  var map = new mapboxgl.Map({
-    container: 'map',
-    style: 'mapbox://styles/mapbox/streets-v9'
-  });
-
-  map.on('load', function () {
-    $('#save').on('click', function () {
-      var bounds = map.getBounds();
-      var bbox = bounds.toArray().join(',');
-      $('#bbox').val(bbox);
-      $('#bboxMap').modal('hide')
+  if (map) {
+    return;
+  } else {
+    map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/mapbox/streets-v9'
     });
-  });
+
+    map.on('load', function () {
+      $('#save').on('click', function () {
+        var bounds = map.getBounds();
+        var bbox = bounds.toArray().join(',');
+        $('#bbox').val(bbox);
+        $('#bboxMap').modal('hide')
+      });
+    });
+  }
+
 });
 </script>
 
