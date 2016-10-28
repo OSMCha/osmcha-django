@@ -277,7 +277,7 @@
     <h3>{% trans 'Visualization' %}</h3>
     <hr>
     <div id="map"></div>
-    <a href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
+    <a id='changeset-map-permalink' href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
   </div>
 {% endblock content %}
 
@@ -299,6 +299,7 @@
       var type = e.currentTarget.dataset.id.split('-')[0];
       var id = e.currentTarget.dataset.id.split('-')[1];
       cMap.emit('selectFeature', type, id);
+      $('#changeset-map-permalink').attr('href', '{{ changeset.achavi_link }}' + '/' + type + '/' + id);
     });
   });
 </script>
