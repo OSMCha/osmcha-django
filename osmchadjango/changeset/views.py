@@ -80,7 +80,7 @@ class ChangesetListView(ListView):
         if 'harmful' not in get:
             get['harmful'] = 'False'
         if 'checked' not in get:
-            get['checked'] = 'False'
+            get['checked'] = 'All'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -109,7 +109,7 @@ class ChangesetListView(ListView):
         if 'harmful' not in params:
             params['harmful'] = 'False'
         if 'checked' not in params:
-            params['checked'] = 'False'
+            params['checked'] = 'All'
         queryset = ChangesetFilter(params, queryset=queryset).qs
         if 'user_blocks' in params:
             queryset = queryset.filter(user_detail__contributor_blocks__gt=0)

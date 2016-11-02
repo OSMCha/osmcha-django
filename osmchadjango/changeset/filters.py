@@ -25,6 +25,8 @@ class ChangesetFilter(django_filters.FilterSet):
     def filter_checked(self, queryset, value):
         if value and value == 'True':
             return queryset.filter(checked=True)
+        elif value == 'False':
+            return queryset.filter(checked=False)
         return queryset
 
     def filter_harmful(self, queryset, value):
