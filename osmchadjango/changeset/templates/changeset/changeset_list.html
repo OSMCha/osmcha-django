@@ -152,6 +152,10 @@
           </label>
           <label class="radio-inline">
             <input name="is_whitelisted" type="radio" value="False" {% if get.is_whitelisted == 'False' %} checked {% endif %} />
+            Show Black-listed Users
+          </label>
+          <label class="radio-inline">
+            <input name="is_whitelisted" type="radio" value="All" {% if get.is_whitelisted == 'All' %} checked {% endif %} />
             Show All
           </label>
         </div>

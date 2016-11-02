@@ -130,6 +130,10 @@ class ChangesetListView(ListView):
 
             # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
             queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
+        elif params['is_whitelisted'] == 'False' and user.is_authenticated():
+            blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
+            queryset = queryset.filter(user__in=blacklisted_users)
+
         if 'sort' in GET_dict and GET_dict['sort'] != '':
             queryset = queryset.order_by(GET_dict['sort'])
         else:
