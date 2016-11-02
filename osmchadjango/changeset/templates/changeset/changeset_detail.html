@@ -6,15 +6,15 @@
 
 {% block content %}
 <div class="row">
-  <div class="col-xs-12 col-md-6">
+<div class="col-xs-12 col-md-6">
     <h2><a href="{{ changeset.osm_link }}">Changeset {{ changeset.id }}</a> by <a href="https://www.openstreetmap.org/user/{{ changeset.user }}">{{ changeset.user }}</a> on {{ changeset.date }}</h2>
     <div class="row">
       <div class="col-md-12">
-        <h2>
+        <h3>
           <span class="label label-success">{{ changeset.create }}</span>
           <span class="label label-warning">{{ changeset.modify }}</span>
           <span class="label label-danger">{{ changeset.delete }}</span>
-        </h2>
+        </h3>
       </div>
     </div>
     <div class="row">
