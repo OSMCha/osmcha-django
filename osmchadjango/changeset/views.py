@@ -111,8 +111,6 @@ class ChangesetListView(ListView):
         if 'checked' not in params:
             params['checked'] = 'All'
         queryset = ChangesetFilter(params, queryset=queryset).qs
-        if 'user_blocks' in params:
-            queryset = queryset.filter(user_detail__contributor_blocks__gt=0)
         if 'reasons' in params:
             if params['reasons'] == 'None':
                 queryset = queryset.filter(reasons=None)
