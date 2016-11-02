@@ -50,3 +50,12 @@ td, th {
 .bbox-map {
   height: 300px;
 }
+
+.margin-20 {
+  margin-top: 20px;
+}
+
+.sticky {
+  z-index: 1000;
+  top: 10px;
+}
