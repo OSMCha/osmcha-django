@@ -23,11 +23,16 @@
       <div class="form-group">
         <label for="date__gte" class="col-sm-2 control-label">From</label>
         <div class="col-sm-3">
-          <input class="form-control" name="date__gte" type="date" value="{{ get.date__gte }}"/>
+          <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" list="exampleList" onmouseover="focus();" />
+          <datalist id="exampleList">
+              <option value="Today" onclick="getJsonRequest(1);">
+              <option value="Last 7 days">
+              <option value="Last 30 days">
+          </datalist>
         </div>
         <label for="date__lte" class="col-sm-2 control-label">To</label>
         <div class="col-sm-3">
-          <input class="form-control" name="date__lte" type="date" value="{{ get.date__lte }}"/>
+          <input class="form-control" id="date__lte" name="date__lte" type="date" value="{{ get.date__lte }}"/>
         </div>
       </div>
 
@@ -260,7 +265,8 @@
 {% block javascript %}
 
   {{ block.super }}
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js" type="text/javascript"></script>
+ <script>
 $('#toggle-filters').click(function() {
   var $filters = $('#filters');
   var $this = $(this);
@@ -303,6 +309,24 @@ $('#bboxMap').on('shown.bs.modal', function () {
   }
 
 });
-</script>
+document.getElementById('date__gte').addEventListener('input', function () {
+   var val = document.getElementById('date__gte').value;
+   var today = moment().format('MM-DD-YYYY');
+   var tomorrow = moment().add(1, 'day').format('MM-DD-YYYY');
+
+   if (val === 'Today') {
+    document.getElementById('date__gte').value = today;
+    document.getElementById('date__lte').value = tomorrow;
+   } else if (val === 'Last 7 days') {
+    var sevenDaysAgo = moment().subtract(6, 'day').format('MM-DD-YYYY');
+    document.getElementById('date__gte').value = sevenDaysAgo;
+    document.getElementById('date__lte').value = tomorrow;
+   } else if (val === 'Last 30 days') {
+    var thirtyDaysAgo = moment().subtract(29, 'days').format('MM-DD-YYYY');
+    document.getElementById('date__gte').value = thirtyDaysAgo;
+    document.getElementById('date__lte').value = tomorrow;
+   }
+});
+  </script>
 
 {% endblock %}
