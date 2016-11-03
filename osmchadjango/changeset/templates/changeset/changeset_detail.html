@@ -30,9 +30,18 @@
     </div>
     <div class="row">
       <div class="col-xs-12 sticky" data-spy="affix" data-offset-top="300">
-       <a class="btn btn-primary openInJOSM" target="_blank" href="{{ changeset.josm_link }}">
-        {% trans 'Open in JOSM' %}
-      </a>
+        <div class="btn-group">
+          <a class="btn btn-primary openInJOSM" target="_blank" href="{{ changeset.josm_link }}">
+          {% trans 'Open in JOSM' %}
+          </a>
+          <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="caret"></span>
+            <span class="sr-only">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="{{ changeset.id_link }}">Open in iD</a></li>
+          </ul>
+        </div>
       <a class="btn btn-primary" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
         {% trans 'HDYC' %}
       </a>
