@@ -23,13 +23,17 @@
       <div class="form-group">
         <label for="date__gte" class="col-sm-2 control-label">From</label>
         <div class="col-sm-3">
-          <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" />
-          <select id="pickDateRange">
-              <option value="">-----</option>
-              <option value="1">Today</option>
-              <option value="7">Last Week</option>
-              <option value="30">Last Month</option>
-          <select>
+          <div class="input-group">
+            <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" />
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Presets <span class="caret"></span></button>
+              <ul class="dropdown-menu dropdown-menu-right date-presets">
+              <li><a id="today" data-id="1" href="#">Today</a></li>
+              <li><a id="week" data-id="7" href="#">Last week</a></li>
+              <li><a id="month" data-id="30" href="#">Last month</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+          </div><!-- /input-group -->
         </div>
         <label for="date__lte" class="col-sm-2 control-label">To</label>
         <div class="col-sm-3">
@@ -311,15 +315,16 @@ $('#bboxMap').on('shown.bs.modal', function () {
       });
     });
   }
+});
 
+$('.date-presets').on('click', function (e) {
+  e.preventDefault();
+  var val = parseInt(e.target.dataset.id);
+  var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
+  var to = moment().add(1, 'day').format('YYYY-MM-DD');
+  $('#date__gte').val(from);
+  $('#date__lte').val(to);
 });
-$('#pickDateRange').change(function(e) {
-    var val = $(this).val();
-    var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
-    var to = moment().add(1, 'day').format('YYYY-MM-DD');
-    $('#date__gte').val(from);
-    $('#date__lte').val(to);
-});
-  </script>
+</script>
 
 {% endblock %}
