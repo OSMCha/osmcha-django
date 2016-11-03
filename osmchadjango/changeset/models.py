@@ -1,6 +1,5 @@
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
-
 from ..users.models import User
 from osmchadjango.feature import models as feature_models
 
@@ -142,6 +141,16 @@ class Changeset(models.Model):
         josm_base = "http://127.0.0.1:8111/import?url="
         changeset_url = "http://www.openstreetmap.org/api/0.6/changeset/%s/download" % self.id
         return "%s%s" % (josm_base, changeset_url,)
+
+    def id_link(self):
+        """Return link to open in iD"""
+        id_base = "http://www.openstreetmap.org/edit?editor=id#map=17/"
+        if self.bbox:
+            centroid = self.bbox.centroid.coords
+            yx = str(centroid[1]) + '/' + str(centroid[0])
+            return "%s%s" % (id_base, yx)
+        else:
+            return ""
 
     def save_user_details(self, ch):
         user_details = ch.user_details
