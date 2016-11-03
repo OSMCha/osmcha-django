@@ -39,7 +39,7 @@
             <span class="sr-only">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="{{ changeset.id_link }}">Open in iD</a></li>
+            <li><a class="openInId" href="{{ changeset.id_link }}" target="_blank">Open in iD</a></li>
           </ul>
         </div>
         <a class="btn btn-primary" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
@@ -250,6 +250,13 @@
 {{ block.super }}
 <script src="{% static 'js/changeset-map.js' %}"></script>
 <script>
+  $(document).ready(function () {
+    $(window).on('keypress', function(e) {
+      if (e.keyCode === 106) {  // find correct keyCodes
+        $('.openInJOSM').click();
+      }
+    });
+  });
   var mapContainer = document.getElementById('map');
   var containerWidth = mapContainer.innerWidth + 'px';
   var cMap = changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
