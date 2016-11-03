@@ -241,6 +241,9 @@
             OSM ID
           </th>
           <th>
+            Map
+          </th>
+          <th>
             Suspicious Reasons
           </th>
         </tr>
@@ -251,6 +254,11 @@
           <td>
             <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
               {{ feature.osm_id }}
+            </a>
+          </td>
+          <td>
+            <a id='select-feature' data-id='{{ feature.url }}' href="">
+              Show on map
             </a>
           </td>
           <td>
@@ -268,18 +276,32 @@
   <div class="row">
     <h3>{% trans 'Visualization' %}</h3>
     <hr>
-    <iframe src="{{ changeset.achavi_link }}" width="100%" height="500px"></iframe>
-    <a href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
+    <div id="map"></div>
+    <a id='changeset-map-permalink' href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
   </div>
 {% endblock content %}
 
 {% block javascript %}
   {{ block.super }}
+<script src="{% static 'js/changeset-map.js' %}"></script>
 <script>
-$('.has_tooltip').tooltip({
-  'html': true,
-  'placement': 'bottom'
-});
+  var mapContainer = document.getElementById('map');
+  var containerWidth = mapContainer.innerWidth + 'px';
+  var cMap = changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
+  $('.has_tooltip').tooltip({
+    'html': true,
+    'placement': 'bottom'
+  });
+
+  cMap.on('load', function () {
+    $('#select-feature').on('click', function (e) {
+      e.preventDefault();
+      var type = e.currentTarget.dataset.id.split('-')[0];
+      var id = e.currentTarget.dataset.id.split('-')[1];
+      cMap.emit('selectFeature', type, id);
+      $('#changeset-map-permalink').attr('href', '{{ changeset.achavi_link }}' + '/' + type + '/' + id);
+    });
+  });
 </script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>
