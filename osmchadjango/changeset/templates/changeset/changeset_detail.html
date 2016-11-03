@@ -7,7 +7,7 @@
 {% block content %}
 <div class="row">
   <div class="col-xs-12 col-md-6">
-    <h2><a href="{{ changeset.osm_link }}">Changeset {{ changeset.id }}</a> by <a href="https://www.openstreetmap.org/user/{{ changeset.user }}">{{ changeset.user }}</a> on {{ changeset.date }}</h2>
+    <h2><a class="openOSM" href="{{ changeset.osm_link }}" target="_blank">Changeset {{ changeset.id }}</a> by <a href="https://www.openstreetmap.org/user/{{ changeset.user }}">{{ changeset.user }}</a> on {{ changeset.date }}</h2>
     <div class="row">
       <div class="col-md-12">
         <h3>
@@ -42,7 +42,7 @@
             <li><a class="openInId" href="{{ changeset.id_link }}" target="_blank">Open in iD</a></li>
           </ul>
         </div>
-        <a class="btn btn-primary" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
+        <a class="btn btn-primary openHdyc" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
           {% trans 'HDYC' %}
         </a>
         {% if changeset.checked %}
@@ -64,7 +64,7 @@
           </button>
           <ul class="dropdown-menu">
             <li>
-              <a
+              <a class="markGood"
               {% if request.user.is_authenticated %}
               data-toggle="modal" data-target="#notHarmfulModal"
               {% else %}
@@ -75,7 +75,7 @@
             </a>
           </li>
           <li>
-            <a
+            <a class="markBad"
             {% if request.user.is_authenticated %}
             data-toggle="modal" data-target="#harmfulModal"
             {% else %}
@@ -252,8 +252,21 @@
 <script>
   $(document).ready(function () {
     $(window).on('keypress', function(e) {
-      if (e.keyCode === 106) {  // find correct keyCodes
+      if (e.keyCode === 106) {
+        // key j for JSOSM
         $('.openInJOSM').click();
+      } else if (e.keyCode === 104) {
+        // key h for open HDYC
+        $('.openHdyc')[0].click();
+      } else if (e.keyCode === 111) {
+        // key o for open in OSM
+        $('.openOSM')[0].click();
+      } else if (e.keyCode === 103) {
+        // mark as good
+        $('.markGood')[0].click();
+      } else if (e.keyCode === 98) {
+        // mark as bad
+        $('.markBad')[0].click();
       }
     });
   });
