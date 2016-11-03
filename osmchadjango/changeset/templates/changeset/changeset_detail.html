@@ -219,7 +219,7 @@
                 </a>
               </td>
               <td>
-                <a id='select-feature' data-id='{{ feature.url }}' href="">
+                <a class='select-feature' data-id='{{ feature.url }}' href="">
                   Show on map
                 </a>
               </td>
@@ -279,7 +279,7 @@
   });
 
   cMap.on('load', function () {
-    $('#select-feature').on('click', function (e) {
+    $('.select-feature').on('click', function (e) {
       e.preventDefault();
       var type = e.currentTarget.dataset.id.split('-')[0];
       var id = e.currentTarget.dataset.id.split('-')[1];
