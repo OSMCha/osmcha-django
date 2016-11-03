@@ -195,6 +195,9 @@
                 OSM ID
               </th>
               <th>
+                Name
+              </th>
+              <th>
                 Map
               </th>
               <th>
@@ -208,6 +211,11 @@
               <td>
                 <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
                   {{ feature.osm_id }}
+                </a>
+              </td>
+              <td>
+                <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
+                  {{ feature.geojson_obj.properties.name }}
                 </a>
               </td>
               <td>
