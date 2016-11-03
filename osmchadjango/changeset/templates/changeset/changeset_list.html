@@ -23,12 +23,13 @@
       <div class="form-group">
         <label for="date__gte" class="col-sm-2 control-label">From</label>
         <div class="col-sm-3">
-          <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" list="exampleList" onmouseover="focus();" />
-          <datalist id="exampleList">
-              <option value="Today" onclick="getJsonRequest(1);">
-              <option value="Last 7 days">
-              <option value="Last 30 days">
-          </datalist>
+          <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" />
+          <select id="pickDateRange">
+              <option value="">-----</option>
+              <option value="1">Today</option>
+              <option value="7">Last Week</option>
+              <option value="30">Last Month</option>
+          <select>
         </div>
         <label for="date__lte" class="col-sm-2 control-label">To</label>
         <div class="col-sm-3">
@@ -309,23 +310,12 @@ $('#bboxMap').on('shown.bs.modal', function () {
   }
 
 });
-document.getElementById('date__gte').addEventListener('input', function () {
-   var val = document.getElementById('date__gte').value;
-   var today = moment().format('MM-DD-YYYY');
-   var tomorrow = moment().add(1, 'day').format('MM-DD-YYYY');
-
-   if (val === 'Today') {
-    document.getElementById('date__gte').value = today;
-    document.getElementById('date__lte').value = tomorrow;
-   } else if (val === 'Last 7 days') {
-    var sevenDaysAgo = moment().subtract(6, 'day').format('MM-DD-YYYY');
-    document.getElementById('date__gte').value = sevenDaysAgo;
-    document.getElementById('date__lte').value = tomorrow;
-   } else if (val === 'Last 30 days') {
-    var thirtyDaysAgo = moment().subtract(29, 'days').format('MM-DD-YYYY');
-    document.getElementById('date__gte').value = thirtyDaysAgo;
-    document.getElementById('date__lte').value = tomorrow;
-   }
+$('#pickDateRange').change(function(e) {
+    var val = $(this).val();
+    var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
+    var to = moment().add(1, 'day').format('YYYY-MM-DD');
+    $('#date__gte').val(from);
+    $('#date__lte').val(to);
 });
   </script>
 
