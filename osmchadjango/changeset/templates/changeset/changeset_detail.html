@@ -15,6 +15,11 @@
         <span class="label label-warning">{{ changeset.modify }}</span>
         <span class="label label-danger">{{ changeset.delete }}</span>
       </h1>
+      {% if not changeset.checked and request.user.is_authenticated %}
+      <form class="pull-left" action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
+        <button class="btn btn-primary btn-success" type="submit">{% trans "Mark as Good" %}</button>
+      </form>
+      {% endif %}
     </div>
     {% if changeset.is_suspect %}
     <div class="col-xs-12 col-md-6">
@@ -28,6 +33,20 @@
     </div>
     {% endif %}
   </div>
+  <div class="row">
+    <div class="col-6">
+      Changeset Score: <span class="label label-warning has_tooltip" title="
+        {% for ss in changeset.suspicionscore_set.all %}
+          {{ ss.reason }}: {{ ss.score }}<br />
+        {% endfor %}
+      ">{{ changeset.score }}</span>
+      User Score: <span class="label label-warning has_tooltip" title="
+        {% for uss in changeset.user_detail.usersuspicionscore_set.all %}
+          {{ uss.reason }}: {{ uss.score }}<br />
+        {% endfor %}
+      ">{{ changeset.user_detail.score }}</span>
+    </div>
+  </div>
 
   <div class="row">
     <h3>{% trans 'Details' %}</h3>
@@ -39,12 +58,37 @@
           <p class="list-group-item-text">{{ changeset.date }}</p>
         </div>
         <div class="list-group-item">
-          <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
-          <p class="list-group-item-text">
-            <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
-              {{ changeset.user }}
-            </a>
-          </p>
+          <div class="row">
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}">
+                  {{ changeset.user }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-3">
+              <h4 class="list-group-item-heading">{% trans 'User edits' %}</h4>
+              <p class="list-group-item-text">
+                <a href="/?usernames={{ changeset.user }}&is_suspect=False">
+                  {{ changeset.user_detail.changesets_no }}
+                </a>
+              </p>
+            </div>
+            <div class="col-md-6">
+              <h4 class="list-group-item-heading">{% trans 'Mapper since' %}</h4>
+              <p class="list-group-item-text">
+                <a href="https://www.openstreetmap.org/user/{{ changeset.user }}" target="_blank">
+                  {{ changeset.user_detail.contributor_since.date }}
+                </a>
+              </p>
+              <p class="list-group-item-text">
+                <a class="btn btn-warning btn-xs pull-right" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
+                  {% trans 'HDYC' %}
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
         <div class="list-group-item">
           <h4 class="list-group-item-heading">{% trans 'Editor' %}</h4>
@@ -83,12 +127,12 @@
               {% if changeset.harmful %}
                 <span class="glyphicon glyphicon-thumbs-down"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as harmful
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
                 {% endblocktrans %}
               {% else %}
                 <span class="glyphicon glyphicon-thumbs-up"></span>
                 {% blocktrans with check_user=changeset.check_user%}
-                  Verified by <strong>{{ check_user }}</strong> and marked as good
+                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
                 {% endblocktrans %}
               {% endif %}
             {% else %}
@@ -119,6 +163,14 @@
                       <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
                     </a>
                   </li>
+                  {% if request.user.is_authenticated %}
+                  <li>
+                    <a class="whitelist-user" data-username="{{ changeset.user }}" href="#">
+                      <span class="glyphicon glyphicon-thumbs-up"></span>
+                      {% trans 'White-list this user' %}
+                    </a>
+                  </li>
+                  {% endif %}
                 </ul>
               </div>
 
@@ -180,16 +232,77 @@
     </div>
   {% endif %}
 
+  {% if changeset.features %}
+  <div class="row">
+    <table>
+      <thead>
+        <tr>
+          <th>
+            OSM ID
+          </th>
+          <th>
+            Map
+          </th>
+          <th>
+            Suspicious Reasons
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for feature in changeset.features %}
+        <tr>
+          <td>
+            <a href="{% url 'feature:detail' changeset.id feature.url %}" target="_blank">
+              {{ feature.osm_id }}
+            </a>
+          </td>
+          <td>
+            <a id='select-feature' data-id='{{ feature.url }}' href="">
+              Show on map
+            </a>
+          </td>
+          <td>
+            {% for reason in feature.reasons.all %}
+              {{ reason.name }} <br />
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 
   <div class="row">
     <h3>{% trans 'Visualization' %}</h3>
     <hr>
-    <iframe src="{{ changeset.achavi_link }}" width="100%" height="500px"></iframe>
-    <a href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
+    <div id="map"></div>
+    <a id='changeset-map-permalink' href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
   </div>
 {% endblock content %}
 
 {% block javascript %}
   {{ block.super }}
+<script src="{% static 'js/changeset-map.js' %}"></script>
+<script>
+  var mapContainer = document.getElementById('map');
+  var containerWidth = mapContainer.innerWidth + 'px';
+  var cMap = changesetMap(mapContainer, {{ changeset.id }}, {width: containerWidth, height: '600px' });
+  $('.has_tooltip').tooltip({
+    'html': true,
+    'placement': 'bottom'
+  });
+
+  cMap.on('load', function () {
+    $('#select-feature').on('click', function (e) {
+      e.preventDefault();
+      var type = e.currentTarget.dataset.id.split('-')[0];
+      var id = e.currentTarget.dataset.id.split('-')[1];
+      cMap.emit('selectFeature', type, id);
+      $('#changeset-map-permalink').attr('href', '{{ changeset.achavi_link }}' + '/' + type + '/' + id);
+    });
+  });
+</script>
 <script src="{% static 'js/josm_link.js' %}"></script>
+<script src="{% static 'js/whitelist_user.js' %}"></script>
 {% endblock javascript %}
