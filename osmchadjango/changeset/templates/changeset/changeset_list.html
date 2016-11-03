@@ -40,44 +40,44 @@
       <div class="form-group">
         <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features added in a changeset" name="create__gte" placeholder="50" value="{{ get.create__gte }}"/>
         </div>
         <label for="create__lte" class="col-sm-2 control-label">Max. Additions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="create__lte" value="{{ get.create__lte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features added in a changeset" name="create__lte" placeholder="100" value="{{ get.create__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
         <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications</label>
         <div class="col-sm-3">
-          <input class="form-control" name="modify__gte" value="{{ get.modify__gte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features modified in a changeset" name="modify__gte" placeholder="10" value="{{ get.modify__gte }}"/>
         </div>
         <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications</label>
         <div class="col-sm-3">
-          <input class="form-control" name="modify__lte" value="{{ get.modify__lte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features modified in a changeset" name="modify__lte" placeholder="20" value="{{ get.modify__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
         <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="delete__gte" value="{{ get.delete__gte }}" />
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features deleted in a changeset" name="delete__gte" placeholder="40" value="{{ get.delete__gte }}" />
         </div>
         <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="delete__lte" value="{{ get.delete__lte }}" />
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features deleted in a changeset" name="delete__lte" placeholder="80" value="{{ get.delete__lte }}" />
         </div>
       </div>
 
       <div class="form-group">
         <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
         <div class="col-sm-3">
-          <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
+          <input class="form-control" data-toggle="tooltip" title="Editor used to create the changeset" name="editor__icontains" placeholder="JOSM" value="{{ get.editor__icontains }}" />
         </div>
         <label class="col-sm-2 control-label" for="username">Users</label>
         <div class="col-sm-3">
-          <input class="form-control" name="usernames" value="{{ get.usernames }}" />
+          <input class="form-control" data-toggle="tooltip" title="Filter by OSM Usernames" name="usernames" placeholder="paul10, iak8" value="{{ get.usernames }}" />
         </div>
       </div>
 
@@ -85,7 +85,7 @@
         <label class="col-sm-2 control-label" for="bbox">BBox</label>
         <div class="col-sm-3">
           <div class="input-group">
-            <input class="form-control" name="bbox" id="bbox" value="{{ get.bbox }}" />
+            <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" id="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
             <span class="input-group-btn">
             <button class="btn btn-default" type="button" data-toggle="modal" data-target="#bboxMap">Map</button>
             </span>
@@ -268,6 +268,9 @@
   {{ block.super }}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js" type="text/javascript"></script>
  <script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
 $('#toggle-filters').click(function() {
   var $filters = $('#filters');
   var $this = $(this);
