@@ -145,9 +145,12 @@ class Changeset(models.Model):
     def id_link(self):
         """Return link to open in iD"""
         id_base = "http://www.openstreetmap.org/edit?editor=id#map=17/"
-        centroid = self.bbox.centroid.coords
-        yx = str(centroid[1]) + '/' + str(centroid[0])
-        return "%s%s" % (id_base, yx)
+        if self.bbox:
+            centroid = self.bbox.centroid.coords
+            yx = str(centroid[1]) + '/' + str(centroid[0])
+            return "%s%s" % (id_base, yx)
+        else:
+            return ""
 
     def save_user_details(self, ch):
         user_details = ch.user_details
