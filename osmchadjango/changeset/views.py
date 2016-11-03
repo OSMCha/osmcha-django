@@ -80,7 +80,7 @@ class ChangesetListView(ListView):
         if 'harmful' not in get:
             get['harmful'] = 'False'
         if 'checked' not in get:
-            get['checked'] = 'False'
+            get['checked'] = 'All'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -109,10 +109,8 @@ class ChangesetListView(ListView):
         if 'harmful' not in params:
             params['harmful'] = 'False'
         if 'checked' not in params:
-            params['checked'] = 'False'
+            params['checked'] = 'All'
         queryset = ChangesetFilter(params, queryset=queryset).qs
-        if 'user_blocks' in params:
-            queryset = queryset.filter(user_detail__contributor_blocks__gt=0)
         if 'reasons' in params:
             if params['reasons'] == 'None':
                 queryset = queryset.filter(reasons=None)
@@ -130,6 +128,10 @@ class ChangesetListView(ListView):
 
             # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
             queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
+        elif params['is_whitelisted'] == 'False' and user.is_authenticated():
+            blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
+            queryset = queryset.filter(user__in=blacklisted_users)
+
         if 'sort' in GET_dict and GET_dict['sort'] != '':
             queryset = queryset.order_by(GET_dict['sort'])
         else:

@@ -23,108 +23,73 @@
       <div class="form-group">
         <label for="date__gte" class="col-sm-2 control-label">From</label>
         <div class="col-sm-3">
-          <input class="form-control" name="date__gte" type="date" value="{{ get.date__gte }}"/>
+          <div class="input-group">
+            <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" />
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Presets <span class="caret"></span></button>
+              <ul class="dropdown-menu dropdown-menu-right date-presets">
+              <li><a id="today" data-id="1" href="#">Today</a></li>
+              <li><a id="week" data-id="7" href="#">Last week</a></li>
+              <li><a id="month" data-id="30" href="#">Last month</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+          </div><!-- /input-group -->
         </div>
         <label for="date__lte" class="col-sm-2 control-label">To</label>
         <div class="col-sm-3">
-          <input class="form-control" name="date__lte" type="date" value="{{ get.date__lte }}"/>
+          <input class="form-control" id="date__lte" name="date__lte" type="date" value="{{ get.date__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
         <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="create__gte" value="{{ get.create__gte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features added in a changeset" name="create__gte" placeholder="50" value="{{ get.create__gte }}"/>
         </div>
         <label for="create__lte" class="col-sm-2 control-label">Max. Additions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="create__lte" value="{{ get.create__lte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features added in a changeset" name="create__lte" placeholder="100" value="{{ get.create__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
         <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications</label>
         <div class="col-sm-3">
-          <input class="form-control" name="modify__gte" value="{{ get.modify__gte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features modified in a changeset" name="modify__gte" placeholder="10" value="{{ get.modify__gte }}"/>
         </div>
         <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications</label>
         <div class="col-sm-3">
-          <input class="form-control" name="modify__lte" value="{{ get.modify__lte }}"/>
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features modified in a changeset" name="modify__lte" placeholder="20" value="{{ get.modify__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
         <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="delete__gte" value="{{ get.delete__gte }}" />
+          <input class="form-control" data-toggle="tooltip" title="Minimum number of features deleted in a changeset" name="delete__gte" placeholder="40" value="{{ get.delete__gte }}" />
         </div>
         <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions</label>
         <div class="col-sm-3">
-          <input class="form-control" name="delete__lte" value="{{ get.delete__lte }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="max_score" class="col-sm-2 control-label">Changeset Score (Max)</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="max_score" value="{{ get.max_score }}" />
-        </div>
-        <label for="max_user_score" class="col-sm-2 control-label">User Score (Max)</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="max_user_score" value="{{ get.max_user_score }}" />
+          <input class="form-control" data-toggle="tooltip" title="Maximum number of features deleted in a changeset" name="delete__lte" placeholder="80" value="{{ get.delete__lte }}" />
         </div>
       </div>
 
       <div class="form-group">
         <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
         <div class="col-sm-3">
-          <input class="form-control" name="editor__icontains" value="{{ get.editor__icontains }}" />
+          <input class="form-control" data-toggle="tooltip" title="Editor used to create the changeset" name="editor__icontains" placeholder="JOSM" value="{{ get.editor__icontains }}" />
         </div>
         <label class="col-sm-2 control-label" for="username">Users</label>
         <div class="col-sm-3">
-          <input class="form-control" name="usernames" value="{{ get.usernames }}" />
+          <input class="form-control" data-toggle="tooltip" title="Filter by OSM Usernames" name="usernames" placeholder="paul10, iak8" value="{{ get.usernames }}" />
         </div>
       </div>
 
       <div class="form-group">
-        <label for="source__icontains" class="col-sm-2 control-label">Imagery Source</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="source__icontains" value="{{ get.source__icontains }}" />
-        </div>
-        <label class="col-sm-2 control-label" for="user_detail__changesets_no__lte">
-          User changeset count (max):
-        </label>
-        <div class="col-sm-3">
-          <input class="form-control" name="user_detail__changesets_no__lte" value="{{ get.user_detail__changesets_no__lte }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
-        </div>
-        <label class="col-sm-2 control-label" for="user_detail__changesets_changes__lte">
-          User edit count (max):
-        </label>
-        <div class="col-sm-3">
-          <input class="form-control" name="user_detail__changesets_changes__lte" value="{{ get.user_detail__changesets_changes__lte }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="col-sm-2 control-label" for="user_blocks">User Has Blocks</label>
-        <div class="col-sm-3">
-          <input name="user_blocks" type="checkbox" value="True"
-            {% if get.user_blocks == 'True' %}
-            checked
-            {% endif %}
-          />
-        </div>
         <label class="col-sm-2 control-label" for="bbox">BBox</label>
         <div class="col-sm-3">
           <div class="input-group">
-            <input class="form-control" name="bbox" id="bbox" value="{{ get.bbox }}" />
+            <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" id="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
             <span class="input-group-btn">
             <button class="btn btn-default" type="button" data-toggle="modal" data-target="#bboxMap">Map</button>
             </span>
@@ -152,6 +117,10 @@
           </label>
           <label class="radio-inline">
             <input name="is_whitelisted" type="radio" value="False" {% if get.is_whitelisted == 'False' %} checked {% endif %} />
+            Show Black-listed Users
+          </label>
+          <label class="radio-inline">
+            <input name="is_whitelisted" type="radio" value="All" {% if get.is_whitelisted == 'All' %} checked {% endif %} />
             Show All
           </label>
         </div>
@@ -177,6 +146,10 @@
           </label>
           <label class="radio-inline">
             <input name="checked" type="radio" value="False" {% if get.checked == 'False' %} checked {% endif %} />
+            unchecked
+          </label>
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="All" {% if get.checked == 'All' %} checked {% endif %} />
             All
           </label>
         </div>
@@ -297,7 +270,11 @@
 {% block javascript %}
 
   {{ block.super }}
-<script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js" type="text/javascript"></script>
+ <script>
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
 $('#toggle-filters').click(function() {
   var $filters = $('#filters');
   var $this = $(this);
@@ -338,8 +315,16 @@ $('#bboxMap').on('shown.bs.modal', function () {
       });
     });
   }
-
 });
-</script>
+
+$('.date-presets').on('click', function (e) {
+  e.preventDefault();
+  var val = parseInt(e.target.dataset.id);
+  var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
+  var to = moment().add(1, 'day').format('YYYY-MM-DD');
+  $('#date__gte').val(from);
+  $('#date__lte').val(to);
+});
+  </script>
 
 {% endblock %}
