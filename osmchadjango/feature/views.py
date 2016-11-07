@@ -64,8 +64,6 @@ class FeatureListView(ListView):
             bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
             queryset = queryset.filter(changeset__bbox__bboverlaps=bbox)
 
-        if 'changeset__username' in params:
-            params['changeset__user'] = params['changeset__username']
         queryset = FeatureFilter(params, queryset=queryset).qs
 
         if 'sort' in GET_dict and GET_dict['sort'] != '':
