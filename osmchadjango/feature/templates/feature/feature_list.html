@@ -41,22 +41,11 @@
       <div class="form-group">
         <label for="changeset__editor__icontains" class="col-sm-2 control-label">Editor</label>
         <div class="col-sm-3">
-          <input class="form-control" name="changeset__editor__icontains" value="{{ get.changeset__editor__icontains }}" />
+          <input data-toggle="tooltip" title="Editor used to create the changeset" class="form-control" name="changeset__editor__icontains" placeholder="JOSM" value="{{ get.changeset__editor__icontains }}" />
         </div>
         <label class="col-sm-2 control-label" for="changeset__user">Users</label>
         <div class="col-sm-3">
-          <input class="form-control" name="changeset__user" value="{{ get.changeset__user }}" />
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="changeset__source__icontains" class="col-sm-2 control-label">Imagery Source</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="changeset__source__icontains" value="{{ get.changeset__source__icontains }}" />
-        </div>
-        <label class="col-sm-2 control-label" for="bbox">BBox</label>
-        <div class="col-sm-3">
-          <input class="form-control" name="bbox" value="{{ get.bbox }}" />        
+          <input data-toggle="tooltip" title="Filter by OSM Usernames" class="form-control" name="changeset__user" placeholder="paul10, iak8" value="{{ get.changeset__user }}" />
         </div>
       </div>
 
@@ -100,6 +89,10 @@
               </option>
             {% endfor %}
           </select>
+        </div>
+        <label class="col-sm-2 control-label" for="bbox">BBox</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
         </div>
       </div>
 
@@ -196,6 +189,9 @@ $('#toggle-filters').click(function() {
   }
 });
 
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
 // avoid adding empty parameters to URL to make URL cleaner.
 $('#filtersForm').submit(function() {
     $(':input', this).each(function() {
