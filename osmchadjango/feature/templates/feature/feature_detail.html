@@ -5,164 +5,143 @@
 {% block title %}OSMCHA - Feature {{ feature.osm_id }}{% endblock %}
 
 {% block content %}
-  <h2>Feature {{ feature.osm_id }}</h2>
-  <h4> A {{ feature.geojson_obj.properties.osm_type }} was edited on {{ feature.changeset.date }} by {{ feature.changeset.user }}</h4>
   <div class="row">
-    <h3>{% trans 'Details' %}</h3>
-    <hr>
     <div class="col-xs-12 col-md-6">
-      <div class="list-group">
-        <div class="list-group-item">
-          <div class="row">
-            <div class="col-md-3">
-              <h4 class="list-group-item-heading">{% trans 'User' %}</h4>
-              <p class="list-group-item-text">
-                <a href="https://www.openstreetmap.org/user/{{ feature.changeset.user }}">
-                  {{ feature.changeset.user }}
-                </a>
-              </p>
-              <hr>
-              <p class="list-group-item-text">
-                <a class="btn btn-warning btn-xs pull-left" target="_blank" href="http://hdyc.neis-one.org/?{{ feature.changeset.user }}">
-                  {% trans 'HDYC' %}
-                </a>
-              </p>
-            </div>
-            <div class="col-md-3">
-              <h4 class="list-group-item-heading">{% trans 'Changeset' %}</h4>
-              <p class="list-group-item-text">
-                <a href="https://www.openstreetmap.org/changeset/{{ feature.changeset_id }}">
-                  {{ feature.changeset_id }}
-                </a>
-              </p>
-              <hr>
-              <p class="list-group-item-text">
-                <a class="btn btn-warning btn-xs pull-left" target="_blank" href="http://osmlab.github.io/changeset-map/#{{ feature.changeset_id }}">
-                  {% trans 'Changeset Map' %}
-                </a>
-              </p>
-            </div>
-            <div class="col-md-6">
-              <h4 class="list-group-item-heading">{% trans 'Feature' %}</h4>
-              <p class="list-group-item-text">
-                <a href="https://www.openstreetmap.org/{{ feature.geojson_obj.properties.osm_type}}/{{ feature.osm_id }}">
-                  {{ feature.geojson_obj.properties.osm_type }}
-                  {{ feature.osm_id }}
-                </a>
-              </p>
-              <hr>
-              <p class="list-group-item-text">
-              <a class="btn btn-warning btn-xs pull-left openInJOSM" target="_blank" href="{{ feature.changeset.josm_link }}">
-                  {% trans 'Open in JOSM' %}
-                </a>
-              </p>
-            </div>
-          </div>
-        </div>
-        <div class="list-group-item">
-          <h4 class="list-group-item-heading">{% trans 'Verification' %}</h4>
-          <div class="list-group-item-text">
-            {% if feature.checked %}
-              {% if feature.harmful %}
-                <span class="glyphicon glyphicon-thumbs-down"></span>
-                {% blocktrans with check_user=feature.check_user%}
-                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
-                {% endblocktrans %}
-              {% else %}
-                <span class="glyphicon glyphicon-thumbs-up"></span>
-                {% blocktrans with check_user=feature.check_user%}
-                  Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
-                {% endblocktrans %}
-              {% endif %}
-            {% else %}
-              <div class="btn-group">
-                <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                  Not Verified <span class="caret"></span>
-                </button>
-                <ul class="dropdown-menu">
-                  <li>
-                    <a
-                    {% if request.user.is_authenticated %}
-                      data-toggle="modal" data-target="#notHarmfulModal"
-                    {% else %}
-                      href="{% url 'feature:set_good' feature.changeset_id feature.url %}"
-                    {% endif %}
-                    >
-                      <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                    {% if request.user.is_authenticated %}
-                      data-toggle="modal" data-target="#harmfulModal"
-                    {% else %}
-                      href="{% url 'feature:set_harmful' feature.changeset_id feature.url %}"
-                    {% endif %}
-                    >
-                      <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
-                    </a>
-                  </li>
-                  {% if request.user.is_authenticated %}
-                  <li>
-                    <a class="whitelist-user" data-username="{{ feature.changeset.user }}" href="#">
-                      <span class="glyphicon glyphicon-thumbs-up"></span>
-                      {% trans 'White-list this user' %}
-                    </a>
-                  </li>
-                  {% endif %}
-                </ul>
-              </div>
-            {% endif %}
-          </div>
-        </div>
-        <div class="list-group-item">
-          <h4>{% trans 'Suspicion reasons' %}</h4>
-          <hr>
-          <ul>
+      <h2><a class="openOSM" href="{{ feature.osm_link }}" target="_blank">Feature {{ feature.osm_id }}</a> by <a href="https://www.openstreetmap.org/user/{{ feature.changeset.user }}">{{ feature.changeset.user }}</a> on {{ feature.changeset.date }}</h2>
+      <div class="row">
+        <div class="col-xs-12">
+          <h4>
             {% for reason in feature.reasons.all %}
-            <li>{{ reason.name|capfirst }}</li>
+            <span class="label label-default">{{ reason.name|capfirst }}</span>
             {% endfor %}
+          </h4>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xs-12 sticky" data-spy="affix" data-offset-top="300">
+          <div class="btn-group">
+            <a class="btn btn-primary openInJOSM" target="_blank" href="{{ changeset.josm_link }}">
+              {% trans 'Open in JOSM' %}
+            </a>
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <span class="caret"></span>
+              <span class="sr-only">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="openInId" href="{{ changeset.id_link }}" target="_blank">Open in iD</a></li>
+            </ul>
+          </div>
+          <a class="btn btn-primary openHdyc" target="_blank" href="http://hdyc.neis-one.org/?{{ feature.changeset.user }}">
+            {% trans 'HDYC' %}
+          </a>
+          {% if feature.checked %}
+          {% if feature.harmful %}
+          <span class="glyphicon glyphicon-thumbs-down"></span>
+          {% blocktrans with check_user=feature.check_user%}
+          Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
+          {% endblocktrans %}
+          {% else %}
+          <span class="glyphicon glyphicon-thumbs-up"></span>
+          {% blocktrans with check_user=feature.check_user%}
+          Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
+          {% endblocktrans %}
+          {% endif %}
+          {% else %}
+          <div class="btn-group">
+            <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Not Verified <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="markGood"
+                {% if request.user.is_authenticated %}
+                data-toggle="modal" data-target="#notHarmfulModal"
+                {% else %}
+                href="{% url 'feature:set_good' feature.changeset_id feature.url %}"
+                {% endif %}
+                >
+                <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
+              </a>
+            </li>
+            <li>
+              <a class="markBad"
+              {% if request.user.is_authenticated %}
+              data-toggle="modal" data-target="#harmfulModal"
+              {% else %}
+              href="{% url 'feature:set_harmful' feature.changeset_id feature.url %}"
+              {% endif %}
+              >
+              <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
+            </a>
+          </li>
+          {% if request.user.is_authenticated %}
+          <li>
+            <a class="whitelist-user" data-username="{{ feature.changeset.user }}" href="#">
+              <span class="glyphicon glyphicon-thumbs-up"></span>
+              {% trans 'White-list this user' %}
+            </a>
+          </li>
+          {% endif %}
           </ul>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
     <div class="col-xs-12 col-md-6">
-      <div id='map' style='width: 400px; height: 300px;'></div>
+      <div class="row">
+        <div class="list-group">
+          <div class="list-group-item">
+            <h4 class="list-group-item-heading">{% trans 'Source' %}</h4>
+            <p class="list-group-item-text">{{ feature.changeset.source }}</p>
+          </div>
+          <div class="list-group-item">
+            <h4 class="list-group-item-heading">{% trans 'Comment' %}</h4>
+            <p class="list-group-item-text">{{ feature.changeset.comment }}</p>
+          </div>
+          <div class="list-group-item">
+            <h4 class="list-group-item-heading">{% trans 'Imagery used' %}</h4>
+            <p class="list-group-item-text">{{ feature.changeset.imagery_used }}</p>
+          </div>
+          <div class="list-group-item">
+            <h4 class="list-group-item-heading">{% trans 'Editor' %}</h4>
+            <p class="list-group-item-text">{{ feature.changeset.editor }}</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="row">
-    <div class="table-responsive">
-    <h4>{% trans 'All tags' %}</h4>
+  <div class = "row">
+    <div class="col-xs-12 col-md-6">
+     <div class="table-responsive">
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'Value' %}</th>
+            <th>{% trans 'Tags' %}</th>
+            <th>{% trans '' %}</th>
+            <th>{% trans '' %}</th>
           </tr>
         </thead>
         <tbody>
-              {% for record in feature.all_tags %}
+          {% for record in feature.diff_tags.added %}
             <tr>
               <td>
                 {{record.tag}}
               </td>
               <td>{{record.Value}}</td>
+              <td bgcolor = #d5e8ce>ADDED</td>
             </tr>
-              {% endfor %}
-        </tbody>
-      </table>
-    {% if feature.diff_tags.modified %}
-    <h4>{% trans 'Modified tags' %}</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'Old Value' %}</th>
-            <th>{% trans 'New Value' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-              {% for record in feature.diff_tags.modified %}
+          {% endfor %}
+          {% for record in feature.diff_tags.deleted %}
+            <tr>
+              <td>
+                {{record.tag}}
+              </td>
+              <td>{{record.Value}}</td>
+              <td bgcolor = #e2ced2>DELETED</td>
+            </tr>
+          {% endfor %}
+          {% for record in feature.diff_tags.modified %}
             <tr>
               <td>
                 {{record.tag}}
@@ -170,110 +149,15 @@
               <td>{{record.oldValue}}</td>
               <td>{{record.newValue}}</td>
             </tr>
-              {% endfor %}
+          {% endfor %}
         </tbody>
       </table>
-    {% else %}
-    <h4>{% trans 'No Modified tags' %}</h4>
-    {% endif %}
-    {% if feature.diff_tags.deleted %}
-    <h4>{% trans 'Deleted tags' %}</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'Value' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-              {% for record in feature.diff_tags.deleted %}
-            <tr>
-              <td>
-                {{ record.tag }}
-               </td>
-              <td>{{ record.Value }}</td>
-            </tr>
-              {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-    <h4>{% trans 'No Deleted tags' %}</h4>
-    {% endif %}
-    {% if feature.diff_tags.added %}
-    <h4>{% trans 'Added tags' %}</h4>
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>{% trans 'Tag' %}</th>
-            <th>{% trans 'Value' %}</th>
-          </tr>
-        </thead>
-        <tbody>
-              {% for record in feature.diff_tags.added %}
-            <tr>
-              <td>
-                {{record.tag}}
-              </td>
-              <td>{{record.Value}}</td>
-            </tr>
-              {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-    <h4>{% trans 'No Added tags' %}</h4>
-    {% endif %}
+     </div>
+    </div>
+    <div class="col-xs-12 col-md-6">
+      <div id='map' style='width: 400px; height: 300px;'></div>
     </div>
   </div>
-  {% if request.user.is_authenticated and not feature.checked %}
-    <div class="modal fade" id="notHarmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <h4 class="modal-title" id="myModalLabel">
-              {% blocktrans %}Do you really want to mark the feature {{ feature }} as good?{% endblocktrans %}
-            </h4>
-          </div>
-          <div class="modal-body">
-            <form action="{% url 'feature:set_good' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
-              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
-              <a class="btn btn-default" data-dismiss="modal">
-                {% trans "No, don't mark it as good" %}
-              </a>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal fade" id="harmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-            <h4 class="modal-title" id="myModalLabel">
-              {% blocktrans %}Do you really want to mark the feature {{ feature }} as harmful?{% endblocktrans %}
-            </h4>
-          </div>
-          <div class="modal-body">
-            <div class="alert alert-danger" role="alert">
-              <p>{% trans 'Only mark a feature as harmful if you have already fixed or reverted it.' %}</p>
-            </div>
-            <form action="{% url 'feature:set_harmful' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
-              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
-              <a class="btn btn-default" data-dismiss="modal">
-                {% trans "No, don't mark it as harmful" %}
-              </a>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-  {% endif %}
 {% endblock content %}
 
 {% block javascript %}
