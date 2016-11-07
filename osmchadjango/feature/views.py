@@ -29,8 +29,6 @@ class FeatureListView(ListView):
         context = super(FeatureListView, self).get_context_data(**kwargs)
         suspicion_reasons = changeset_models.SuspicionReasons.objects.all()
         get = self.request.GET.dict()
-        if 'is_whitelisted' not in get:
-            get['is_whitelisted'] = 'True'
         if 'harmful' not in get:
             get['harmful'] = 'False'
         if 'checked' not in get:
@@ -55,8 +53,6 @@ class FeatureListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
-        if 'is_whitelisted' not in params:
-            params['is_whitelisted'] = 'True'
         if 'harmful' not in params:
             params['harmful'] = 'False'
         if 'checked' not in params:

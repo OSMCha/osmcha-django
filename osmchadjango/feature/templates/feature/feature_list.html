@@ -20,11 +20,21 @@
       <div class="form-group">
         <label for="changeset__date__gte" class="col-sm-2 control-label">From</label>
         <div class="col-sm-3">
-          <input class="form-control" name="changeset__date__gte" type="date" value="{{ get.changeset__date__gte }}"/>
+          <div class="input-group">
+            <input class="form-control" id="changeset__date__gte" name="changeset__date__gte" type="date" value="{{ get.changeset__date__gte }}" />
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Presets <span class="caret"></span></button>
+              <ul class="dropdown-menu dropdown-menu-right date-presets">
+              <li><a id="today" data-id="1" href="#">Today</a></li>
+              <li><a id="week" data-id="7" href="#">Last week</a></li>
+              <li><a id="month" data-id="30" href="#">Last month</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+          </div><!-- /input-group -->
         </div>
         <label for="changeset__date__lte" class="col-sm-2 control-label">To</label>
         <div class="col-sm-3">
-          <input class="form-control" name="changeset__date__lte" type="date" value="{{ get.changeset__date__lte }}"/>
+          <input class="form-control" id="changeset__date__lte" name="changeset__date__lte" type="date" value="{{ get.changeset__date__lte }}"/>
         </div>
       </div>
 
@@ -90,17 +100,6 @@
               </option>
             {% endfor %}
           </select>
-        </div>
-        <label for="is_whitelisted" class="col-sm-2 control-label">White-list:</label>
-        <div class="col-sm-3">
-          <label class="radio-inline">
-            <input name="is_whitelisted" type="radio" value="True" {% if get.is_whitelisted == 'True' %} checked {% endif %} />
-            Hide White-listed Users
-          </label>
-          <label class="radio-inline">
-            <input name="is_whitelisted" type="radio" value="False" {% if get.is_whitelisted == 'False' %} checked {% endif %} />
-            Show All
-          </label>
         </div>
       </div>
 
@@ -183,6 +182,7 @@
 {% block javascript %}
 
   {{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js" type="text/javascript"></script>
 <script>
 $('#toggle-filters').click(function() {
   var $filters = $('#filters');
@@ -201,6 +201,14 @@ $('#filtersForm').submit(function() {
     $(':input', this).each(function() {
         this.disabled = !($(this).val());
     });
+});
+$('.date-presets').on('click', function (e) {
+  e.preventDefault();
+  var val = parseInt(e.target.dataset.id);
+  var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
+  var to = moment().add(1, 'day').format('YYYY-MM-DD');
+  $('#date__gte').val(from);
+  $('#date__lte').val(to);
 });
 </script>
 
