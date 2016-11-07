@@ -33,6 +33,10 @@ class Feature(models.Model):
     def __str__(self):
         return '%s' % self.osm_id
 
+    def osm_link(self):
+        """Return the link to the changeset page on OSM website."""
+        return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id, )
+
     @property
     def geojson_obj(self):
         return json.loads((self.geojson).replace('osm:', 'osm_'))
