@@ -34,7 +34,7 @@ class FeatureListView(ListView):
         if 'harmful' not in get:
             get['harmful'] = 'False'
         if 'checked' not in get:
-            get['checked'] = 'False'
+            get['checked'] = 'All'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -55,6 +55,12 @@ class FeatureListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
+        if 'is_whitelisted' not in params:
+            params['is_whitelisted'] = 'True'
+        if 'harmful' not in params:
+            params['harmful'] = 'False'
+        if 'checked' not in params:
+            params['checked'] = 'All'
         if 'reasons' in params:
             if params['reasons'] == 'None':
                 queryset = queryset.filter(reasons=None)
