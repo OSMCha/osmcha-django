@@ -62,27 +62,29 @@ class Feature(models.Model):
         unmodified_tags = []
         tags = {}
         for key, value in oldGeojson['properties'].iteritems():
-            if key in geojson['properties']:
-                record = {}
-                record["tag"] = key
-                record["oldValue"] = value
-                record["newValue"] = geojson['properties'][key]
-                if value != geojson['properties'][key]:
-                    modified_tags.append(record)
+            if 'osm:' not in key:
+                if key in geojson['properties']:
+                    record = {}
+                    record["tag"] = key
+                    record["oldValue"] = value
+                    record["newValue"] = geojson['properties'][key]
+                    if value != geojson['properties'][key]:
+                        modified_tags.append(record)
+                    else:
+                        unmodified_tags.append(record)
                 else:
-                    unmodified_tags.append(record)
-            else:
-                record = {}
-                record["tag"] = key
-                record["Value"] =  value
-                deleted_tags.append(record)
+                    record = {}
+                    record["tag"] = key
+                    record["Value"] =  value
+                    deleted_tags.append(record)
 
         for key, value in geojson['properties'].iteritems():
-            if key not in oldGeojson['properties']:
-                record = {}
-                record["tag"] = key
-                record["Value"] = value
-                added_tags.append(record)
+            if 'osm:' not in key:
+                if key not in oldGeojson['properties']:
+                    record = {}
+                    record["tag"] = key
+                    record["Value"] = value
+                    added_tags.append(record)
 
         tags["modified"] = modified_tags
         tags["deleted"] = deleted_tags
