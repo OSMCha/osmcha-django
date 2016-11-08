@@ -8,6 +8,8 @@
   <div class="row">
     <div class="col-xs-12 col-md-6">
       <h2><a class="openOSM" href="{{ feature.osm_link }}" target="_blank">Feature {{ feature.osm_id }}</a> by <a href="https://www.openstreetmap.org/user/{{ feature.changeset.user }}">{{ feature.changeset.user }}</a> on {{ feature.changeset.date }}</h2>
+      <h3><a class="openOSM" target="_blank" href="{% url 'changeset:detail' feature.changeset.id %}">Changeset #{{ feature.changeset.id }}</a>
+      </h3>
       <div class="row">
         <div class="col-xs-12">
           <h4>
