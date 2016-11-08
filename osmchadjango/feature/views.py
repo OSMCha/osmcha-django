@@ -132,18 +132,20 @@ def suspicion_create(request):
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
         changeset.save()
-        suspicious_feature = Feature(changeset=changeset)
-        suspicious_feature.osm_id = properties['osm:id']
-        suspicious_feature.osm_type = properties['osm:type']
-        suspicious_feature.osm_version = properties['osm:version']
+        defaults = {
+            "geometry": GEOSGeometry(json.dumps(feature['geometry'])),
+            "geojson": json.dumps(feature),
+            "osm_id": properties['osm:id'],
+            "osm_type": properties['osm:type'],
+            "osm_version": properties['osm:version'],
+        }
+        suspicious_feature, created = Feature.objects.get_or_create(id=properties['osm:id'], changeset=changeset, defaults=defaults)
         if 'oldVersion' in properties.keys():
             suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
             suspicious_feature.oldGeojson= json.dumps(feature['properties'].pop("oldVersion"))
-        suspicious_feature.geometry = GEOSGeometry(json.dumps(feature['geometry']))
-        suspicious_feature.geojson = json.dumps(feature)
         suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
-        suspicious_feature.save()
         suspicious_feature.reasons.add(*reasons)
+        suspicious_feature.save()
         return JsonResponse({'success': "Suspicion created."})
     else:
         return HttpResponse(400)
