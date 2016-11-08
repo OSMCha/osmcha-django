@@ -59,15 +59,18 @@ class Feature(models.Model):
         modified_tags = []
         deleted_tags = []
         added_tags = []
+        unmodified_tags = []
         tags = {}
         for key, value in oldGeojson['properties'].iteritems():
             if key in geojson['properties']:
+                record = {}
+                record["tag"] = key
+                record["oldValue"] = value
+                record["newValue"] = geojson['properties'][key]
                 if value != geojson['properties'][key]:
-                    record = {}
-                    record["tag"] = key
-                    record["oldValue"] = value
-                    record["newValue"] = geojson['properties'][key]
                     modified_tags.append(record)
+                else:
+                    unmodified_tags.append(record)
             else:
                 record = {}
                 record["tag"] = key
@@ -84,4 +87,5 @@ class Feature(models.Model):
         tags["modified"] = modified_tags
         tags["deleted"] = deleted_tags
         tags["added"] = added_tags
+        tags["unmodified"] = unmodified_tags
         return tags
