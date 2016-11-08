@@ -152,6 +152,34 @@
           {% endfor %}
         </tbody>
       </table>
+      <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+          <div class="panel-heading" role="tab" id="headingOne">
+            <h4 class="panel-title">
+              <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                Unchanged tags
+              </a>
+            </h4>
+          </div>
+          <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+            <div class="panel-body">
+              <table class="table table-striped">
+                <tbody>
+                  {% for record in feature.diff_tags.unmodified %}
+                    <tr>
+                      <td>
+                        {{record.tag}}
+                      </td>
+                      <td>{{record.oldValue}}</td>
+                      <td>{{record.newValue}}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
      </div>
     </div>
     <div class="col-xs-12 col-md-6">
@@ -167,6 +195,7 @@ $('.has_tooltip').tooltip({
   'html': true,
   'placement': 'bottom'
 });
+$('#collapseOne').collapse("hide");
 </script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>
