@@ -29,12 +29,10 @@ class FeatureListView(ListView):
         context = super(FeatureListView, self).get_context_data(**kwargs)
         suspicion_reasons = changeset_models.SuspicionReasons.objects.all()
         get = self.request.GET.dict()
-        if 'is_whitelisted' not in get:
-            get['is_whitelisted'] = 'True'
         if 'harmful' not in get:
             get['harmful'] = 'False'
         if 'checked' not in get:
-            get['checked'] = 'False'
+            get['checked'] = 'All'
         sorts = {
             '-date': 'Recent First',
             '-delete': 'Most Deletions First',
@@ -55,6 +53,10 @@ class FeatureListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
+        if 'harmful' not in params:
+            params['harmful'] = 'False'
+        if 'checked' not in params:
+            params['checked'] = 'All'
         if 'reasons' in params:
             if params['reasons'] == 'None':
                 queryset = queryset.filter(reasons=None)
@@ -64,8 +66,6 @@ class FeatureListView(ListView):
             bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
             queryset = queryset.filter(changeset__bbox__bboverlaps=bbox)
 
-        if 'changeset__username' in params:
-            params['changeset__user'] = params['changeset__username']
         queryset = FeatureFilter(params, queryset=queryset).qs
 
         if 'sort' in GET_dict and GET_dict['sort'] != '':
