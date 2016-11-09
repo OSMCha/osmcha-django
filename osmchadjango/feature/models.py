@@ -42,6 +42,10 @@ class Feature(models.Model):
         return json.loads((self.geojson).replace('osm:', 'osm_'))
 
     @property
+    def oldGeojson_obj(self):
+        return json.loads((self.oldGeojson).replace('osm:', 'osm_'))
+
+    @property
     def all_tags(self):
         geojson = json.loads((self.geojson))
         tags = []
