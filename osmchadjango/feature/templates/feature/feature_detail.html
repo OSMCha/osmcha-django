@@ -205,42 +205,189 @@ $('#collapseOne').collapse("hide");
 <link rel='stylesheet' href="https://api.mapbox.com/mapbox-gl-js/v0.25.1/mapbox-gl.css" />
 <script type="text/javascript" src="https://npmcdn.com/@turf/turf@3.5.1/turf.min.js"></script>
 <script type="text/javascript">
-mapboxgl.accessToken = 'pk.eyJ1IjoiYW1pc2hhIiwiYSI6ImNpcWt1bWc4bjAzOXNmdG04bng4dHVhZ3EifQ.bJK6rpjNmiP3kW2pROdScg';
+mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiemdYSVVLRSJ9.g3lbg_eN0kztmsfIPxa9MQ';
 var map = new mapboxgl.Map({
     container: document.getElementById('map'),
-    style: 'mapbox://styles/mapbox/streets-v9'
+    style: 'mapbox://styles/planemad/cijcefp3q00elbskq4cgvcivf',
+    zoom: 5
 });
 map.on('load', function() {
-  var data = {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-          "type": '{{feature.geojson_obj.geometry.type}}',
-          "coordinates": {{feature.geojson_obj.geometry.coordinates}}
-        }
-      };
+  var oldVersion, newVersion = null;
+  var featureCollection = {
+    "type": "FeatureCollection",
+    "features": []
+  };
+  if({{feature.oldGeojson_obj.geometry.coordinates}}) {
+    var oldVersion = {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": '{{feature.oldGeojson_obj.geometry.type}}',
+            "coordinates": {{feature.oldGeojson_obj.geometry.coordinates}}
+          }
+        };
+    featureCollection["features"].push(oldVersion);
+    map.addSource('oldVersion',
+      {
+        "type": "geojson",
+        "data": oldVersion
+      });
+  }
 
-  map.addSource('feature',
-    {
-      "type": "geojson",
-      "data": data
+  if({{feature.geojson_obj.geometry.coordinates}}) {
+    var newVersion = {
+          "type": "Feature",
+          "properties": {},
+          "geometry": {
+            "type": '{{feature.geojson_obj.geometry.type}}',
+            "coordinates": {{feature.geojson_obj.geometry.coordinates}}
+          }
+        };
+    featureCollection["features"].push(newVersion);
+    map.addSource('newVersion',
+      {
+        "type": "geojson",
+        "data": newVersion
+      });
+  }
+
+  if (oldVersion && !newVersion) {
+    //geometry deleted
+
+    map.addLayer({
+        'id': 'deleted-line',
+        'source': 'oldVersion',
+        'type': 'line',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'line-color': '#dc322f',
+            'line-width': 2
+        },
+        'filter': [
+            'in', '$type', 'LineString', 'Polygon'
+        ]
+    });
+    map.addLayer({
+        'id': 'deleted-point',
+        'source': 'oldVersion',
+        'type': 'circle',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-color': '#dc322f',
+            'circle-radius': 3,
+            'circle-blur': 1
+        },
+        'filter': [
+            '==', '$type', 'deleted'
+        ]
+    });
+  } else if (!oldVersion && newVersion) {
+    //geometry added
+    map.addLayer({
+        'id': 'added-line',
+        'source': 'newVersion',
+        'type': 'line',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'line-color': '#859900',
+            'line-width': 2
+        },
+        'filter': [
+            'in', '$type', 'LineString', 'Polygon'
+        ]
     });
 
-  map.addLayer({
-      'id': 'feature',
-      'type': 'line',
-      'source': 'feature',
-      'layout': {
-          'visibility': 'visible',
-          'line-join': 'round',
-          'line-cap': 'round'
-      },
-      'paint': {
-          'line-color': '#877b59',
-          'line-width': 1
-      }
+    map.addLayer({
+        'id': 'added-point',
+        'source': 'newVersion',
+        'type': 'circle',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-color': '#859900',
+            'circle-radius': 3,
+            'circle-blur': 1
+        },
+        'filter': [
+            '==', '$type', 'Point'
+        ]
+    });
+  } else if (oldVersion && newVersion) {
+    //geometry modified
+    map.addLayer({
+        'id': 'modified-old-line',
+        'source': 'oldVersion',
+        'type': 'line',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'line-color': '#fdf6e3',
+            'line-width': 2
+        },
+        'filter': [
+            'in', '$type', 'LineString', 'Polygon'
+        ]
+    });
+    map.addLayer({
+        'id': 'modified-old-point',
+        'source': 'oldVersion',
+        'type': 'circle',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-color': '#fdf6e3',
+            'circle-radius': 3,
+            'circle-blur': 1
+        },
+        'filter': [
+            '==', '$type', 'Point'
+        ]
+    });
+    map.addLayer({
+        'id': 'modified-new-line',
+        'source': 'newVersion',
+        'type': 'line',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'line-color': '#b58900',
+            'line-width': 2
+        },
+        'filter': [
+            'in', '$type', 'LineString', 'Polygon'
+        ]
+    });
+    map.addLayer({
+        'id': 'modified-new-point',
+        'source': 'newVersion',
+        'type': 'circle',
+        'layout': {
+            'visibility': 'visible'
+        },
+        'paint': {
+            'circle-color': '#b58900',
+            'circle-radius': 3,
+            'circle-blur': 1
+        },
+        'filter': [
+            '==', '$type', 'Point'
+        ]
+    });
+  }
+  map.fitBounds(turf.bbox(featureCollection), {
+    linear: true,
+    padding: 20
   });
-  map.fitBounds(turf.bbox(data));
 });
 </script>
 {% endblock javascript %}
