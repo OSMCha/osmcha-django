@@ -161,6 +161,7 @@
               <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
                 Unchanged tags
               </a>
+              <span class="badge">{{ feature.diff_tags.unmodified|length }}</span>
             </h4>
           </div>
           <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
@@ -186,6 +187,9 @@
     </div>
     <div class="col-xs-12 col-md-6">
       <div id='map' style='width: 400px; height: 300px;'></div>
+      <h4>
+        <span id='geometryStatus' class="label label-default"></span>
+      </h4>
     </div>
   </div>
 {% endblock content %}
@@ -254,7 +258,7 @@ map.on('load', function() {
 
   if (oldVersion && !newVersion) {
     //geometry deleted
-
+    $('#geometryStatus').text("Geometry is deleted");
     map.addLayer({
         'id': 'deleted-line',
         'source': 'oldVersion',
@@ -288,6 +292,7 @@ map.on('load', function() {
     });
   } else if (!oldVersion && newVersion) {
     //geometry added
+    $('#geometryStatus').text("Geometry is added");
     map.addLayer({
         'id': 'added-line',
         'source': 'newVersion',
@@ -322,6 +327,11 @@ map.on('load', function() {
     });
   } else if (oldVersion && newVersion) {
     //geometry modified
+    if (JSON.stringify(oldVersion.geometry) !== JSON.stringify(newVersion.geometry) )
+      $('#geometryStatus').text("Geometry is modified");
+    else
+      $('#geometryStatus').text("Geometry is same");
+
     map.addLayer({
         'id': 'modified-old-line',
         'source': 'oldVersion',
