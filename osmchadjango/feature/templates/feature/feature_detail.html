@@ -209,7 +209,8 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicGxhbmVtYWQiLCJhIjoiemdYSVVLRSJ9.g3lbg_eN0kzt
 var map = new mapboxgl.Map({
     container: document.getElementById('map'),
     style: 'mapbox://styles/planemad/cijcefp3q00elbskq4cgvcivf',
-    zoom: 5
+    zoom: 5,
+    maxZoom: 18
 });
 map.on('load', function() {
   var oldVersion, newVersion = null;
