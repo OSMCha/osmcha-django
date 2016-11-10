@@ -86,6 +86,19 @@
       </div>
 
       <div class="form-group">
+       <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
+       <div class="col-sm-3">
+         <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
+       </div>
+       <label class="col-sm-2 control-label" for="user_detail__changesets_changes__lte">
+         User edit count (max):
+       </label>
+       <div class="col-sm-3">
+         <input class="form-control" name="user_detail__changesets_changes__lte" value="{{ get.user_detail__changesets_changes__lte }}" />
+       </div>
+      </div>
+
+      <div class="form-group">
         <label class="col-sm-2 control-label" for="bbox">BBox</label>
         <div class="col-sm-3">
           <div class="input-group">
