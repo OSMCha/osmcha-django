@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Blacklist Users List %}{% endblock %}
+
+{% block content %}
+  <h2>{% trans 'Users with harmful changesets' %}</h2>
+  <ul>
+      {% for u in users %}
+          <li>
+              <a href="/?user={{ u.user }}">
+                  {{ u.user }}
+              </a>
+          </li>
+      {% endfor %}
+  </ul>
+{% endblock content %}
