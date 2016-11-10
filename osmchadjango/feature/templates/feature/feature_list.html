@@ -203,8 +203,8 @@ $('.date-presets').on('click', function (e) {
   var val = parseInt(e.target.dataset.id);
   var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
   var to = moment().add(1, 'day').format('YYYY-MM-DD');
-  $('#date__gte').val(from);
-  $('#date__lte').val(to);
+  $('#changeset__date__gte').val(from);
+  $('#changeset__date__lte').val(to);
 });
 </script>
 
