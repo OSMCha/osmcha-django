@@ -132,8 +132,12 @@ def suspicion_create(request):
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
         changeset.save()
+        try:
+            geometry = GEOSGeometry(json.dumps(feature['geometry']))
+        except:
+            geometry = None
         defaults = {
-            "geometry": GEOSGeometry(json.dumps(feature['geometry'])),
+            "geometry": geometry,
             "geojson": json.dumps(feature),
             "osm_id": properties['osm:id'],
             "osm_type": properties['osm:type'],
@@ -141,7 +145,10 @@ def suspicion_create(request):
         }
         suspicious_feature, created = Feature.objects.get_or_create(id=properties['osm:id'], changeset=changeset, defaults=defaults)
         if 'oldVersion' in properties.keys():
-            suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
+            try:
+                suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
+            except:
+                suspicious_feature.oldGeometry = None
             suspicious_feature.oldGeojson= json.dumps(feature['properties'].pop("oldVersion"))
         suspicious_feature.geojson= json.dumps(feature)
         suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
