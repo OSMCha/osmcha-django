@@ -75,13 +75,7 @@
             </a>
           </li>
           <li>
-            <a class="markBad"
-            {% if request.user.is_authenticated %}
-            data-toggle="modal" data-target="#harmfulModal"
-            {% else %}
-            href="{% url 'changeset:set_harmful' changeset.pk %}"
-            {% endif %}
-            >
+            <a class="markBad" href="{% url 'changeset:set_harmful' changeset.pk %}">
             <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
           </a>
         </li>
