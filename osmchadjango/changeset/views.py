@@ -148,17 +148,6 @@ class ChangesetDetailView(DetailView):
 class SetHarmfulChangeset(SingleObjectMixin, View):
     model = Changeset
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'changeset/confirm_modify.html',
-                {'changeset': self.object, 'modification': _('harmful')}
-                )
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -174,17 +163,6 @@ class SetHarmfulChangeset(SingleObjectMixin, View):
 
 class SetGoodChangeset(SingleObjectMixin, View):
     model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'changeset/confirm_modify.html',
-                {'changeset': self.object, 'modification': _('good')}
-                )
-        else:
-            return render(request, 'changeset/not_allowed.html')
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
