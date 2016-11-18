@@ -72,5 +72,10 @@ urlpatterns = [
         regex=r'^harmful-changesets$',
         view=views.HarmfulChangesetsView.as_view(),
         name='harmful_changesets'
+    ),
+    url(
+        regex=r'^undo-changeset-marking/(?P<pk>\w+)/$',
+        view=views.undo_changeset_marking,
+        name='undo_changeset_marking'
     )
 ]

@@ -46,6 +46,12 @@
           {% trans 'HDYC' %}
         </a>
         {% if changeset.checked %}
+        {% if changeset.check_user == request.user %}
+        <form action="{% url 'changeset:undo_changeset_marking' changeset.pk %}" method="post" style="display:inline">
+          <button class="btn btn-primary undoMarking" type="submit">{% csrf_token %}{% trans 'Undo' %}
+          </button>
+        </form>
+        {% endif %}
         {% if changeset.harmful %}
         <span class="glyphicon glyphicon-thumbs-down"></span>
         {% blocktrans with check_user=changeset.check_user%}
@@ -64,33 +70,26 @@
           </button>
           <ul class="dropdown-menu">
             <li>
-              <a class="markGood"
-              {% if request.user.is_authenticated %}
-              data-toggle="modal" data-target="#notHarmfulModal"
-              {% else %}
-              href="{% url 'changeset:set_good' changeset.pk %}"
-              {% endif %}
-              >
+            <form action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
+            <button class="markGood" type="submit">
               <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
-            </a>
+            </button>
+            </form>
           </li>
           <li>
-            <a class="markBad"
-            {% if request.user.is_authenticated %}
-            data-toggle="modal" data-target="#harmfulModal"
-            {% else %}
-            href="{% url 'changeset:set_harmful' changeset.pk %}"
-            {% endif %}
-            >
-            <span class="glyphicon glyphicon-thumbs-down"></span> {% trans 'Mark as verified and harmful' %}
-          </a>
+            <form action="{% url 'changeset:set_harmful' changeset.pk %}" method="post">{% csrf_token %}
+            <button class="markBad" type="submit">
+            <span class="glyphicon glyphicon-thumbs-down"></span>
+            {% trans 'Mark as verified and harmful' %}
+            </button>
+            </form>
         </li>
         {% if request.user.is_authenticated %}
         <li>
-          <a class="whitelist-user" data-username="{{ changeset.user }}" href="#">
+          <button type="submit" class="whitelist-user" data-username="{{ changeset.user }}" href="#">
             <span class="glyphicon glyphicon-thumbs-up"></span>
             {% trans 'White-list this user' %}
-          </a>
+          </button>
         </li>
         {% endif %}
       </ul>
@@ -123,56 +122,6 @@
   </div>
 </div>
 </div>
-{% if request.user.is_authenticated and not changeset.checked %}
-<div class="modal fade" id="notHarmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <h4 class="modal-title" id="myModalLabel">
-          {% blocktrans %}Do you really want to mark the changeset {{ changeset }} as good?{% endblocktrans %}
-        </h4>
-      </div>
-      <div class="modal-body">
-        <form action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
-          <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
-          <a class="btn btn-default" data-dismiss="modal">
-            {% trans "No, don't mark it as good" %}
-          </a>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="harmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        <h4 class="modal-title" id="myModalLabel">
-          {% blocktrans %}Do you really want to mark the changeset {{ changeset }} as harmful?{% endblocktrans %}
-        </h4>
-      </div>
-      <div class="modal-body">
-        <div class="alert alert-danger" role="alert">
-          <p>{% trans 'Only mark a changeset as harmful if you have already fixed or reverted it.' %}</p>
-        </div>
-        <form action="{% url 'changeset:set_harmful' changeset.pk %}" method="post">{% csrf_token %}
-          <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
-          <a class="btn btn-default" data-dismiss="modal">
-            {% trans "No, don't mark it as harmful" %}
-          </a>
-        </form>
-      </div>
-    </div>
-  </div>
-</div>
-{% endif %}
 
 {% if changeset.features %}
 <div class="row">
@@ -252,21 +201,25 @@
 <script>
   $(document).ready(function () {
     $(window).on('keypress', function(e) {
-      if (e.keyCode === 106) {
+      var key = e.keyCode || e.charCode;
+      if (key === 106) {
         // key j for JSOSM
         $('.openInJOSM').click();
-      } else if (e.keyCode === 104) {
+      } else if (key === 104) {
         // key h for open HDYC
         $('.openHdyc')[0].click();
-      } else if (e.keyCode === 111) {
+      } else if (key === 111) {
         // key o for open in OSM
         $('.openOSM')[0].click();
-      } else if (e.keyCode === 103) {
+      } else if (key === 103) {
         // mark as good
         $('.markGood')[0].click();
-      } else if (e.keyCode === 98) {
+      } else if (key === 98) {
         // mark as bad
         $('.markBad')[0].click();
+      } else if (key === 117) {
+        // undo marking
+        $('.undoMarking').click();
       }
     });
   });

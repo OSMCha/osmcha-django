@@ -148,17 +148,6 @@ class ChangesetDetailView(DetailView):
 class SetHarmfulChangeset(SingleObjectMixin, View):
     model = Changeset
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'changeset/confirm_modify.html',
-                {'changeset': self.object, 'modification': _('harmful')}
-                )
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -175,17 +164,6 @@ class SetHarmfulChangeset(SingleObjectMixin, View):
 class SetGoodChangeset(SingleObjectMixin, View):
     model = Changeset
 
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'changeset/confirm_modify.html',
-                {'changeset': self.object, 'modification': _('good')}
-                )
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -198,6 +176,18 @@ class SetGoodChangeset(SingleObjectMixin, View):
         else:
             return render(request, 'changeset/not_allowed.html')
 
+def undo_changeset_marking(request, pk):
+    changeset_qs = Changeset.objects.filter(id=pk)
+    changeset = changeset_qs[0]
+    if request.user != changeset.check_user:
+        return render(request, 'changeset/not_allowed.html')
+
+    changeset.checked = False
+    changeset.check_user = None
+    changeset.check_date = None
+    changeset.harmful = None
+    changeset.save()
+    return HttpResponseRedirect(reverse('changeset:detail', args=[pk]))
 
 @csrf_exempt
 def whitelist_user(request):
