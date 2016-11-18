@@ -176,6 +176,18 @@ class SetGoodChangeset(SingleObjectMixin, View):
         else:
             return render(request, 'changeset/not_allowed.html')
 
+def undo_changeset_marking(request, pk):
+    changeset_qs = Changeset.objects.filter(id=pk)
+    changeset = changeset_qs[0]
+    if request.user != changeset.check_user:
+        return render(request, 'changeset/not_allowed.html')
+
+    changeset.checked = False
+    changeset.check_user = None
+    changeset.check_date = None
+    changeset.harmful = None
+    changeset.save()
+    return HttpResponseRedirect(reverse('changeset:detail', args=[pk]))
 
 @csrf_exempt
 def whitelist_user(request):

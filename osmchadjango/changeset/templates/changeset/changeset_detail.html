@@ -46,6 +46,10 @@
           {% trans 'HDYC' %}
         </a>
         {% if changeset.checked %}
+        <form action="{% url 'changeset:undo_changeset_marking' changeset.pk %}" method="post" style="display:inline">
+          <button class="btn btn-primary undoMarking" type="submit">{% csrf_token %}{% trans 'Undo' %}
+          </button>
+        </form>
         {% if changeset.harmful %}
         <span class="glyphicon glyphicon-thumbs-down"></span>
         {% blocktrans with check_user=changeset.check_user%}
