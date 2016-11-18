@@ -201,19 +201,20 @@
 <script>
   $(document).ready(function () {
     $(window).on('keypress', function(e) {
-      if (e.keyCode === 106) {
+      var key = e.keyCode || e.charCode;
+      if (key === 106) {
         // key j for JSOSM
         $('.openInJOSM').click();
-      } else if (e.keyCode === 104) {
+      } else if (key === 104) {
         // key h for open HDYC
         $('.openHdyc')[0].click();
-      } else if (e.keyCode === 111) {
+      } else if (key === 111) {
         // key o for open in OSM
         $('.openOSM')[0].click();
-      } else if (e.keyCode === 103) {
+      } else if (key === 103) {
         // mark as good
         $('.markGood')[0].click();
-      } else if (e.keyCode === 98) {
+      } else if (key === 98) {
         // mark as bad
         $('.markBad')[0].click();
       }
