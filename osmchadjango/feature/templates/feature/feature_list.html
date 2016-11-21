@@ -50,6 +50,17 @@
       </div>
 
       <div class="form-group">
+        <label for="osm_version__gte" class="col-sm-2 control-label">Min. Version</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Minimum version of a feature" name="osm_version__gte" placeholder="10" value="{{ get.osm_version__gte }}"/>
+        </div>
+        <label for="osm_version__lte" class="col-sm-2 control-label">Max. Version</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Maximum version of a feature" name="osm_version__lte" placeholder="60" value="{{ get.osm_version__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="harmful" class="col-sm-2 control-label">Harmful features:</label>
         <div class="col-sm-3">
           <label class="radio-inline">

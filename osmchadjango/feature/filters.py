@@ -31,6 +31,7 @@ class FeatureFilter(django_filters.FilterSet):
         model = Feature
         fields = {
             # 'reasons': ['exact'],
+            'osm_version': ['gte', 'lte'],
             'changeset__date': ['gte', 'lte'],
             'changeset__editor': ['icontains'],
             'changeset__source': ['icontains'],
