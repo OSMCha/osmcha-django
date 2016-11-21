@@ -94,6 +94,10 @@
       <div class="row">
         <div class="list-group">
           <div class="list-group-item">
+            <h4 class="list-group-item-heading">{% trans 'Version' %}</h4>
+            <p class="list-group-item-text">{{ feature.osm_version }}</p>
+          </div>
+          <div class="list-group-item">
             <h4 class="list-group-item-heading">{% trans 'Source' %}</h4>
             <p class="list-group-item-text">{{ feature.changeset.source }}</p>
           </div>

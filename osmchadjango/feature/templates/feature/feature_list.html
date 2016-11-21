@@ -122,6 +122,7 @@
         <thead>
           <tr>
             <th>{% trans 'ID' %}</th>
+            <th>{% trans 'Version' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
             <!-- <th>{% trans 'Editor' %}</th> -->
@@ -135,6 +136,7 @@
               <td>
                 <a href="{% url 'feature:detail' feature.changeset_id feature.url %}">{{ feature.osm_id }}</a>
               </td>
+              <td>{{ feature.osm_version }}</td>
               <td>{{ feature.changeset.date }}</td>
               <td>
                 <a href="?username={{ feature.user }}&is_suspect=False">
