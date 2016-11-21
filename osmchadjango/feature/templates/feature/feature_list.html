@@ -50,6 +50,17 @@
       </div>
 
       <div class="form-group">
+        <label for="osm_version__gte" class="col-sm-2 control-label">Min. Version</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Minimum version of a feature" name="osm_version__gte" placeholder="10" value="{{ get.osm_version__gte }}"/>
+        </div>
+        <label for="osm_version__lte" class="col-sm-2 control-label">Max. Version</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Maximum version of a feature" name="osm_version__lte" placeholder="60" value="{{ get.osm_version__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="harmful" class="col-sm-2 control-label">Harmful features:</label>
         <div class="col-sm-3">
           <label class="radio-inline">
@@ -111,6 +122,7 @@
         <thead>
           <tr>
             <th>{% trans 'ID' %}</th>
+            <th>{% trans 'Version' %}</th>
             <th>{% trans 'Date' %}</th>
             <th>{% trans 'User' %}</th>
             <!-- <th>{% trans 'Editor' %}</th> -->
@@ -124,6 +136,7 @@
               <td>
                 <a href="{% url 'feature:detail' feature.changeset_id feature.url %}">{{ feature.osm_id }}</a>
               </td>
+              <td>{{ feature.osm_version }}</td>
               <td>{{ feature.changeset.date }}</td>
               <td>
                 <a href="?username={{ feature.user }}&is_suspect=False">
