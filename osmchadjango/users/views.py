@@ -6,6 +6,7 @@ from django.views.generic import DetailView, ListView, RedirectView, UpdateView
 
 from braces.views import LoginRequiredMixin
 
+from osmchadjango.changeset.models import UserWhitelist
 from .forms import UserForm
 from .models import User
 
@@ -15,6 +16,12 @@ class UserDetailView(LoginRequiredMixin, DetailView):
     # These next two lines tell the view to index lookups by username
     slug_field = "username"
     slug_url_kwarg = "username"
+
+    def get_context_data(self, **kwargs):
+        context = super(UserDetailView, self).get_context_data(**kwargs)
+        whitelisted_users = UserWhitelist.objects.filter(user=self.object)
+        context['whitelist'] = whitelisted_users
+        return context
 
 
 class UserRedirectView(LoginRequiredMixin, RedirectView):

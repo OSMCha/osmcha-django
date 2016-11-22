@@ -14,9 +14,14 @@ urlpatterns = [
         name='home'
     ),
     url(
-        regex=r'^(?P<pk>\w+)/$',
+        regex=r'^(?P<pk>\d+)/$',
         view=views.ChangesetDetailView.as_view(),
         name='detail'
+    ),
+    url(
+        regex=r'^(?P<changeset_id>\w+)/suspicious_feature/(?P<osm_id>\w+)/geojson$',
+        view=views.suspicious_feature_geojson,
+        name='suspicious_feature_geojson'
     ),
     url(
         regex=r'^set-harmful/(?P<pk>\w+)/$',
@@ -28,4 +33,49 @@ urlpatterns = [
         view=login_required(views.SetGoodChangeset.as_view()),
         name='set_good'
     ),
+    url(
+        regex=r'^api/suspicion$',
+        view=views.suspicion_create,
+        name='create_suspicion'
+    ),
+    url(
+        regex=r'^whitelist-user$',
+        view=views.whitelist_user,
+        name='whitelist_user'
+    ),
+    url(
+        regex=r'^remove-from-whitelist$',
+        view=views.remove_from_whitelist,
+        name='remove_from_whitelist'
+    ),
+    url(
+        regex=r'^stats$',
+        view=views.stats,
+        name='stats'
+    ),
+    url(
+        regex=r'^all-whitelist-users$',
+        view=views.all_whitelist_users,
+        name='all_whitelist_users'
+    ),
+    url(
+        regex=r'^all-blacklist-users$',
+        view=views.all_blacklist_users,
+        name='all_blacklist_users'
+    ),
+    url(
+        regex=r'^checked-changesets$',
+        view=views.CheckedChangesetsView.as_view(),
+        name='checked_changesets'
+    ),
+    url(
+        regex=r'^harmful-changesets$',
+        view=views.HarmfulChangesetsView.as_view(),
+        name='harmful_changesets'
+    ),
+    url(
+        regex=r'^undo-changeset-marking/(?P<pk>\w+)/$',
+        view=views.undo_changeset_marking,
+        name='undo_changeset_marking'
+    )
 ]
