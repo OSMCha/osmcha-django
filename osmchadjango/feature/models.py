@@ -39,14 +39,6 @@ class Feature(models.Model):
         return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id, )
 
     @property
-    def geojson_obj(self):
-        return json.loads((self.geojson).replace('osm:', 'osm_'))
-
-    @property
-    def oldGeojson_obj(self):
-        return json.loads((self.oldGeojson).replace('osm:', 'osm_'))
-
-    @property
     def all_tags(self):
         geojson = json.loads((self.geojson))
         tags = []

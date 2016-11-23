@@ -226,13 +226,13 @@ map.on('load', function() {
     "type": "FeatureCollection",
     "features": []
   };
-  if({{feature.oldGeojson_obj.geometry.coordinates}}) {
+  if({{feature.oldGeojson.geometry.coordinates}}) {
     var oldVersion = {
           "type": "Feature",
           "properties": {},
           "geometry": {
-            "type": '{{feature.oldGeojson_obj.geometry.type}}',
-            "coordinates": {{feature.oldGeojson_obj.geometry.coordinates}}
+            "type": '{{feature.oldGeojson.geometry.type}}',
+            "coordinates": {{feature.oldGeojson.geometry.coordinates}}
           }
         };
     featureCollection["features"].push(oldVersion);
@@ -243,13 +243,13 @@ map.on('load', function() {
       });
   }
 
-  if({{feature.geojson_obj.geometry.coordinates}}) {
+  if({{feature.geojson.geometry.coordinates}}) {
     var newVersion = {
           "type": "Feature",
           "properties": {},
           "geometry": {
-            "type": '{{feature.geojson_obj.geometry.type}}',
-            "coordinates": {{feature.geojson_obj.geometry.coordinates}}
+            "type": '{{feature.geojson.geometry.type}}',
+            "coordinates": {{feature.geojson.geometry.coordinates}}
           }
         };
     featureCollection["features"].push(newVersion);
