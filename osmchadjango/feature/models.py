@@ -40,7 +40,7 @@ class Feature(models.Model):
 
     @property
     def all_tags(self):
-        geojson = json.loads((self.geojson))
+        geojson = self.geojson
         tags = []
         for key, value in geojson['properties'].iteritems():
             record = {}
@@ -51,8 +51,8 @@ class Feature(models.Model):
 
     @property
     def diff_tags(self):
-        geojson = json.loads((self.geojson))
-        oldGeojson = json.loads((self.oldGeojson))
+        geojson = self.geojson
+        oldGeojson = self.oldGeojson
         modified_tags = []
         deleted_tags = []
         added_tags = []
