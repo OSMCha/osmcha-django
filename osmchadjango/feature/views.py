@@ -143,7 +143,7 @@ def suspicion_create(request):
             "osm_type": properties['osm:type'],
             "osm_version": properties['osm:version'],
         }
-        suspicious_feature, created = Feature.objects.get_or_create(id=properties['osm:id'], changeset=changeset, defaults=defaults)
+        suspicious_feature, created = Feature.objects.get_or_create(osm_id=properties['osm:id'], changeset=changeset, defaults=defaults)
         if 'oldVersion' in properties.keys():
             try:
                 suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
