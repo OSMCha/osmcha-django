@@ -138,7 +138,7 @@ def suspicion_create(request):
             geometry = None
         defaults = {
             "geometry": geometry,
-            "geojson": json.dumps(feature),
+            "geojson": feature,
             "osm_id": properties['osm:id'],
             "osm_type": properties['osm:type'],
             "osm_version": properties['osm:version'],
@@ -149,8 +149,8 @@ def suspicion_create(request):
                 suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
             except:
                 suspicious_feature.oldGeometry = None
-            suspicious_feature.oldGeojson= json.dumps(feature['properties'].pop("oldVersion"))
-        suspicious_feature.geojson = json.dumps(feature)
+            suspicious_feature.oldGeojson = feature['properties'].pop("oldVersion")
+        suspicious_feature.geojson = feature
         suspicious_feature.comparator_version = feature.get('comparator_version')
         suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
         suspicious_feature.reasons.add(*reasons)

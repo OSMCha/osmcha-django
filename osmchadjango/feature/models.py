@@ -39,16 +39,8 @@ class Feature(models.Model):
         return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id, )
 
     @property
-    def geojson_obj(self):
-        return json.loads((self.geojson).replace('osm:', 'osm_'))
-
-    @property
-    def oldGeojson_obj(self):
-        return json.loads((self.oldGeojson).replace('osm:', 'osm_'))
-
-    @property
     def all_tags(self):
-        geojson = json.loads((self.geojson))
+        geojson = self.geojson
         tags = []
         for key, value in geojson['properties'].iteritems():
             record = {}
@@ -59,8 +51,8 @@ class Feature(models.Model):
 
     @property
     def diff_tags(self):
-        geojson = json.loads((self.geojson))
-        oldGeojson = json.loads((self.oldGeojson))
+        geojson = self.geojson
+        oldGeojson = self.oldGeojson
         modified_tags = []
         deleted_tags = []
         added_tags = []
