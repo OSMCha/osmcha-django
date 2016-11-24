@@ -58,8 +58,18 @@ td, th {
 .sticky {
   z-index: 1000;
   top: 0;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  margin:0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.sticky.affix {
+  background: #fff;
+  border-bottom: 1px #ccc solid;
+}
+
+.sticky .dropdown-menu {
+  padding: 0;
 }
 
 .list-group {
@@ -83,4 +93,8 @@ td, th {
   border: none;
   background-color: transparent;
   border-bottom: 1px solid #ddd;
+}
+
+.footer {
+  text-align: center;
 }

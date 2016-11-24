@@ -32,7 +32,7 @@
       <div class="col-xs-12 sticky" data-spy="affix" data-offset-top="300">
         <div class="btn-group">
           <a class="btn btn-primary openInJOSM" target="_blank" href="{{ changeset.josm_link }}">
-            {% trans 'Open in JOSM' %}
+            {% trans 'Open in <u>J</u>OSM' %}
           </a>
           <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <span class="caret"></span>
@@ -43,7 +43,7 @@
           </ul>
         </div>
         <a class="btn btn-primary openHdyc" target="_blank" href="http://hdyc.neis-one.org/?{{ changeset.user }}">
-          {% trans 'HDYC' %}
+          {% trans '<u>H</u>DYC' %}
         </a>
         {% if changeset.checked %}
         {% if changeset.check_user == request.user %}
@@ -72,7 +72,7 @@
             <li>
             <form action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
             <button class="markGood" type="submit">
-              <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful' %}
+              <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful (<u>G</u>)' %}
             </button>
             </form>
           </li>
@@ -80,7 +80,7 @@
             <form action="{% url 'changeset:set_harmful' changeset.pk %}" method="post">{% csrf_token %}
             <button class="markBad" type="submit">
             <span class="glyphicon glyphicon-thumbs-down"></span>
-            {% trans 'Mark as verified and harmful' %}
+            {% trans 'Mark as verified and harmful (<u>B</u>)' %}
             </button>
             </form>
         </li>
@@ -259,7 +259,7 @@
     $(window).on('keypress', function(e) {
       var key = e.keyCode || e.charCode;
       if (key === 106) {
-        // key j for JSOSM
+        // key j for JOSM
         $('.openInJOSM').click();
       } else if (key === 104) {
         // key h for open HDYC
@@ -268,13 +268,13 @@
         // key o for open in OSM
         $('.openOSM')[0].click();
       } else if (key === 103) {
-        // mark as good
+        // key g to mark as good
         $('.markGood')[0].click();
       } else if (key === 98) {
-        // mark as bad
+        // key b to mark as bad
         $('.markBad')[0].click();
       } else if (key === 117) {
-        // undo marking
+        // key u to undo marking
         $('.undoMarking').click();
       }
     });
