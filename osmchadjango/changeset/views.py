@@ -148,6 +148,10 @@ class ChangesetDetailView(DetailView):
 class SetHarmfulChangeset(SingleObjectMixin, View):
     model = Changeset
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -163,6 +167,10 @@ class SetHarmfulChangeset(SingleObjectMixin, View):
 
 class SetGoodChangeset(SingleObjectMixin, View):
     model = Changeset
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
