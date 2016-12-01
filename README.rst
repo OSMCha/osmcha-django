@@ -198,4 +198,4 @@ Management Commands
 
 1. Export a CSV of all harmful changesets
 
-    $ python manage.py generate_harmful_csv
+    $ python manage.py generate_harmful_csv filename.csv
