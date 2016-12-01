@@ -192,3 +192,10 @@ You can then deploy by running the following commands.
     ssh -t dokku@yourservername.com dokku run osmcha-django python manage.py createsuperuser
 
 When deploying via Dokku make sure you backup your database in some fashion as it is NOT done automatically.
+
+Management Commands
+--------------------
+
+1. Export a CSV of all harmful changesets
+
+    $ python manage.py generate_harmful_csv
