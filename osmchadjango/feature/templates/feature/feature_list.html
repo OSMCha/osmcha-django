@@ -18,7 +18,7 @@
     <form action="./features" id="filtersForm" method="GET" class="form-horizontal">
 
       <div class="form-group">
-        <label for="changeset__date__gte" class="col-sm-2 control-label">From</label>
+        <label for="changeset__date__gte" class="col-sm-2 control-label">From:</label>
         <div class="col-sm-3">
           <div class="input-group">
             <input class="form-control" id="changeset__date__gte" name="changeset__date__gte" type="date" value="{{ get.changeset__date__gte }}" />
@@ -32,14 +32,14 @@
             </div><!-- /btn-group -->
           </div><!-- /input-group -->
         </div>
-        <label for="changeset__date__lte" class="col-sm-2 control-label">To</label>
+        <label for="changeset__date__lte" class="col-sm-2 control-label">To:</label>
         <div class="col-sm-3">
           <input class="form-control" id="changeset__date__lte" name="changeset__date__lte" type="date" value="{{ get.changeset__date__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="changeset__editor__icontains" class="col-sm-2 control-label">Editor</label>
+        <label for="changeset__editor__icontains" class="col-sm-2 control-label">Editor:</label>
         <div class="col-sm-3">
           <input data-toggle="tooltip" title="Editor used to create the changeset" class="form-control" name="changeset__editor__icontains" placeholder="JOSM" value="{{ get.changeset__editor__icontains }}" />
         </div>
@@ -50,11 +50,11 @@
       </div>
 
       <div class="form-group">
-        <label for="osm_version__gte" class="col-sm-2 control-label">Min. Version</label>
+        <label for="osm_version__gte" class="col-sm-2 control-label">Min. Version:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Minimum version of a feature" name="osm_version__gte" placeholder="10" value="{{ get.osm_version__gte }}"/>
         </div>
-        <label for="osm_version__lte" class="col-sm-2 control-label">Max. Version</label>
+        <label for="osm_version__lte" class="col-sm-2 control-label">Max. Version:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Maximum version of a feature" name="osm_version__lte" placeholder="60" value="{{ get.osm_version__lte }}"/>
         </div>
@@ -90,7 +90,7 @@
       </div>
 
       <div class="form-group">
-        <label for="reasons" class="col-sm-2 control-label">Reason</label>
+        <label for="reasons" class="col-sm-2 control-label">Reason:</label>
         <div class="col-sm-3">
           <select class="form-control" name="reasons">
             <option value="">---------</option>
@@ -101,7 +101,7 @@
             {% endfor %}
           </select>
         </div>
-        <label class="col-sm-2 control-label" for="bbox">BBox</label>
+        <label class="col-sm-2 control-label" for="bbox">BBox:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
         </div>

@@ -11,9 +11,9 @@
     <div class="row">
       <div class="col-md-12">
         <h3>
-          <span class="label label-success">{{ changeset.create }}</span>
-          <span class="label label-warning">{{ changeset.modify }}</span>
-          <span class="label label-danger">{{ changeset.delete }}</span>
+          <span class="label label-success" title="Total features added">{{ changeset.create }}</span>
+          <span class="label label-warning" title="Total features modified">{{ changeset.modify }}</span>
+          <span class="label label-danger" title="Total features removed">{{ changeset.delete }}</span>
         </h3>
       </div>
     </div>
@@ -72,7 +72,7 @@
             <li>
             <form action="{% url 'changeset:set_good' changeset.pk %}" method="post">{% csrf_token %}
             <button class="markGood" type="submit">
-              <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Mark as verified and not harmful (<u>G</u>)' %}
+              <span class="glyphicon glyphicon-thumbs-up"></span> {% trans 'Verify as not harmful (<u>G</u>ood)' %}
             </button>
             </form>
           </li>
@@ -80,7 +80,7 @@
             <form action="{% url 'changeset:set_harmful' changeset.pk %}" method="post">{% csrf_token %}
             <button class="markBad" type="submit">
             <span class="glyphicon glyphicon-thumbs-down"></span>
-            {% trans 'Mark as verified and harmful (<u>B</u>)' %}
+            {% trans 'Verify as harmful (<u>B</u>ad)' %}
             </button>
             </form>
         </li>

@@ -35,6 +35,9 @@
 
 #filters {
   display: none;
+  padding-bottom: 0.5em;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 0.25em;
 }
 
 td, th {
@@ -64,12 +67,19 @@ td, th {
 }
 
 .sticky.affix {
-  background: #fff;
+  background: rgba(255,255,255,0.9);
   border-bottom: 1px #ccc solid;
 }
 
 .sticky .dropdown-menu {
   padding: 0;
+  min-width: 220px;
+}
+
+.sticky .dropdown-menu button{
+  padding: 10px;
+  width: 220px;
+  text-align: left;
 }
 
 .list-group {
@@ -93,6 +103,14 @@ td, th {
   border: none;
   background-color: transparent;
   border-bottom: 1px solid #ddd;
+}
+
+.text-pagination {
+  text-align: center;
+}
+
+#map {
+  margin: 0.5em 0;
 }
 
 .footer {
