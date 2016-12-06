@@ -187,16 +187,72 @@
 </div>
 </div>
 {% endif %}
+<div id="changesetDiscussions" class="row">
+  
+</div>
 
 <div class="row">
   <hr>
   <div id="map"></div>
   <a id='changeset-map-permalink' href="{{ changeset.achavi_link }}">{% trans 'Open visualization in a new window' %}</a>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrender/0.9.83/jsrender.min.js"></script>
+
+{% verbatim %}
+<script id="discussionsTpl" type="text/x-jsrender">
+  {{if comments}}
+  <div class="panel-group" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default">
+      <div class="panel-heading" role="tab" id="headingOne">
+        <h4 class="panel-title">
+          <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+            Changeset Discussions
+          </a>
+          <span class="badge">{{:count}}</span>
+        </h4>
+      </div>
+      <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+        <div class="panel-body">
+         <table>
+          <thead>
+            <tr>
+              <th>
+                Name
+              </th>
+              <th>
+                Comment
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {{for comments}}
+            <tr>
+              <td>
+                {{:userName}}
+              </td>
+              <td>
+                {{:comment}}
+              </td>
+            </tr>
+            {{/for}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+
+</script>
+{% endverbatim %}
+
 {% endblock content %}
 
 {% block javascript %}
 {{ block.super }}
+<script>
+  var CHANGESET_ID = {{ changeset.id }};
+</script>
 <script src="{% static 'js/changeset-map.js' %}"></script>
 <script>
   $(document).ready(function () {
@@ -243,4 +299,5 @@
 </script>
 <script src="{% static 'js/josm_link.js' %}"></script>
 <script src="{% static 'js/whitelist_user.js' %}"></script>
+<script src="{% static 'js/fetch_comments.js' %}"></script>
 {% endblock javascript %}
