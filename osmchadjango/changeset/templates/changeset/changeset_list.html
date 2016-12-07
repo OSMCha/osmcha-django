@@ -21,7 +21,7 @@
     <form action="." id="filtersForm" method="GET" class="form-horizontal">
 
       <div class="form-group">
-        <label for="date__gte" class="col-sm-2 control-label">From</label>
+        <label for="date__gte" class="col-sm-2 control-label">From:</label>
         <div class="col-sm-3">
           <div class="input-group">
             <input class="form-control" id="date__gte" name="date__gte" type="date" value="{{ get.date__gte }}" />
@@ -35,58 +35,58 @@
             </div><!-- /btn-group -->
           </div><!-- /input-group -->
         </div>
-        <label for="date__lte" class="col-sm-2 control-label">To</label>
+        <label for="date__lte" class="col-sm-2 control-label">To:</label>
         <div class="col-sm-3">
           <input class="form-control" id="date__lte" name="date__lte" type="date" value="{{ get.date__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="create__gte" class="col-sm-2 control-label">Min. Additions</label>
+        <label for="create__gte" class="col-sm-2 control-label">Min. Additions:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Minimum number of features added in a changeset" name="create__gte" placeholder="50" value="{{ get.create__gte }}"/>
         </div>
-        <label for="create__lte" class="col-sm-2 control-label">Max. Additions</label>
+        <label for="create__lte" class="col-sm-2 control-label">Max. Additions:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Maximum number of features added in a changeset" name="create__lte" placeholder="100" value="{{ get.create__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications</label>
+        <label for="modify__gte" class="col-sm-2 control-label">Min. Modifications:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Minimum number of features modified in a changeset" name="modify__gte" placeholder="10" value="{{ get.modify__gte }}"/>
         </div>
-        <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications</label>
+        <label for="modify__lte" class="col-sm-2 control-label">Max. Modifications:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Maximum number of features modified in a changeset" name="modify__lte" placeholder="20" value="{{ get.modify__lte }}"/>
         </div>
       </div>
 
       <div class="form-group">
-        <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions</label>
+        <label for="delete__gte" class="col-sm-2 control-label">Min. Deletions:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Minimum number of features deleted in a changeset" name="delete__gte" placeholder="40" value="{{ get.delete__gte }}" />
         </div>
-        <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions</label>
+        <label for="delete__lte" class="col-sm-2 control-label">Max. Deletions:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Maximum number of features deleted in a changeset" name="delete__lte" placeholder="80" value="{{ get.delete__lte }}" />
         </div>
       </div>
 
       <div class="form-group">
-        <label for="editor__icontains" class="col-sm-2 control-label">Editor</label>
+        <label for="editor__icontains" class="col-sm-2 control-label">Editor:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Editor used to create the changeset" name="editor__icontains" placeholder="JOSM" value="{{ get.editor__icontains }}" />
         </div>
-        <label class="col-sm-2 control-label" for="username">Users</label>
+        <label class="col-sm-2 control-label" for="username">Users:</label>
         <div class="col-sm-3">
           <input class="form-control" data-toggle="tooltip" title="Filter by OSM Usernames" name="usernames" placeholder="paul10, iak8" value="{{ get.usernames }}" />
         </div>
       </div>
 
       <div class="form-group">
-       <label class="col-sm-2 control-label" for="comment__icontains">Comment</label>
+       <label class="col-sm-2 control-label" for="comment__icontains">Comment:</label>
        <div class="col-sm-3">
          <input class="form-control" name="comment__icontains" value="{{ get.comment__icontains }}" />
        </div>
@@ -99,7 +99,7 @@
       </div>
 
       <div class="form-group">
-        <label class="col-sm-2 control-label" for="bbox">BBox</label>
+        <label class="col-sm-2 control-label" for="bbox">BBox:</label>
         <div class="col-sm-3">
           <div class="input-group">
             <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" id="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
@@ -111,7 +111,7 @@
       </div>
 
       <div class="form-group">
-        <label for="is_suspect" class="col-sm-2 control-label">Show changesets</label>
+        <label for="is_suspect" class="col-sm-2 control-label">Show changesets:</label>
         <div class="col-sm-3">
           <label class="radio-inline">
             <input name="is_suspect" type="radio" value="True" {% if get.is_suspect == 'True' %} checked {% endif %} />
@@ -169,7 +169,7 @@
       </div>
 
       <div class="form-group">
-        <label for="reasons" class="col-sm-2 control-label">Reason</label>
+        <label for="reasons" class="col-sm-2 control-label">Reason:</label>
         <div class="col-sm-3">
           <select class="form-control" name="reasons">
             <option value="">---------</option>
@@ -180,7 +180,7 @@
             {% endfor %}
           </select>
         </div>
-        <label for="sort" class="col-sm-2 control-label">Sort</label>
+        <label for="sort" class="col-sm-2 control-label">Sort:</label>
         <div class="col-sm-3">
           <select class="form-control" name="sort">
             <option value="">---------</option>
