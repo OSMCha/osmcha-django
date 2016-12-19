@@ -1,6 +1,7 @@
 import django_filters
 from models import Changeset
 from django_filters import filters
+from django.contrib.gis.geos import Polygon
 
 
 class ChangesetFilter(django_filters.FilterSet):
@@ -11,11 +12,18 @@ class ChangesetFilter(django_filters.FilterSet):
     is_suspect = filters.MethodFilter()
     usernames = filters.MethodFilter()
     checked_by = filters.MethodFilter()
+    bbox = filters.MethodFilter()
 
     def filter_checked_by(self, queryset, value):
         if value:
             users = map(lambda x: x.strip(), value.split(','))
             return queryset.filter(check_user__username__in=users)
+        return queryset
+
+    def filter_bbox(self, queryset, value):
+        if value:
+            bbox = Polygon.from_bbox((float(b) for b in value.split(',')))
+            return queryset.filter(bbox__bboverlaps=bbox)
         return queryset
 
     def filter_max_score(self, queryset, value):

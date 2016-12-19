@@ -11,7 +11,6 @@ from django.shortcuts import get_object_or_404
 from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
-from django.contrib.gis.geos import Polygon
 
 import json
 import datetime
@@ -116,9 +115,6 @@ class ChangesetListView(ListView):
                 queryset = queryset.filter(reasons=None)
             else:
                 queryset = queryset.filter(reasons=int(params['reasons']))
-        if 'bbox' in params:
-            bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            queryset = queryset.filter(bbox__bboverlaps=bbox)
 
         user = self.request.user
 
@@ -237,6 +233,9 @@ def stats(request):
         changesets_qset = Changeset.objects.all()
     if reviewer != '':
         changesets_qset = changesets_qset.filter(check_user__username=reviewer)
+    changesets_qset = ChangesetFilter(request.GET, queryset=changesets_qset).qs
+
+
     total_checked = changesets_qset.filter(checked=True).count()
     total_harmful = changesets_qset.filter(harmful=True).count()
     users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
