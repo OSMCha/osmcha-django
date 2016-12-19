@@ -10,6 +10,13 @@ class ChangesetFilter(django_filters.FilterSet):
     harmful = filters.MethodFilter()
     is_suspect = filters.MethodFilter()
     usernames = filters.MethodFilter()
+    checked_by = filters.MethodFilter()
+
+    def filter_checked_by(self, queryset, value):
+        if value:
+            users = map(lambda x: x.strip(), value.split(','))
+            return queryset.filter(check_user__username__in=users)
+        return queryset
 
     def filter_max_score(self, queryset, value):
         if value:
