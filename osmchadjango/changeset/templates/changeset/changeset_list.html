@@ -108,6 +108,10 @@
             </span>
           </div>
         </div>
+        <label class="col-sm-2 control-label" for="checked_by">Checked By:</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Get changesets checked by users" name="checked_by" placeholder="paul10, iak8" value="{{ get.checked_by }}" />
+        </div>
       </div>
 
       <div class="form-group">
@@ -247,6 +251,9 @@
                   {% else %}
                     <span class="glyphicon glyphicon-thumbs-up"></span>
                   {% endif %}
+                  <a href="?checked_by={{ changeset.check_user.username }}&is_suspect=False">
+                    {{ changeset.check_user.username }}
+                  </a>
                 {% else %}
                   <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
                 {% endif %}
