@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load i18n %}
-
+{% load query_parameters %}
 {% block title %}OSMCHA - Stats{% endblock %}
 
 {% block content %}
@@ -16,18 +16,28 @@
       <label for="reviewer" class="control-label">Reviewer Username</label>
       <input class="form-control" name="reviewer" type="text" value="{{ get.reviewer }}"/>
       <br />
+      <label for="reviewer" class="control-label">BBOX</label>
+      <input class="form-control" name="bbox" type="text" value="{{ get.bbox }}"/>
+      <br />
+      <label for="reviewer" class="control-label">Editor</label>
+      <input class="form-control" name="editor__icontains" type="text" value="{{ get.editor__icontains }}"/>
+      <br />
+      <label for="reviewer" class="control-label">Comment</label>
+      <input class="form-control" name="comment__icontains" type="text" value="{{ get.comment__icontains }}"/>
+      <br />
+
       <input type="submit" />
     </form>
   </p>
   <p>
       {% trans 'Total number of changesets checked' %}:
-      <a href="{% url 'changeset:checked_changesets' %}">
+      <a href="{% url 'changeset:home' %}?{% set_query_parameters is_suspect='False' checked='True' %}">
           {{ checked }}
       </a>
   </p>
   <p>
       {% trans 'Total number of harmful changesets found' %}:
-      <a href="{% url 'changeset:harmful_changesets' %}">
+      <a href="{% url 'changeset:home' %}?{% set_query_parameters is_suspect='False' checked='True' %}">
           {{ harmful }}
       </a>
   </p>
