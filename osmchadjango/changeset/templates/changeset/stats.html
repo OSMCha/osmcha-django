@@ -13,16 +13,16 @@
       <label for="to" class="control-label">To</label>
       <input class="form-control" name="to" type="date" value="{{ get.to }}"/>
       <br />
-      <label for="reviewer" class="control-label">Reviewer Username</label>
-      <input class="form-control" name="reviewer" type="text" value="{{ get.reviewer }}"/>
+      <label for="checked_by" class="control-label">Reviewer Username</label>
+      <input class="form-control" name="checked_by" type="text" value="{{ get.checked_by }}"/>
       <br />
-      <label for="reviewer" class="control-label">BBOX</label>
+      <label for="bbox" class="control-label">BBOX</label>
       <input class="form-control" name="bbox" type="text" value="{{ get.bbox }}"/>
       <br />
-      <label for="reviewer" class="control-label">Editor</label>
+      <label for="editor__contains" class="control-label">Editor</label>
       <input class="form-control" name="editor__icontains" type="text" value="{{ get.editor__icontains }}"/>
       <br />
-      <label for="reviewer" class="control-label">Comment</label>
+      <label for="comment__icontains" class="control-label">Comment</label>
       <input class="form-control" name="comment__icontains" type="text" value="{{ get.comment__icontains }}"/>
       <br />
 
@@ -37,7 +37,7 @@
   </p>
   <p>
       {% trans 'Total number of harmful changesets found' %}:
-      <a href="{% url 'changeset:home' %}?{% set_query_parameters is_suspect='False' checked='True' %}">
+      <a href="{% url 'changeset:home' %}?{% set_query_parameters is_suspect='False' harmful='True' %}">
           {{ harmful }}
       </a>
   </p>

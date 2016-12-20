@@ -231,10 +231,8 @@ def stats(request):
         changesets_qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
     else:
         changesets_qset = Changeset.objects.all()
-    if reviewer != '':
-        changesets_qset = changesets_qset.filter(check_user__username=reviewer)
-    changesets_qset = ChangesetFilter(request.GET, queryset=changesets_qset).qs
 
+    changesets_qset = ChangesetFilter(request.GET, queryset=changesets_qset).qs
 
     total_checked = changesets_qset.filter(checked=True).count()
     total_harmful = changesets_qset.filter(harmful=True).count()
