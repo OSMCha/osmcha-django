@@ -11,7 +11,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filename = options['filename'][0]
-        qset = Changeset.objects.filter(harmful=True).select_related('user_detail')
+        qset = Changeset.objects.filter(harmful=True).select_related('user_detail').values('id','user', 'editor', 'powerfull_editor', 'comment', 'source', 'imagery_used', 'date', 'reasons', 'reasons__name', 'create', 'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked', 'check_user', 'check_date')
         with open(filename, 'w') as csv_file:
           write_csv(qset, csv_file)
 
