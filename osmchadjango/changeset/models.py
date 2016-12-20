@@ -174,6 +174,31 @@ class Changeset(models.Model):
             
         return user_detail
 
+    def to_row(self):
+        reasons = self.reasons.all()
+        reasons_string = ",".join(reasons.values_list('name', flat=True))
+        changeset = {
+            'id': self.id,
+            'user': self.user,
+            'editor': self.editor,
+            'powerfull_editor': str(self.powerfull_editor),
+            'comment': self.comment.encode('utf8') if self.comment else "",
+            'source': self.source,
+            'imagery_used': self.imagery_used,
+            'date': self.date.strftime('%Y-%m-%d'),
+            'reasons': reasons_string,
+            'create': self.create,
+            'modify': self.modify,
+            'delete': self.delete,
+            'bbox': str(self.bbox.geojson).encode('utf8'),
+            'is_suspect': str(self.is_suspect),
+            'harmful': str(self.harmful),
+            'checked': str(self.checked),
+            'check_user': self.check_user.name,
+            'check_date': self.check_date.strftime('%Y-%m-%d')
+        }
+        return changeset
+
     @property
     def features(self):
         return self.feature_set.all()
