@@ -61,12 +61,12 @@
     <tr>
         <td>{{ key }}</td>
         <td>
-          <a href="/?checked=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
+          <a href="/?{% set_query_parameters checked='True' is_suspect='False' reasons=value.id %}">
             {{ value.checked }}
           </a>
         </td>
         <td>
-          <a href="/?harmful=True&is_suspect=False&reasons={{ value.id }}&date__gte={{get.from}}&date__lte={{get.to}}">
+          <a href="/?{% set_query_parameters harmful='True' is_suspect='False' reasons=value.id %}">
             {{ value.harmful }}
           </a>
         </td>
