@@ -11,7 +11,7 @@ from django.shortcuts import get_object_or_404
 from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
 from django.views.decorators.csrf import csrf_exempt
 from filters import ChangesetFilter
-
+from djqscsv import render_to_csv_response
 import json
 import datetime
 
@@ -134,6 +134,14 @@ class ChangesetListView(ListView):
             queryset = queryset.order_by('-date')
         return queryset
 
+    def render_to_response(self, context, **response_kwargs):
+        get_params = self.request.GET.dict()
+        if get_params.has_key('render_csv') and get_params['render_csv'] == 'True':
+            queryset = self.get_queryset()
+            queryset = queryset.values('id','user', 'editor', 'powerfull_editor', 'comment', 'source', 'imagery_used', 'date', 'reasons', 'reasons__name', 'create', 'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked', 'check_user', 'check_date')
+            return render_to_csv_response(queryset)
+        else:
+            return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
 
 class ChangesetDetailView(DetailView):
     """DetailView of Changeset Model"""
