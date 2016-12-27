@@ -226,13 +226,19 @@ map.on('load', function() {
     "type": "FeatureCollection",
     "features": []
   };
-  if({{feature.oldGeojson.geometry.coordinates}}) {
+  var newGeojson = {{ new_geojson|safe }};
+  {% if old_geojson %}
+  var oldGeojson = {{ old_geojson|safe }};
+  {% else %}
+  var oldGeojson = null;
+  {% endif %}
+  if(oldGeojson && oldGeojson.geometry && oldGeojson.geometry.coordinates) {
     var oldVersion = {
           "type": "Feature",
           "properties": {},
           "geometry": {
-            "type": '{{feature.oldGeojson.geometry.type}}',
-            "coordinates": {{feature.oldGeojson.geometry.coordinates}}
+            "type": oldGeojson.geometry.type,
+            "coordinates": oldGeojson.geometry.coordinates
           }
         };
     featureCollection["features"].push(oldVersion);
@@ -241,15 +247,16 @@ map.on('load', function() {
         "type": "geojson",
         "data": oldVersion
       });
+    oldVersion = true;
   }
 
-  if({{feature.geojson.geometry.coordinates}}) {
+  if(newGeojson.geometry && newGeojson.geometry.coordinates) {
     var newVersion = {
           "type": "Feature",
           "properties": {},
           "geometry": {
-            "type": '{{feature.geojson.geometry.type}}',
-            "coordinates": {{feature.geojson.geometry.coordinates}}
+            "type": newGeojson.geometry.type,
+            "coordinates": newGeojson.geometry.coordinates
           }
         };
     featureCollection["features"].push(newVersion);
@@ -258,6 +265,7 @@ map.on('load', function() {
         "type": "geojson",
         "data": newVersion
       });
+    newVersion = true;
   }
 
   if (oldVersion && !newVersion) {

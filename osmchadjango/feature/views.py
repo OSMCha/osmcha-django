@@ -81,6 +81,19 @@ class FeatureDetailView(DetailView):
     context_object_name = 'feature'
     template_name = 'feature/feature_detail.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(FeatureDetailView, self).get_context_data(**kwargs)
+        new_geojson = json.dumps(self.object.geojson)
+        if self.object.oldGeojson:
+            old_geojson = json.dumps(self.object.oldGeojson)
+        else:
+            old_geojson = None
+        context.update({
+            'new_geojson': new_geojson,
+            'old_geojson': old_geojson
+        })
+        return context
+
     def get_object(self):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
