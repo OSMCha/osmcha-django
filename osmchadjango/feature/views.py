@@ -101,6 +101,10 @@ class FeatureDetailView(DetailView):
         return get_object_or_404(Feature, changeset= changeset, url = url )
 
 
+def get_geojson(request, changeset, slug):
+    feature = get_object_or_404(Feature, url=slug)
+    return JsonResponse(feature.geojson)
+
 
 @csrf_exempt
 def suspicion_create(request):
