@@ -23,6 +23,11 @@ urlpatterns = [
         name='create_suspicion'
     ),
     url(
+        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/geojson$',
+        view=views.get_geojson,
+        name='get_geojson'
+    ),
+    url(
         regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=login_required(views.SetHarmfulFeature.as_view()),
         name='set_harmful'
