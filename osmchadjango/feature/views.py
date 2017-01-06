@@ -14,7 +14,7 @@ from django.contrib.gis.geos import Polygon
 from .models import Feature
 from osmchadjango.changeset import models as changeset_models
 from filters import FeatureFilter
-
+from django.db import IntegrityError
 # Create your views here.
 from django.http import HttpResponse
 
@@ -148,7 +148,15 @@ def suspicion_create(request):
         changeset, created = changeset_models.Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
-        changeset.save()
+        try:
+            changeset.save()
+        except IntegrityError:
+            # This most often happens due to a race condition,
+            # where two processes are saving to the same changeset
+            # In this case, we can safely ignore this attempted DB Insert,
+            # since what we wanted inserted has already been done through
+            # a separate web request.
+            print "Integrity error with changeset %d" % changeset_id
         try:
             geometry = GEOSGeometry(json.dumps(feature['geometry']))
         except:
