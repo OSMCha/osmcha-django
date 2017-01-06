@@ -196,6 +196,57 @@
       </h4>
     </div>
   </div>
+  {% if request.user.is_authenticated and not feature.checked %}
+    <div class="modal fade" id="notHarmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="{% trans 'Close' %}">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+              {% blocktrans %}Do you really want to mark the feature {{ feature }} as good?{% endblocktrans %}
+            </h4>
+          </div>
+          <div class="modal-body">
+            <form action="{% url 'feature:set_good' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
+              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
+              <a class="btn btn-default" data-dismiss="modal">
+                {% trans "No, don't mark it as good" %}
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="harmfulModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <h4 class="modal-title" id="myModalLabel">
+              {% blocktrans %}Do you really want to mark the feature {{ feature }} as harmful?{% endblocktrans %}
+            </h4>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger" role="alert">
+              <p>{% trans 'Only mark a feature as harmful if you have already fixed or reverted it.' %}</p>
+            </div>
+            <form action="{% url 'feature:set_harmful' feature.changeset_id feature.url %}" method="post">{% csrf_token %}
+              <button class="btn btn-primary btn-success" type="submit">{% trans "Yes, I'm sure" %}</button>
+              <a class="btn btn-default" data-dismiss="modal">
+                {% trans "No, don't mark it as harmful" %}
+              </a>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
 {% endblock content %}
 
 {% block javascript %}
