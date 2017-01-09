@@ -17,6 +17,7 @@ from filters import FeatureFilter
 from django.db import IntegrityError
 # Create your views here.
 from django.http import HttpResponse
+from django.core.exceptions import ValidationError
 
 import json
 import datetime
@@ -53,6 +54,9 @@ class FeatureListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
+
+        self.validate_params(params)
+
         if 'harmful' not in params:
             params['harmful'] = 'False'
         if 'checked' not in params:
@@ -73,6 +77,19 @@ class FeatureListView(ListView):
         else:
             queryset = queryset.order_by('-changeset__date')
         return queryset
+
+    def validate_params(self, params):
+        if params.has_key('reasons') and params['reasons'] != '':
+            try:
+                s = str(int(params['reasons']))
+            except:
+                raise ValidationError('reasons param must be a number')
+        if params.has_key('bbox') and params['bbox'] != '':
+            try:
+                bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
+            except:
+                raise ValidationError('bbox param is invalid')
+
 
 
 class FeatureDetailView(DetailView):
