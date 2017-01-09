@@ -327,6 +327,15 @@ $('#bboxMap').on('shown.bs.modal', function () {
     });
 
     map.on('load', function () {
+      var currentBBox = $('#bbox').val();
+      if (currentBBox) {
+        var bboxArray = currentBBox.split(',');
+        var currentBounds = [
+          [bboxArray[0], bboxArray[1]],
+          [bboxArray[2], bboxArray[3]],
+        ];
+        map.fitBounds(currentBounds);
+      }
       $('#save').on('click', function () {
         var bounds = map.getBounds();
         var bbox = bounds.toArray().join(',');
