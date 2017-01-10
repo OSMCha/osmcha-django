@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+{% load static %}
+{% load i18n %}
+{% load cache %}
+
+{% block title %}{% trans 'OSMCHA - Feature List' %}{% endblock %}
+
+{% block content %}
+
+  {% with cache_timeout=user.is_authenticated|yesno:"0,300" %}
+  {% cache cache_timeout features user.is_authenticated request.get_full_path %}
+  {% if search_title %}
+    <h3>{{ search_title }}</h3>
+  {% endif %}
+  {% if not hide_filters %}
+  <button class="btn btn-default" id="toggle-filters">Show Filters</button>
+  <div id="filters" class="filters">
+    <form action="./features" id="filtersForm" method="GET" class="form-horizontal">
+
+      <div class="form-group">
+        <label for="changeset__date__gte" class="col-sm-2 control-label">From:</label>
+        <div class="col-sm-3">
+          <div class="input-group">
+            <input class="form-control" id="changeset__date__gte" name="changeset__date__gte" type="date" value="{{ get.changeset__date__gte }}" />
+            <div class="input-group-btn">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Presets <span class="caret"></span></button>
+              <ul class="dropdown-menu dropdown-menu-right date-presets">
+              <li><a id="today" data-id="1" href="#">Today</a></li>
+              <li><a id="week" data-id="7" href="#">Last week</a></li>
+              <li><a id="month" data-id="30" href="#">Last month</a></li>
+              </ul>
+            </div><!-- /btn-group -->
+          </div><!-- /input-group -->
+        </div>
+        <label for="changeset__date__lte" class="col-sm-2 control-label">To:</label>
+        <div class="col-sm-3">
+          <input class="form-control" id="changeset__date__lte" name="changeset__date__lte" type="date" value="{{ get.changeset__date__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="changeset__editor__icontains" class="col-sm-2 control-label">Editor:</label>
+        <div class="col-sm-3">
+          <input data-toggle="tooltip" title="Editor used to create the changeset" class="form-control" name="changeset__editor__icontains" placeholder="JOSM" value="{{ get.changeset__editor__icontains }}" />
+        </div>
+        <label class="col-sm-2 control-label" for="changeset__user">Users</label>
+        <div class="col-sm-3">
+          <input data-toggle="tooltip" title="Filter by OSM Usernames" class="form-control" name="changeset__user" placeholder="paul10, iak8" value="{{ get.changeset__user }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="osm_version__gte" class="col-sm-2 control-label">Min. Version:</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Minimum version of a feature" name="osm_version__gte" placeholder="10" value="{{ get.osm_version__gte }}"/>
+        </div>
+        <label for="osm_version__lte" class="col-sm-2 control-label">Max. Version:</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="Maximum version of a feature" name="osm_version__lte" placeholder="60" value="{{ get.osm_version__lte }}"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="harmful" class="col-sm-2 control-label">Harmful features:</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="harmful" type="radio" value="True" {% if get.harmful == 'True' %} checked {% endif %} />
+            Only harmful
+          </label>
+          <label class="radio-inline">
+            <input name="harmful" type="radio" value="False" {% if get.harmful == 'False' %} checked {% endif %} />
+            All
+          </label>
+        </div>
+        <label for="checked" class="col-sm-2 control-label">Checked features:</label>
+        <div class="col-sm-3">
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="True" {% if get.checked == 'True' %} checked {% endif %} />
+            Only checked
+          </label>
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="False" {% if get.checked == 'False' %} checked {% endif %} />
+            unchecked
+          </label>
+          <label class="radio-inline">
+            <input name="checked" type="radio" value="All" {% if get.checked == 'All' %} checked {% endif %} />
+            All
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reasons" class="col-sm-2 control-label">Reason:</label>
+        <div class="col-sm-3">
+          <select class="form-control" name="reasons">
+            <option value="">---------</option>
+            {% for reason in  suspicion_reasons %}
+              <option value="{{ reason.id }}" {% if get.reasons|add:"0" == reason.id %} selected="selected" {% endif %}>
+                {{ reason.name }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <label class="col-sm-2 control-label" for="bbox">BBox:</label>
+        <div class="col-sm-3">
+          <input class="form-control" data-toggle="tooltip" title="sw long., sw lat., ne long., ne lat. coordinates" name="bbox" placeholder="46.70,20.87,68.38,31.14" value="{{ get.bbox }}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <input class="btn btn-primary" type="submit" />
+        </div>
+      </div>
+    </form>
+  </div>
+
+  {% endif %}
+  {% if features %}
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{% trans 'ID' %}</th>
+            <th>{% trans 'Version' %}</th>
+            <th>{% trans 'Date' %}</th>
+            <th>{% trans 'User' %}</th>
+            <!-- <th>{% trans 'Editor' %}</th> -->
+            <th>{% trans 'Reasons' %}</th>
+            <th>{% trans 'Verified' %}</th>
+          </tr>
+        </thead>
+        <tbody>
+              {% for feature in features %}
+            <tr>
+              <td>
+                <a href="{% url 'feature:detail' feature.changeset_id feature.url %}">{{ feature.osm_id }}</a>
+              </td>
+              <td>{{ feature.osm_version }}</td>
+              <td>{{ feature.changeset.date }}</td>
+              <td>
+                <a href="?username={{ feature.user }}&is_suspect=False">
+                  {{ feature.changeset.user }}
+                </a>
+              </td>
+              <!-- <td>{{ changeset.editor }}</td> -->
+              <td>{{ feature.changeset.reasons.all|join:", "|capfirst }}</td>
+              <td>
+                {% if feature.checked %}
+                  <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+                  {% if feature.harmful %}
+                    <span class="glyphicon glyphicon-thumbs-down"></span>
+                  {% else %}
+                    <span class="glyphicon glyphicon-thumbs-up"></span>
+                  {% endif %}
+                {% else %}
+                  <span class="glyphicon glyphicon-remove text-danger" aria-hidden="true"></span>
+                {% endif %}
+              </td>
+            </tr>
+              {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="alert alert-danger">{% trans 'No features found.' %}</div>
+  {% endif %}
+
+  {% load query_parameters %}
+  {% if paginator %}
+    <p class="text-muted text-pagination">
+      {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}
+    </p>
+    <ul class="pager">
+      {% if page_obj.has_previous %}
+        <li><a href="?{% set_query_parameters page=page_obj.previous_page_number %}">&larr; {% trans 'Previous' %}</a></li>
+      {% endif %}
+
+      {% if page_obj.has_next %}
+        <li><a href="?{% set_query_parameters page=page_obj.next_page_number %}">{% trans 'Next' %} &rarr;</a></li>
+      {% endif %}
+    </ul>
+  {% endif %}
+  {% endcache %}
+  {% endwith %}
+{% endblock content %}
+
+{% block javascript %}
+
+  {{ block.super }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js" type="text/javascript"></script>
+<script>
+$('#toggle-filters').click(function() {
+  var $filters = $('#filters');
+  var $this = $(this);
+  if ($filters.is(':visible')) {
+    $filters.hide();
+    $this.text('Show Filters');
+  } else {
+    $filters.show();
+    $this.text('Hide Filters');
+  }
+});
+
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
+// avoid adding empty parameters to URL to make URL cleaner.
+$('#filtersForm').submit(function() {
+    $(':input', this).each(function() {
+        this.disabled = !($(this).val());
+    });
+});
+$('.date-presets').on('click', function (e) {
+  e.preventDefault();
+  var val = parseInt(e.target.dataset.id);
+  var from = moment().subtract(val - 1, 'day').format('YYYY-MM-DD');
+  var to = moment().add(1, 'day').format('YYYY-MM-DD');
+  $('#changeset__date__gte').val(from);
+  $('#changeset__date__lte').val(to);
+});
+</script>
+
+{% endblock %}
