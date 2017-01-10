@@ -5,6 +5,7 @@ from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.core.exceptions import ValidationError
 from django.db.models import Q, Count
 from django.contrib.gis.geos import GEOSGeometry
 from django.shortcuts import get_object_or_404
@@ -14,7 +15,7 @@ from filters import ChangesetFilter
 from djqscsv import render_to_csv_response
 import json
 import datetime
-
+from django.contrib.gis.geos import Polygon
 
 class CheckedChangesetsView(ListView):
     context_object_name = 'changesets'
@@ -101,6 +102,8 @@ class ChangesetListView(ListView):
         for key in GET_dict:
             if key in GET_dict and GET_dict[key] != '':
                 params[key] = GET_dict[key]
+        self.validate_params(params)
+
         if 'is_suspect' not in params:
             params['is_suspect'] = 'True'
         if 'is_whitelisted' not in params:
@@ -133,6 +136,19 @@ class ChangesetListView(ListView):
         else:
             queryset = queryset.order_by('-date')
         return queryset
+
+    def validate_params(self, params):
+        if params.has_key('reasons') and params['reasons'] != '':
+            try:
+                s = str(int(params['reasons']))
+            except:
+                raise ValidationError('reasons param must be a number')
+        if params.has_key('bbox') and params['bbox'] != '':
+            print params['bbox']
+            try:
+                bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
+            except:
+                raise ValidationError('bbox param is invalid')
 
     def render_to_response(self, context, **response_kwargs):
         get_params = self.request.GET.dict()
