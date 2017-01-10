@@ -18,6 +18,7 @@ from django.db import IntegrityError
 # Create your views here.
 from django.http import HttpResponse
 from django.core.exceptions import ValidationError
+from django.contrib.gis.geos import Polygon
 
 import json
 import datetime

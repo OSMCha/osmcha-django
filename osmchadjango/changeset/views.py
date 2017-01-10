@@ -15,7 +15,7 @@ from filters import ChangesetFilter
 from djqscsv import render_to_csv_response
 import json
 import datetime
-
+from django.contrib.gis.geos import Polygon
 
 class CheckedChangesetsView(ListView):
     context_object_name = 'changesets'
@@ -144,6 +144,7 @@ class ChangesetListView(ListView):
             except:
                 raise ValidationError('reasons param must be a number')
         if params.has_key('bbox') and params['bbox'] != '':
+            print params['bbox']
             try:
                 bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
             except:
