@@ -167,7 +167,6 @@ def suspicion_create(request):
         changeset.is_suspect = True
         try:
             changeset.reasons.add(*reasons)
-            changeset.save()
         except IntegrityError:
             # This most often happens due to a race condition,
             # where two processes are saving to the same changeset
@@ -177,6 +176,7 @@ def suspicion_create(request):
             print "Integrity error with changeset %d" % changeset_id
         except ValueError as e:
             print "Value error with changeset %d" % changeset_id
+        changeset.save()
 
         try:
             geometry = GEOSGeometry(json.dumps(feature['geometry']))
