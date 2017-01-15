@@ -165,8 +165,8 @@ def suspicion_create(request):
 
         changeset, created = changeset_models.Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
         changeset.is_suspect = True
-        changeset.reasons.add(*reasons)
         try:
+            changeset.reasons.add(*reasons)
             changeset.save()
         except IntegrityError:
             # This most often happens due to a race condition,
@@ -175,6 +175,9 @@ def suspicion_create(request):
             # since what we wanted inserted has already been done through
             # a separate web request.
             print "Integrity error with changeset %d" % changeset_id
+        except ValueError as e:
+            print "Value error with changeset %d" % changeset_id
+
         try:
             geometry = GEOSGeometry(json.dumps(feature['geometry']))
         except:
