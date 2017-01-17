@@ -199,7 +199,14 @@ def suspicion_create(request):
         suspicious_feature.geojson = feature
         suspicious_feature.comparator_version = feature.get('comparator_version')
         suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
-        suspicious_feature.reasons.add(*reasons)
+        try:
+            suspicious_feature.reasons.add(*reasons)
+        except IntegrityError:
+            # This most often happens due to duplicates in dynamosm stream
+            print "Integrity error with feature %d" % suspicious_feature.osm_id
+        except ValueError as e:
+            print "Value error with feature %d" % suspicious_feature.osm_id
+
         suspicious_feature.save()
         return JsonResponse({'success': "Suspicion created."})
     else:
