@@ -19,12 +19,13 @@ class Command(BaseCommand):
             fr = open(filename, 'r')
             for line in fr:
                 changeset_id = line.rstrip()
-                changeset = Changeset.objects.filter(id=changeset_id)
-                if changeset:
-                    changeset = changeset[0]
+                try:
+                    changeset = Changeset.objects.get(id=changeset_id)
                     changeset.checked = True
                     changeset.harmful = True
                     changeset.check_user = check_user
                     changeset.check_date = timezone.now()
                     changeset.save()
+                except:
+                    pass
             fr.close()
