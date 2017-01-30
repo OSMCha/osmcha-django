@@ -32,6 +32,8 @@ class SuspicionReasons(models.Model):
                     same_reason.delete()
 
 
+
+# FIXME: lets remove this
 class SuspicionScore(models.Model):
     changeset = models.ForeignKey("Changeset")
     score = models.IntegerField()
@@ -41,6 +43,7 @@ class SuspicionScore(models.Model):
         unique_together = ('changeset', 'score', 'reason',)
 
 
+# FIXME: lets remove this as well
 class UserSuspicionScore(models.Model):
     user = models.ForeignKey("UserDetail")
     score = models.IntegerField()
@@ -61,6 +64,7 @@ class UserWhitelist(models.Model):
         unique_together = ('user', 'whitelist_user',)
 
 
+# FIXME: drastically reduce the number of fields we collect here.
 class UserDetail(models.Model):
     contributor_uid = models.IntegerField(blank=True, null=True, db_index=True)
     contributor_name = models.CharField(max_length=1000, unique=True)
@@ -204,6 +208,7 @@ class Changeset(models.Model):
         return self.feature_set.all()
 
 
+# FIXME: we now we use the model from the features/ app. Lets remove this.
 class SuspiciousFeature(models.Model):
     changeset = models.ForeignKey('Changeset')
     reasons = models.ManyToManyField('SuspicionReasons')
