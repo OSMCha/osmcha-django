@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}OSMCHA - Whitelist Users List %}{% endblock %}
+
+{% block content %}
+  <h2>{% trans 'Whitelisted Users' %}</h2>
+  <ul>
+      {% for u in users %}
+          <li>
+              <a href="/?usernames={{ u.whitelist_user }}">
+                  {{ u.whitelist_user }}
+              </a>
+          </li>
+      {% endfor %}
+  </ul>
+{% endblock content %}
