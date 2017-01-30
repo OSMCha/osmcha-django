@@ -1,6 +1,10 @@
+import json
+import datetime
+
 from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
-from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
@@ -8,14 +12,13 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count
 from django.contrib.gis.geos import GEOSGeometry
-from django.shortcuts import get_object_or_404
-from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
-from django.views.decorators.csrf import csrf_exempt
-from filters import ChangesetFilter
-from djqscsv import render_to_csv_response
-import json
-import datetime
 from django.contrib.gis.geos import Polygon
+
+from djqscsv import render_to_csv_response
+
+from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
+from .filters import ChangesetFilter
+
 
 class CheckedChangesetsView(ListView):
     context_object_name = 'changesets'
@@ -27,14 +30,17 @@ class CheckedChangesetsView(ListView):
         context.update({
             'hide_filters': True,
             'search_title': _('Checked Changesets')
-        })
+            })
         return context
 
     def get_queryset(self):
         from_date = self.request.GET.get('from', '')
         to_date = self.request.GET.get('to', datetime.datetime.now())
         if from_date and from_date != '':
-            qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+            qset = Changeset.objects.filter(
+                check_date__gte=from_date,
+                check_date__lte=to_date
+                )
         else:
             qset = Changeset.objects.all()
         return qset.filter(checked=True)
@@ -50,14 +56,17 @@ class HarmfulChangesetsView(ListView):
         context.update({
             'hide_filters': True,
             'search_title': _('Harmful Changesets')
-        })
+            })
         return context
 
     def get_queryset(self):
         from_date = self.request.GET.get('from', '')
         to_date = self.request.GET.get('to', datetime.datetime.now())
         if from_date and from_date != '':
-            qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+            qset = Changeset.objects.filter(
+                check_date__gte=from_date,
+                check_date__lte=to_date
+                )
         else:
             qset = Changeset.objects.all()
         return qset.filter(harmful=True)
@@ -86,12 +95,12 @@ class ChangesetListView(ListView):
             '-delete': 'Most Deletions First',
             '-modify': 'Most Modifications First',
             '-create': 'Most Creations First'
-        }
+            }
         context.update({
             'suspicion_reasons': suspicion_reasons,
             'get': get,
             'sorts': sorts
-        })
+            })
         return context
 
     def get_queryset(self):
@@ -123,10 +132,16 @@ class ChangesetListView(ListView):
 
         if params['is_whitelisted'] == 'True' and user.is_authenticated():
             whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-            users_on_multiple_whitelists = UserWhitelist.objects.values('whitelist_user').annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
+            users_on_multiple_whitelists = UserWhitelist.objects.values(
+                'whitelist_user'
+                ).annotate(
+                    count=Count('whitelist_user')
+                    ).filter(count__gt=1).values('whitelist_user')
 
             # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
-            queryset = queryset.exclude(Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists))
+            queryset = queryset.exclude(
+                Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists)
+                )
         elif params['is_whitelisted'] == 'False' and user.is_authenticated():
             blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
             queryset = queryset.filter(user__in=blacklisted_users)
@@ -138,13 +153,14 @@ class ChangesetListView(ListView):
         return queryset
 
     def validate_params(self, params):
-        if params.has_key('reasons') and params['reasons'] != '':
+        """FIXME: define error in except lines."""
+        if 'reasons' in params.keys() and params['reasons'] != '':
             try:
                 s = str(int(params['reasons']))
             except:
                 raise ValidationError('reasons param must be a number')
-        if params.has_key('bbox') and params['bbox'] != '':
-            print params['bbox']
+        if 'bbox' in params.keys() and params['bbox'] != '':
+            print(params['bbox'])
             try:
                 bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
             except:
@@ -152,12 +168,18 @@ class ChangesetListView(ListView):
 
     def render_to_response(self, context, **response_kwargs):
         get_params = self.request.GET.dict()
-        if get_params.has_key('render_csv') and get_params['render_csv'] == 'True':
+        if 'render_csv' in get_params.keys() and get_params['render_csv'] == 'True':
             queryset = self.get_queryset()
-            queryset = queryset.values('id','user', 'editor', 'powerfull_editor', 'comment', 'source', 'imagery_used', 'date', 'reasons', 'reasons__name', 'create', 'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked', 'check_user', 'check_date')
+            queryset = queryset.values(
+                'id', 'user', 'editor', 'powerfull_editor', 'comment', 'source',
+                'imagery_used', 'date', 'reasons', 'reasons__name', 'create',
+                'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked',
+                'check_user', 'check_date'
+                )
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
+
 
 class ChangesetDetailView(DetailView):
     """DetailView of Changeset Model"""
@@ -204,6 +226,7 @@ class SetGoodChangeset(SingleObjectMixin, View):
         else:
             return render(request, 'changeset/not_allowed.html')
 
+
 def undo_changeset_marking(request, pk):
     changeset_qs = Changeset.objects.filter(id=pk)
     changeset = changeset_qs[0]
@@ -216,6 +239,7 @@ def undo_changeset_marking(request, pk):
     changeset.harmful = None
     changeset.save()
     return HttpResponseRedirect(reverse('changeset:detail', args=[pk]))
+
 
 @csrf_exempt
 def whitelist_user(request):
@@ -235,6 +259,7 @@ def whitelist_user(request):
     uw.save()
     return JsonResponse({'success': 'User %s has been white-listed' % name})
 
+
 @csrf_exempt
 def remove_from_whitelist(request):
     names = request.POST.get('names', None)
@@ -246,6 +271,7 @@ def remove_from_whitelist(request):
     names_array = names.split(',')
     UserWhitelist.objects.filter(user=user).filter(whitelist_user__in=names_array).delete()
     return JsonResponse({'success': 'Users removed from whitelist'})
+
 
 def stats(request):
     from_date = request.GET.get('from', None)
@@ -282,32 +308,42 @@ def stats(request):
         'users_blacklisted': users_blacklisted,
         'counts': counts,
         'get': request.GET.dict()
-    }
+        }
     return render(request, 'changeset/stats.html', context=context)
 
+
 def all_whitelist_users(request):
+    """View that lists all whitelisted users."""
     all_users = UserWhitelist.objects.values('whitelist_user').distinct()
     context = {
         'users': all_users
-    }
+        }
     return render(request, 'changeset/all_whitelist_users.html', context=context)
 
+
 def all_blacklist_users(request):
+    """View that lists all users that have made a harmful changeset."""
     blacklist_users = Changeset.objects.filter(harmful=True).values('user').distinct()
     context = {
         'users': blacklist_users
-    }
+        }
     return render(request, 'changeset/all_blacklist_users.html', context=context)
 
+
 def suspicious_feature_geojson(request, changeset_id, osm_id):
-    suspicious_feature = get_object_or_404(SuspiciousFeature, changeset_id=changeset_id, osm_id=osm_id)
+    suspicious_feature = get_object_or_404(
+        SuspiciousFeature,
+        changeset_id=changeset_id,
+        osm_id=osm_id
+        )
     geojson = suspicious_feature.geojson
     indented_geojson = json.dumps(json.loads(geojson), indent=2)
     return HttpResponse(indented_geojson, content_type='text/plain')
 
+
 @csrf_exempt
 def suspicion_create(request):
-    if request.method=='POST':
+    if request.method == 'POST':
         try:
             feature = json.loads(request.body)
         except:
@@ -320,7 +356,10 @@ def suspicion_create(request):
         changeset_id = properties.get('osm:changeset')
 
         if not changeset_id:
-            return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", status=400)
+            return HttpResponse(
+                "Expecting 'osm:changeset' key in the GeoJSON properties",
+                status=400
+                )
 
         # Each changed feature should have a "suspicions" array of objects in its properties
         suspicions = properties.get('suspicions')
@@ -342,9 +381,12 @@ def suspicion_create(request):
             "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
             "uid": properties.get('osm:uid'),
             "is_suspect": True,
-        }
+            }
 
-        changeset, created = Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
+        changeset, created = Changeset.objects.get_or_create(
+            id=changeset_id,
+            defaults=defaults
+            )
         changeset.is_suspect = True
         changeset.reasons.add(*reasons)
         changeset.save()

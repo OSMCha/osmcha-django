@@ -1,9 +1,9 @@
-import django_filters
-from models import Feature
-from django_filters import filters
+from django_filters import filters, FilterSet
+
+from .models import Feature
 
 
-class FeatureFilter(django_filters.FilterSet):
+class FeatureFilter(FilterSet):
 
     checked = filters.MethodFilter()
     harmful = filters.MethodFilter()
@@ -38,5 +38,4 @@ class FeatureFilter(django_filters.FilterSet):
             'harmful': [],
             'checked': [],
             'changeset__user': [],
-        }
-
+            }

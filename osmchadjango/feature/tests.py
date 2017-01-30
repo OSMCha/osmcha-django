@@ -1,11 +1,10 @@
+import json
+
 from django.test import TestCase, Client
 from django.core.urlresolvers import reverse
 
-import json
 
-# Create your tests here.
 class TestFeatureSuspicionCreate(TestCase):
-    
     def setUp(self):
         self.client = Client()
 
@@ -177,7 +176,11 @@ class TestFeatureSuspicionCreate(TestCase):
             "osm:timestamp": 1476443255000
             }
         }
-        response = self.client.post(reverse('feature:create_suspicion'), data = json.dumps(fixture), content_type="application/json")
+        response = self.client.post(
+            reverse('feature:create_suspicion'),
+            data=json.dumps(fixture),
+            content_type="application/json"
+            )
         self.assertNotEqual(response.status_code, 400)
 
     def test_duplicate_suspicion_create(self):
@@ -347,5 +350,9 @@ class TestFeatureSuspicionCreate(TestCase):
             "osm:timestamp": 1476443255000
             }
         }
-        response = self.client.post(reverse('feature:create_suspicion'), data = json.dumps(fixture), content_type="application/json")
+        response = self.client.post(
+            reverse('feature:create_suspicion'),
+            data = json.dumps(fixture),
+            content_type="application/json"
+            )
         self.assertNotEqual(response.status_code, 400)

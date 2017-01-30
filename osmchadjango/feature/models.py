@@ -3,13 +3,12 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.postgres.fields import JSONField
 
 from ..users.models import User
-import json
-import codecs
+
 
 class Feature(models.Model):
 
     user_detail = models.ForeignKey('changeset.UserDetail', blank=True, null=True)
-    
+
     changeset = models.ForeignKey('changeset.Changeset')
     osm_id = models.BigIntegerField()
     osm_type = models.CharField(max_length=1000)
@@ -36,7 +35,7 @@ class Feature(models.Model):
 
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
-        return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id, )
+        return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id)
 
     @property
     def all_tags(self):
@@ -45,7 +44,7 @@ class Feature(models.Model):
         for key, value in geojson['properties'].iteritems():
             record = {}
             record["tag"] = key
-            record["Value"] =  value
+            record["Value"] = value
             tags.append(record)
         return tags
 
@@ -76,7 +75,7 @@ class Feature(models.Model):
                 else:
                     record = {}
                     record["tag"] = key
-                    record["Value"] =  value
+                    record["Value"] = value
                     deleted_tags.append(record)
 
         for key, value in geojson['properties'].iteritems():

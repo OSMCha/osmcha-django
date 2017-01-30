@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-
-from celery import shared_task, group
-import yaml
-from osmcha.changeset import Analyse, ChangesetList
-
-import requests
 from os.path import join
+import yaml
 
 from django.conf import settings
 
-from .models import Changeset, SuspicionReasons, Import, SuspicionScore, UserSuspicionScore
+import requests
+from celery import shared_task, group
+from osmcha.changeset import Analyse, ChangesetList
+
+from .models import Changeset, SuspicionReasons, Import, SuspicionScore
 
 
 @shared_task

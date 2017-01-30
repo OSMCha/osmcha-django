@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
+
 from ..users.models import User
-from osmchadjango.feature import models as feature_models
 
 
 class SuspicionReasons(models.Model):
@@ -28,7 +28,7 @@ class SuspicionReasons(models.Model):
                     for c in changesets:
                         c.reasons.remove(same_reason)
                         c.reasons.add(reason)
-                    print "deleting %s" % same_reason.name
+                    print("deleting %s" % same_reason.name)
                     same_reason.delete()
 
 
@@ -161,7 +161,7 @@ class Changeset(models.Model):
         user_details['score'] = ch.user_score
         # If UserDetail with contributor_name exists, update it with latest data.
         # Else, create a new UserDetail object
-        print user_details
+        print(user_details)
         user_detail, created = UserDetail.objects.update_or_create(
             contributor_name=user_details['contributor_name'],
             defaults=user_details
@@ -175,7 +175,7 @@ class Changeset(models.Model):
             uss.score = detail['score']
             uss.reason = detail['reason']
             uss.save()
-            
+
         return user_detail
 
     def to_row(self):

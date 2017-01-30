@@ -1,10 +1,11 @@
-import django_filters
-from models import Changeset
-from django_filters import filters
 from django.contrib.gis.geos import Polygon
 
+from django_filters import filters, FilterSet
 
-class ChangesetFilter(django_filters.FilterSet):
+from .models import Changeset
+
+
+class ChangesetFilter(FilterSet):
 
     max_score = filters.MethodFilter()
     checked = filters.MethodFilter()
@@ -70,4 +71,3 @@ class ChangesetFilter(django_filters.FilterSet):
             'checked': [],
             'is_suspect': []
         }
-

@@ -1,27 +1,24 @@
-from django.shortcuts import render
+import json
+import datetime
+
 from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
-from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.db.models import Q, Count
-from django.contrib.gis.geos import GEOSGeometry
-from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.gis.geos import Polygon
-from .models import Feature
-from osmchadjango.changeset import models as changeset_models
-from filters import FeatureFilter
 from django.db import IntegrityError
-# Create your views here.
-from django.http import HttpResponse
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
-from django.contrib.gis.geos import Polygon
 
-import json
-import datetime
+from osmchadjango.changeset import models as changeset_models
+
+from .filters import FeatureFilter
+from .models import Feature
+
+
 class FeatureListView(ListView):
     context_object_name = 'features'
     template_name = 'feature/feature_list.html'
@@ -80,17 +77,17 @@ class FeatureListView(ListView):
         return queryset
 
     def validate_params(self, params):
-        if params.has_key('reasons') and params['reasons'] != '':
+        """FIXME: define error in except lines."""
+        if 'reasons' in params.keys() and params['reasons'] != '':
             try:
                 s = str(int(params['reasons']))
             except:
                 raise ValidationError('reasons param must be a number')
-        if params.has_key('bbox') and params['bbox'] != '':
+        if 'bbox' in params.keys() and params['bbox'] != '':
             try:
                 bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
             except:
                 raise ValidationError('bbox param is invalid')
-
 
 
 class FeatureDetailView(DetailView):
@@ -109,14 +106,13 @@ class FeatureDetailView(DetailView):
         context.update({
             'new_geojson': new_geojson,
             'old_geojson': old_geojson
-        })
+            })
         return context
 
     def get_object(self):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
-
-        return get_object_or_404(Feature, changeset= changeset, url = url )
+        return get_object_or_404(Feature, changeset=changeset, url=url)
 
 
 def get_geojson(request, changeset, slug):
@@ -126,18 +122,21 @@ def get_geojson(request, changeset, slug):
 
 @csrf_exempt
 def suspicion_create(request):
-    if request.method=='POST':
+    if request.method == 'POST':
         try:
             feature = json.loads(request.body)
         except:
             return HttpResponse("Improperly formatted JSON body", status=400)
         if 'properties' not in feature:
-           return HttpResponse("Expecting a single GeoJSON feature", status=400)
+            return HttpResponse("Expecting a single GeoJSON feature", status=400)
         properties = feature.get('properties', {})
         changeset_id = properties.get('osm:changeset')
 
         if not changeset_id:
-            return HttpResponse("Expecting 'osm:changeset' key in the GeoJSON properties", status=400)
+            return HttpResponse(
+                "Expecting 'osm:changeset' key in the GeoJSON properties",
+                status=400
+                )
 
         # Each changed feature should have a "suspicions" array of objects in its properties
         suspicions = properties.get('suspicions')
@@ -152,7 +151,9 @@ def suspicion_create(request):
 
         reasons = set()
         for reason_text in reasons_texts:
-            reason, created = changeset_models.SuspicionReasons.objects.get_or_create(name=reason_text)
+            reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
+                name=reason_text
+                )
             reasons.add(reason)
 
         feature['properties'].pop("suspicions")
@@ -161,9 +162,12 @@ def suspicion_create(request):
             "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
             "uid": properties.get('osm:uid'),
             "is_suspect": True,
-        }
+            }
 
-        changeset, created = changeset_models.Changeset.objects.get_or_create(id=changeset_id, defaults=defaults)
+        changeset, created = changeset_models.Changeset.objects.get_or_create(
+            id=changeset_id,
+            defaults=defaults
+            )
         changeset.is_suspect = True
         try:
             changeset.reasons.add(*reasons)
@@ -173,9 +177,9 @@ def suspicion_create(request):
             # In this case, we can safely ignore this attempted DB Insert,
             # since what we wanted inserted has already been done through
             # a separate web request.
-            print "Integrity error with changeset %d" % changeset_id
+            print("Integrity error with changeset %d" % changeset_id)
         except ValueError as e:
-            print "Value error with changeset %d" % changeset_id
+            print("Value error with changeset %d" % changeset_id)
         changeset.save()
 
         try:
@@ -188,11 +192,17 @@ def suspicion_create(request):
             "osm_id": properties['osm:id'],
             "osm_type": properties['osm:type'],
             "osm_version": properties['osm:version'],
-        }
-        suspicious_feature, created = Feature.objects.get_or_create(osm_id=properties['osm:id'], changeset=changeset, defaults=defaults)
+            }
+        suspicious_feature, created = Feature.objects.get_or_create(
+            osm_id=properties['osm:id'],
+            changeset=changeset,
+            defaults=defaults
+            )
         if 'oldVersion' in properties.keys():
             try:
-                suspicious_feature.oldGeometry = GEOSGeometry(json.dumps(properties['oldVersion']['geometry']))
+                suspicious_feature.oldGeometry = GEOSGeometry(
+                    json.dumps(properties['oldVersion']['geometry'])
+                    )
             except:
                 suspicious_feature.oldGeometry = None
             suspicious_feature.oldGeojson = feature['properties'].pop("oldVersion")
@@ -203,9 +213,9 @@ def suspicion_create(request):
             suspicious_feature.reasons.add(*reasons)
         except IntegrityError:
             # This most often happens due to duplicates in dynamosm stream
-            print "Integrity error with feature %d" % suspicious_feature.osm_id
+            print("Integrity error with feature %d" % suspicious_feature.osm_id)
         except ValueError as e:
-            print "Value error with feature %d" % suspicious_feature.osm_id
+            print("Value error with feature %d" % suspicious_feature.osm_id)
 
         suspicious_feature.save()
         return JsonResponse({'success': "Suspicion created."})
@@ -220,7 +230,7 @@ class SetHarmfulFeature(SingleObjectMixin, View):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
 
-        return get_object_or_404(Feature, changeset= changeset, url = url )
+        return get_object_or_404(Feature, changeset=changeset, url=url)
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
@@ -241,17 +251,22 @@ class SetHarmfulFeature(SingleObjectMixin, View):
             self.object.check_user = request.user
             self.object.check_date = timezone.now()
             self.object.save()
-            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.changeset, self.object.url]))
+            return HttpResponseRedirect(
+                reverse(
+                    'feature:detail',
+                    args=[self.object.changeset, self.object.url]
+                    )
+                )
         else:
             return render(request, 'feature/not_allowed.html')
 
+
 @csrf_exempt
 def whitelist_user(request):
-    '''
-        View to mark a user as whitelisted.
-        Accepts a single post parameter with the 'name' of the user to be white-listed.
-        Whitelists that user for the currently logged in user.
-        TODO: can this be converted to a CBV?
+    '''View to mark a user as whitelisted.
+    Accepts a single post parameter with the 'name' of the user to be white-listed.
+    Whitelists that user for the currently logged in user.
+    TODO: can this be converted to a CBV?
     '''
     name = request.POST.get('name', None)
     user = request.user
@@ -259,9 +274,10 @@ def whitelist_user(request):
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     if not name:
         return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    uw = UserWhitelist(user=user, whitelist_user=name)
+    uw = changeset_models.UserWhitelist(user=user, whitelist_user=name)
     uw.save()
     return JsonResponse({'success': 'User %s has been white-listed' % name})
+
 
 class SetGoodFeature(SingleObjectMixin, View):
     model = Feature
@@ -270,7 +286,7 @@ class SetGoodFeature(SingleObjectMixin, View):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
 
-        return get_object_or_404(Feature, changeset= changeset, url = url )
+        return get_object_or_404(Feature, changeset=changeset, url=url)
 
     def get(self, request, *args, **kwargs):
         if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -290,6 +306,8 @@ class SetGoodFeature(SingleObjectMixin, View):
             self.object.check_user = request.user
             self.object.check_date = timezone.now()
             self.object.save()
-            return HttpResponseRedirect(reverse('feature:detail', args=[self.object.changeset, self.object.url]))
+            return HttpResponseRedirect(
+                reverse('feature:detail', args=[self.object.changeset, self.object.url])
+                )
         else:
             return render(request, 'feature/not_allowed.html')
