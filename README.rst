@@ -1,7 +1,14 @@
 osmcha-django
 ==============================
 
-A database and frontend to osmcha
+A database and frontend to OSMCHA. The aim of OSMCHA is to help find harmful
+edits in the OpenStreetMap.
+
+.. image:: https://travis-ci.org/willemarcel/osmcha-django.svg
+    :target: https://travis-ci.org/willemarcel/osmcha-django
+
+.. image:: https://coveralls.io/repos/github/willemarcel/osmcha-django/badge.svg?branch=master
+    :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
 
 LICENSE: GPLv3
@@ -34,7 +41,7 @@ DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX        n/a         
 DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER           None                                           None
 ======================================= =========================== ============================================== ======================================================================
 
-You can filter the changesets that will be imported by defining the variable CHANGESETS_FILTER with the path to a 
+You can filter the changesets that will be imported by defining the variable CHANGESETS_FILTER with the path to a
 GeoJSON file containing a polygon with the geographical area you want to filter.
 
 Getting up and running
@@ -59,7 +66,7 @@ requirements for local development::
 
 Create a local PostgreSQL database::
 
-    $ createdb osmcha-django
+    $ createdb osmcha
 
 Run ``migrate`` on your new database::
 
