@@ -75,7 +75,10 @@ class TestChangesetModel(TestCase):
 
         self.assertEqual(changeset.user_detail.contributor_name, 'Tobsen Laufi')
         self.assertEqual(changeset.user_detail.contributor_blocks, 0)
-        self.assertEqual(changeset.user_detail.contributor_since, datetime(2015, 01, 15))
+        self.assertEqual(
+            changeset.user_detail.contributor_since,
+            datetime(2015, 1, 15)
+            )
         self.assertEqual(changeset.user_detail.contributor_traces, 0)
 
         self.assertEqual(changeset.user_detail.nodes_c, 0)
@@ -92,8 +95,14 @@ class TestChangesetModel(TestCase):
 
         self.assertEqual(changeset.user_detail.changesets_no, 1)
         self.assertEqual(changeset.user_detail.changesets_changes, 1019)
-        self.assertEqual(changeset.user_detail.changesets_f_tstamp, datetime(2015, 05, 25, 16, 30, 43))
-        self.assertEqual(changeset.user_detail.changesets_l_tstamp, datetime(2015, 05, 25, 16, 30, 43))
+        self.assertEqual(
+            changeset.user_detail.changesets_f_tstamp,
+            datetime(2015, 5, 25, 16, 30, 43)
+            )
+        self.assertEqual(
+            changeset.user_detail.changesets_l_tstamp,
+            datetime(2015, 5, 25, 16, 30, 43)
+            )
         self.assertEqual(changeset.user_detail.changesets_mapping_days, '2015=1')
 
 
