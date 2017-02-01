@@ -38,7 +38,7 @@ celery==3.1.19
 # Your custom requirements go here
 PyYAML==3.11
 # using the premerge version of osmcha
-git+https://github.com/willemarcel/osmcha.git@ce0326782bea2e963c68a05cb04ad107d600829c
+git+https://github.com/willemarcel/osmcha.git@829bf96af57119ce390a6406db8cbd69a7900278
 django-filter==0.12.0
 git+https://github.com/batpad/django-query-parameters.git@fix-unicode
 django-queryset-csv==1.0.0

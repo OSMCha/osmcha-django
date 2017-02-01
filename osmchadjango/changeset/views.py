@@ -1,22 +1,20 @@
-import json
 import datetime
 
 from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.shortcuts import render
+from django.http import HttpResponseRedirect, JsonResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from django.db.models import Q, Count
-from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
 
-from .models import Changeset, UserWhitelist, SuspicionReasons, SuspiciousFeature
+from .models import Changeset, UserWhitelist, SuspicionReasons
 from .filters import ChangesetFilter
 
 
@@ -105,7 +103,7 @@ class ChangesetListView(ListView):
 
     def get_queryset(self):
         # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-        queryset = Changeset.objects.all().select_related('user_detail')
+        queryset = Changeset.objects.all()
         params = {}
         GET_dict = self.request.GET.dict()
         for key in GET_dict:
@@ -328,75 +326,3 @@ def all_blacklist_users(request):
         'users': blacklist_users
         }
     return render(request, 'changeset/all_blacklist_users.html', context=context)
-
-
-def suspicious_feature_geojson(request, changeset_id, osm_id):
-    suspicious_feature = get_object_or_404(
-        SuspiciousFeature,
-        changeset_id=changeset_id,
-        osm_id=osm_id
-        )
-    geojson = suspicious_feature.geojson
-    indented_geojson = json.dumps(json.loads(geojson), indent=2)
-    return HttpResponse(indented_geojson, content_type='text/plain')
-
-
-@csrf_exempt
-def suspicion_create(request):
-    if request.method == 'POST':
-        try:
-            feature = json.loads(request.body)
-        except:
-            return HttpResponse("Improperly formatted JSON body", status=400)
-
-        if 'properties' not in feature:
-            return HttpResponse("Expecting a single GeoJSON feature", status=400)
-
-        properties = feature.get('properties', {})
-        changeset_id = properties.get('osm:changeset')
-
-        if not changeset_id:
-            return HttpResponse(
-                "Expecting 'osm:changeset' key in the GeoJSON properties",
-                status=400
-                )
-
-        # Each changed feature should have a "suspicions" array of objects in its properties
-        suspicions = properties.get('suspicions')
-        reasons_texts = set()
-        if suspicions:
-            # Each "suspicion" object should two attributes: a "reason" describing
-            # the suspicion and a "score" roughly describing the badness.
-            # For now, I'm ignoring the score, but in the future it could be used
-            # by osmcha to compute an overall changeset badness score
-            for suspicion in suspicions:
-                reasons_texts.add(suspicion['reason'])
-
-        reasons = set()
-        for reason_text in reasons_texts:
-            reason, created = SuspicionReasons.objects.get_or_create(name=reason_text)
-            reasons.add(reason)
-
-        defaults = {
-            "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-            "uid": properties.get('osm:uid'),
-            "is_suspect": True,
-            }
-
-        changeset, created = Changeset.objects.get_or_create(
-            id=changeset_id,
-            defaults=defaults
-            )
-        changeset.is_suspect = True
-        changeset.reasons.add(*reasons)
-        changeset.save()
-        suspicious_feature = SuspiciousFeature(changeset=changeset)
-        suspicious_feature.osm_id = properties['osm:id']
-        suspicious_feature.geometry = GEOSGeometry(json.dumps(feature['geometry']))
-        suspicious_feature.geojson = json.dumps(feature)
-        suspicious_feature.save()
-        suspicious_feature.reasons.add(*reasons)
-
-        return JsonResponse({'success': "Suspicion created."})
-    else:
-        return HttpResponse(401)

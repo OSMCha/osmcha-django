@@ -9,7 +9,7 @@ import requests
 from celery import shared_task, group
 from osmcha.changeset import Analyse, ChangesetList
 
-from .models import Changeset, SuspicionReasons, Import, SuspicionScore
+from .models import Changeset, SuspicionReasons, Import
 
 
 @shared_task
@@ -26,29 +26,18 @@ def create_changeset(changeset_id):
 
     ch_dict['score'] = ch_dict['changeset_score']
     ch_dict.pop('suspicion_reasons')
-    # ch_dict.pop('user_details')
-    ch_dict.pop('user_score')
     ch_dict.pop('changeset_score')
-    ch_dict.pop('user_score_details')
-    ch_dict.pop('changeset_score_details')
 
     # save changeset
-    changeset, created = Changeset.objects.update_or_create(id=ch_dict['id'], defaults=ch_dict)
+    changeset, created = Changeset.objects.update_or_create(
+        id=ch_dict['id'],
+        defaults=ch_dict
+        )
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
-
-    SuspicionScore.objects.filter(changeset=changeset).delete()
-    for detail in ch.changeset_score_details:
-        s = SuspicionScore(changeset=changeset)
-        s.score = detail['score']
-        s.reason = detail['reason']
-        s.save()
-
-    # if ch.user_details:
-    #     changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 
@@ -93,6 +82,7 @@ def get_last_replication_id():
 def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
+    FIXME: define error in except line
     """
     try:
         last_import = Import.objects.all().order_by('-end')[0].end
