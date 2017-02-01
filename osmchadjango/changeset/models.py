@@ -11,6 +11,10 @@ class SuspicionReasons(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(SuspicionReasons, self).save(*args, **kwargs)
+
     @classmethod
     def merge(kls):
         '''
@@ -63,7 +67,6 @@ class Changeset(models.Model):
     checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(User, null=True, blank=True)
     check_date = models.DateTimeField(null=True, blank=True)
-    score = models.IntegerField(null=True, blank=True)
     objects = models.GeoManager()
 
     def __str__(self):

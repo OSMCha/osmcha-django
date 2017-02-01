@@ -24,9 +24,7 @@ def create_changeset(changeset_id):
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
 
-    ch_dict['score'] = ch_dict['changeset_score']
     ch_dict.pop('suspicion_reasons')
-    ch_dict.pop('changeset_score')
 
     # save changeset
     changeset, created = Changeset.objects.update_or_create(

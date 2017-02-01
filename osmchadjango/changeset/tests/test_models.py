@@ -7,6 +7,20 @@ from django.core.exceptions import ValidationError
 from ..models import Changeset, SuspicionReasons, Import
 
 
+class TestSuspicionReasonsModel(TestCase):
+    def setUp(self):
+        SuspicionReasons.objects.create(name='possible import')
+
+    def test_create(self):
+        self.assertEqual(SuspicionReasons.objects.count(), 1)
+
+    def test_merge(self):
+        SuspicionReasons.objects.create(name='possible import')
+        self.assertEqual(SuspicionReasons.objects.count(), 2)
+        SuspicionReasons.merge()
+        self.assertEqual(SuspicionReasons.objects.count(), 1)
+
+
 class TestChangesetModel(TestCase):
 
     def setUp(self):
