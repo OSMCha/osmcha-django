@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.utils.translation import ugettext, ugettext_lazy as _
 
@@ -136,9 +137,9 @@ class Changeset(models.Model):
         """Return the link to the changeset page on OSM website."""
         return 'http://www.openstreetmap.org/changeset/%s' % self.id
 
-    def achavi_link(self):
+    def viz_tool_link(self):
         """Return the link to the changeset page on ACHAVI."""
-        return 'https://osmlab.github.io/changeset-map/#%s' % self.id
+        return '{}{}'.format(settings.OSM_VIZ_TOOL_LINK, self.id)
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""
@@ -235,7 +236,6 @@ class SuspiciousFeature(models.Model):
 
     def __unicode__(self):
         return "%d" % self.osm_id
-
 
 
 class Import(models.Model):

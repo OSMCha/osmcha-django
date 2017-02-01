@@ -44,6 +44,7 @@ DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX        n/a         
 DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER           None                                           None
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY None                                         None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET None                                      None
+OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK               https://osmlab.github.io/changeset-map/#       https://osmlab.github.io/changeset-map/#
 ======================================= =========================== ============================================== ======================================================================
 
 You can set each of these variables with:

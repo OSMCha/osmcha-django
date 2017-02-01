@@ -39,8 +39,8 @@ class TestChangesetModel(TestCase):
         self.assertEqual(self.changeset.reasons.all().count(), 2)
         self.assertFalse(self.changeset.checked)
         self.assertEqual(
-            self.changeset.achavi_link(),
-            'https://overpass-api.de/achavi/?changeset=31982803'
+            self.changeset.viz_tool_link(),
+            'https://osmlab.github.io/changeset-map/#31982803'
             )
         self.assertEqual(
             self.changeset.osm_link(),
