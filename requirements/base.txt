@@ -37,7 +37,7 @@ celery==3.1.19
 
 # Your custom requirements go here
 PyYAML==3.11
-git+https://github.com/mapbox/osmcha.git@e4d0a328248d843d32008ad36651c80a04c79eef
+git+https://github.com/mapbox/osmcha.git@2337258753710e6017e7513bc47f28b3fc2d79e1
 django-filter==0.12.0
 git+https://github.com/batpad/django-query-parameters.git@fix-unicode
 django-queryset-csv==1.0.0
