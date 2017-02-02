@@ -1,24 +1,52 @@
 from datetime import datetime
 
-from django.test import TestCase
 from django.contrib.gis.geos import Polygon
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
+from django.test import TestCase
 
-from ..models import Changeset, SuspicionReasons, Import
+from ..models import Changeset, SuspicionReasons, Import, UserWhitelist
+
+User = get_user_model()
 
 
 class TestSuspicionReasonsModel(TestCase):
     def setUp(self):
-        SuspicionReasons.objects.create(name='possible import')
+        self.reason = SuspicionReasons.objects.create(name='possible import')
 
-    def test_create(self):
+    def test_creation(self):
         self.assertEqual(SuspicionReasons.objects.count(), 1)
+        self.assertEqual(self.reason.__str__(), 'possible import')
 
     def test_merge(self):
         SuspicionReasons.objects.create(name='possible import')
         self.assertEqual(SuspicionReasons.objects.count(), 2)
         SuspicionReasons.merge()
         self.assertEqual(SuspicionReasons.objects.count(), 1)
+
+
+class TestWhitelistUserModel(TestCase):
+    def setUp(self):
+        self.user = User.objects.create(
+            username='test_user', email='a@b.com', password='pass'
+            )
+        self.whitelist = UserWhitelist.objects.create(
+            user=self.user, whitelist_user='good_user'
+            )
+
+    def test_creation(self):
+        self.assertEqual(UserWhitelist.objects.count(), 1)
+        self.assertEqual(
+            self.whitelist.__str__(),
+            'good_user whitelisted by test_user'
+            )
+
+    def test_validation(self):
+        with self.assertRaises(IntegrityError):
+            UserWhitelist.objects.create(
+                user=self.user, whitelist_user='good_user'
+                )
 
 
 class TestChangesetModel(TestCase):

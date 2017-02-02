@@ -41,7 +41,7 @@ class UserWhitelist(models.Model):
     whitelist_user = models.CharField(max_length=1000)
 
     def __str__(self):
-        return '%s' % self.whitelist_user
+        return '{} whitelisted by {}'.format(self.whitelist_user, self.user)
 
     class Meta:
         unique_together = ('user', 'whitelist_user',)
