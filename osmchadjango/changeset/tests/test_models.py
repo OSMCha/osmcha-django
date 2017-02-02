@@ -20,10 +20,31 @@ class TestSuspicionReasonsModel(TestCase):
         self.assertEqual(self.reason.__str__(), 'possible import')
 
     def test_merge(self):
-        SuspicionReasons.objects.create(name='possible import')
+        self.reason_2 = SuspicionReasons.objects.create(name='possible import')
         self.assertEqual(SuspicionReasons.objects.count(), 2)
+        self.changeset = Changeset.objects.create(
+            id=31982803,
+            uid='123123',
+            user='test',
+            editor='Potlatch 2',
+            powerfull_editor=False,
+            date=datetime.now(),
+            create=2000,
+            modify=10,
+            delete=30,
+            is_suspect=True,
+            bbox=Polygon([
+                (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
+                (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
+                (-71.0646843, 44.2371354)
+                ])
+            )
+        self.reason.changesets.add(self.changeset)
+        self.reason_2.changesets.add(self.changeset)
+        self.assertEqual(self.changeset.reasons.count(), 2)
         SuspicionReasons.merge()
         self.assertEqual(SuspicionReasons.objects.count(), 1)
+        self.assertEqual(self.changeset.reasons.count(), 1)
 
 
 class TestWhitelistUserModel(TestCase):
