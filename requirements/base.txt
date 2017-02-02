@@ -41,8 +41,9 @@ redis>=2.10.5
 
 # Your custom requirements go here
 PyYAML==3.11
+
 # using the premerge version of osmcha
-osmcha==0.3.1
+git+https://github.com/mapbox/osmcha.git@e4d0a328248d843d32008ad36651c80a04c79eef
 django-filter==0.12.0
 git+https://github.com/batpad/django-query-parameters.git@fix-unicode
 django-queryset-csv==1.0.0
