@@ -7,7 +7,6 @@ from .models import Changeset
 
 class ChangesetFilter(FilterSet):
 
-    max_score = filters.MethodFilter()
     checked = filters.MethodFilter()
     harmful = filters.MethodFilter()
     is_suspect = filters.MethodFilter()
@@ -27,11 +26,6 @@ class ChangesetFilter(FilterSet):
             return queryset.filter(bbox__bboverlaps=bbox)
         return queryset
 
-    def filter_max_score(self, queryset, value):
-        if value:
-            return queryset.filter(score__lte=value).exclude(score__isnull=True)
-        return queryset
-
     def filter_checked(self, queryset, value):
         if value and value == 'True':
             return queryset.filter(checked=True)
@@ -42,6 +36,8 @@ class ChangesetFilter(FilterSet):
     def filter_harmful(self, queryset, value):
         if value and value == 'True':
             return queryset.filter(harmful=True)
+        elif value == 'False':
+            return queryset.filter(harmful=False)
         return queryset
 
     def filter_is_suspect(self, queryset, value):
@@ -63,11 +59,10 @@ class ChangesetFilter(FilterSet):
             'modify': ['gte', 'lte'],
             'delete': ['gte', 'lte'],
             'date': ['gte', 'lte'],
-            'max_score': [],
-            'editor': ['icontains'],
-            'comment': ['icontains'],
-            'source': ['icontains'],
+            'editor': ['exact', 'icontains'],
+            'comment': ['exact', 'icontains'],
+            'source': ['exact', 'icontains'],
             'harmful': [],
             'checked': [],
             'is_suspect': []
-        }
+            }
