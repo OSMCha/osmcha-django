@@ -59,6 +59,7 @@
     "osm:user": "Victor Denisow",
     "result:name_modified": {},
     "highway": "tertiary",
+    "surface": "asphalt",
     "osm:timestamp": 1476443255000
   }
 }

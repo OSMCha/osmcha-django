@@ -63,3 +63,17 @@ class TestFeatureModel(TestCase):
                 old_geojson=self.old_geojson,
                 url='way-169218447'
                 )
+
+    def test_diff_tags(self):
+        self.assertIn(
+            {'tag': 'maxspeed', 'oldValue': '40', 'newValue': '60'},
+            self.feature.diff_tags['modified']
+            )
+        self.assertEqual(
+            self.feature.diff_tags['added'],
+            [{'tag': 'lanes', 'Value': '2'}]
+            )
+        self.assertEqual(
+            self.feature.diff_tags['deleted'],
+            [{'tag': 'surface', 'Value': 'asphalt'}]
+            )
