@@ -45,6 +45,7 @@ class TestFeatureModel(TestCase):
             self.feature.osm_link(),
             'http://www.openstreetmap.org/way/169218447'
             )
+        self.assertEqual(self.feature.__str__(), 'way 169218447 v24')
         self.assertEqual(self.feature.reasons.count(), 1)
         self.assertEqual(len(self.feature.all_tags), 15)
 

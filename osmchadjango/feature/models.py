@@ -28,7 +28,7 @@ class Feature(models.Model):
         unique_together = ('changeset', 'osm_id', 'osm_type',)
 
     def __str__(self):
-        return '%s' % self.osm_id
+        return '{} {} v{}'.format(self.osm_type, self.osm_id, self.osm_version)
 
     def osm_link(self):
         """Return the link to the feature page on OSM website."""
