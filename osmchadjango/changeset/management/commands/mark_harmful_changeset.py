@@ -1,7 +1,9 @@
 from django.core.management.base import BaseCommand
+from django.utils import timezone
+
 from ...models import Changeset
 from ....users.models import User
-from django.utils import timezone
+
 
 class Command(BaseCommand):
     help = 'Marks a list of changesets as harmful'
