@@ -21,7 +21,7 @@ class TestFeatureModel(TestCase):
             osm_type='way',
             osm_version=14,
             geometry=GEOSGeometry(json.dumps(self.geojson['geometry'])),
-            oldGeometry=GEOSGeometry(
+            old_geometry=GEOSGeometry(
                 json.dumps(self.geojson['properties']['oldVersion']['geometry'])
                 ),
             geojson=self.geojson,

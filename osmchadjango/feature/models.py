@@ -12,16 +12,15 @@ class Feature(models.Model):
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()
     geometry = models.GeometryField(null=True, blank=True)
-    oldGeometry = models.GeometryField(null=True, blank=True)
+    old_geometry = models.GeometryField(null=True, blank=True)
     geojson = JSONField()
-    oldGeojson = JSONField(null=True, blank=True)
+    old_geojson = JSONField(null=True, blank=True)
     reasons = models.ManyToManyField(
         'changeset.SuspicionReasons', related_name='features')
     harmful = models.NullBooleanField()
     checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(User, null=True, blank=True)
     check_date = models.DateTimeField(null=True, blank=True)
-    score = models.IntegerField(null=True, blank=True)
     url = models.SlugField(max_length=1000)
     comparator_version = models.CharField(max_length=1000, blank=True, null=True)
 
@@ -49,14 +48,14 @@ class Feature(models.Model):
     @property
     def diff_tags(self):
         geojson = self.geojson
-        oldGeojson = self.oldGeojson
+        old_geojson = self.old_geojson
         modified_tags = []
         deleted_tags = []
         added_tags = []
         unmodified_tags = []
         tags = {}
-        if oldGeojson and oldGeojson['properties']:
-            old_props = oldGeojson['properties']
+        if old_geojson and old_geojson['properties']:
+            old_props = old_geojson['properties']
         else:
             old_props = {}
         for key, value in old_props.items():

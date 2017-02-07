@@ -99,8 +99,8 @@ class FeatureDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(FeatureDetailView, self).get_context_data(**kwargs)
         new_geojson = json.dumps(self.object.geojson)
-        if self.object.oldGeojson:
-            old_geojson = json.dumps(self.object.oldGeojson)
+        if self.object.old_geojson:
+            old_geojson = json.dumps(self.object.old_geojson)
         else:
             old_geojson = None
         context.update({
@@ -200,12 +200,12 @@ def suspicion_create(request):
             )
         if 'oldVersion' in properties.keys():
             try:
-                suspicious_feature.oldGeometry = GEOSGeometry(
+                suspicious_feature.old_geometry = GEOSGeometry(
                     json.dumps(properties['oldVersion']['geometry'])
                     )
             except:
-                suspicious_feature.oldGeometry = None
-            suspicious_feature.oldGeojson = feature['properties'].pop("oldVersion")
+                suspicious_feature.old_geometry = None
+            suspicious_feature.old_geojson = feature['properties'].pop("oldVersion")
         suspicious_feature.geojson = feature
         suspicious_feature.comparator_version = feature.get('comparator_version')
         suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
