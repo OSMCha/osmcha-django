@@ -32,14 +32,14 @@ class Feature(models.Model):
         return '%s' % self.osm_id
 
     def osm_link(self):
-        """Return the link to the changeset page on OSM website."""
+        """Return the link to the feature page on OSM website."""
         return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id)
 
     @property
     def all_tags(self):
         geojson = self.geojson
         tags = []
-        for key, value in geojson['properties'].iteritems():
+        for key, value in geojson['properties'].items():
             record = {}
             record["tag"] = key
             record["Value"] = value
@@ -59,7 +59,7 @@ class Feature(models.Model):
             old_props = oldGeojson['properties']
         else:
             old_props = {}
-        for key, value in old_props.iteritems():
+        for key, value in old_props.items():
             if 'osm:' not in key and 'result:' not in key:
                 if key in geojson['properties']:
                     record = {}
@@ -76,7 +76,7 @@ class Feature(models.Model):
                     record["Value"] = value
                     deleted_tags.append(record)
 
-        for key, value in geojson['properties'].iteritems():
+        for key, value in geojson['properties'].items():
             if 'osm:' not in key and 'result:' not in key:
                 if key not in old_props:
                     record = {}
