@@ -116,7 +116,7 @@ class ChangesetListView(ListView):
         if 'is_whitelisted' not in params:
             params['is_whitelisted'] = 'True'
         if 'harmful' not in params:
-            params['harmful'] = 'False'
+            params['harmful'] = None
         if 'checked' not in params:
             params['checked'] = 'All'
         queryset = ChangesetFilter(params, queryset=queryset).qs
