@@ -24,7 +24,12 @@ def create_changeset(changeset_id):
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
 
-    ch_dict.pop('suspicion_reasons')
+    fields_to_remove = [
+        'suspicion_reasons', 'create_threshold', 'modify_threshold',
+        'delete_threshold', 'percentage', 'top_threshold'
+        ]
+    for field in fields_to_remove:
+        ch_dict.pop(field)
 
     # save changeset
     changeset, created = Changeset.objects.update_or_create(
