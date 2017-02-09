@@ -130,16 +130,7 @@ class ChangesetListView(ListView):
 
         if params['is_whitelisted'] == 'True' and user.is_authenticated():
             whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-            users_on_multiple_whitelists = UserWhitelist.objects.values(
-                'whitelist_user'
-                ).annotate(
-                    count=Count('whitelist_user')
-                    ).filter(count__gt=1).values('whitelist_user')
-
-            # users_on_multiple_whitelists = UserWhitelist.objects.annotate(count=Count('whitelist_user')).filter(count__gt=1).values('whitelist_user')
-            queryset = queryset.exclude(
-                Q(user__in=whitelisted_users) | Q(user__in=users_on_multiple_whitelists)
-                )
+            queryset = queryset.exclude(Q(user__in=whitelisted_users))
         elif params['is_whitelisted'] == 'False' and user.is_authenticated():
             blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
             queryset = queryset.filter(user__in=blacklisted_users)
