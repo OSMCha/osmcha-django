@@ -27,7 +27,11 @@ def create_changeset(changeset_id):
 
     ch_dict['score'] = ch_dict['changeset_score']
     ch_dict.pop('suspicion_reasons')
-    # ch_dict.pop('user_details')
+
+    # NOTE: Added temporarily to debug
+    if 'user_details' in ch_dict:
+        ch_dict.pop('user_details')
+
     ch_dict.pop('user_score')
     ch_dict.pop('changeset_score')
     ch_dict.pop('user_score_details')
