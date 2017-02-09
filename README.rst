@@ -24,28 +24,31 @@ and even uWSGI/Nginx.
 For configuration purposes, the following table maps the 'osmcha-django' environment
 variables to their Django setting:
 
-======================================= =========================== ============================================== ======================================================================
-Environment Variable                    Django Setting              Development Default                            Production Default
-======================================= =========================== ============================================== ======================================================================
-DJANGO_CACHES                           CACHES (default)            locmem                                         redis
-DJANGO_DATABASES                        DATABASES (default)         See code                                       See code
-DJANGO_DEBUG                            DEBUG                       True                                           False
-DJANGO_SECRET_KEY                       SECRET_KEY                  CHANGEME!!!                                    raises error
-DJANGO_SECURE_BROWSER_XSS_FILTER        SECURE_BROWSER_XSS_FILTER   n/a                                            True
-DJANGO_SECURE_SSL_REDIRECT              SECURE_SSL_REDIRECT         n/a                                            True
-DJANGO_SECURE_CONTENT_TYPE_NOSNIFF      SECURE_CONTENT_TYPE_NOSNIFF n/a                                            True
-DJANGO_SECURE_FRAME_DENY                SECURE_FRAME_DENY           n/a                                            True
-DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS   HSTS_INCLUDE_SUBDOMAINS     n/a                                            True
-DJANGO_SESSION_COOKIE_HTTPONLY          SESSION_COOKIE_HTTPONLY     n/a                                            True
-DJANGO_SESSION_COOKIE_SECURE            SESSION_COOKIE_SECURE       n/a                                            False
-DJANGO_DEFAULT_FROM_EMAIL               DEFAULT_FROM_EMAIL          n/a                                            "osmcha-django <noreply@example.com>"
-DJANGO_SERVER_EMAIL                     SERVER_EMAIL                n/a                                            "osmcha-django <noreply@example.com>"
-DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX        n/a                                            "[osmcha-django] "
-DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER           None                                           None
-OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY None                                         None
-OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET None                                      None
-OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK               https://osmlab.github.io/changeset-map/#       https://osmlab.github.io/changeset-map/#
-======================================= =========================== ============================================== ======================================================================
+
+======================================= ================================= ========================================= ===========================================
+Environment Variable                    Django Setting                    Development Default                       Production Default
+======================================= ================================= ========================================= ===========================================
+DJANGO_CACHES                           CACHES (default)                  locmem                                    redis
+DJANGO_DATABASES                        DATABASES (default)               See code                                  See code
+DJANGO_DEBUG                            DEBUG                             True                                      False
+DJANGO_SECRET_KEY                       SECRET_KEY                        CHANGEME!!!                               raises error
+DJANGO_SECURE_BROWSER_XSS_FILTER        SECURE_BROWSER_XSS_FILTER         n/a                                       True
+DJANGO_SECURE_SSL_REDIRECT              SECURE_SSL_REDIRECT               n/a                                       True
+DJANGO_SECURE_CONTENT_TYPE_NOSNIFF      SECURE_CONTENT_TYPE_NOSNIFF       n/a                                       True
+DJANGO_SECURE_FRAME_DENY                SECURE_FRAME_DENY                 n/a                                       True
+DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS   HSTS_INCLUDE_SUBDOMAINS           n/a                                       True
+DJANGO_SESSION_COOKIE_HTTPONLY          SESSION_COOKIE_HTTPONLY           n/a                                       True
+DJANGO_SESSION_COOKIE_SECURE            SESSION_COOKIE_SECURE             n/a                                       False
+DJANGO_DEFAULT_FROM_EMAIL               DEFAULT_FROM_EMAIL                n/a                                       "osmcha-django <noreply@example.com>"
+DJANGO_SERVER_EMAIL                     SERVER_EMAIL                      n/a                                       "osmcha-django <noreply@example.com>"
+DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX              n/a                                       "[osmcha-django] "
+DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER                 None                                      None
+OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
+OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
+OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
+======================================= ================================= ========================================= ===========================================
+
+
 
 You can set each of these variables with:
 
