@@ -38,7 +38,7 @@ class SuspicionReasons(models.Model):
 
 class UserWhitelist(models.Model):
     user = models.ForeignKey(User)
-    whitelist_user = models.CharField(max_length=1000)
+    whitelist_user = models.CharField(max_length=1000, db_index=True)
 
     def __str__(self):
         return '{} whitelisted by {}'.format(self.whitelist_user, self.user)
@@ -51,21 +51,21 @@ class Changeset(models.Model):
 
     user = models.CharField(max_length=1000, db_index=True)
     uid = models.CharField(_('User ID'), max_length=255)
-    editor = models.CharField(max_length=255, blank=True, null=True)
+    editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
-    comment = models.CharField(max_length=1000, blank=True, null=True)
+    comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
     source = models.CharField(max_length=1000, blank=True, null=True)
     imagery_used = models.CharField(max_length=1000, blank=True, null=True)
-    date = models.DateTimeField(null=True)
+    date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)
-    bbox = models.PolygonField(null=True)
+    bbox = models.PolygonField(null=True, db_index=True)
     is_suspect = models.BooleanField(db_index=True)
-    harmful = models.NullBooleanField()
-    checked = models.BooleanField(default=False)
-    check_user = models.ForeignKey(User, null=True, blank=True)
+    harmful = models.NullBooleanField(db_index=True)
+    checked = models.BooleanField(default=False, db_index=True)
+    check_user = models.ForeignKey(User, null=True, blank=True, db_index=True)
     check_date = models.DateTimeField(null=True, blank=True)
     objects = models.GeoManager()
 
