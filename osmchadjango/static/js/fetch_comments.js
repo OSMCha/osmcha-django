@@ -1,6 +1,6 @@
 $(function() {
     var id = CHANGESET_ID; // defined in changeset_detail template
-    var url = 'https://osm-comments-api.mapbox.com/api/v1/changesets/' + id;
+    var url = 'https://api-osm-comments-staging.tilestream.net/api/v1/changesets/' + id;
     var $xhr = $.get(url);
     var tmpl = jsrender.templates($('#discussionsTpl').html());
 
