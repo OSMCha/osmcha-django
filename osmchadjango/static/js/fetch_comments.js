@@ -6,7 +6,7 @@ $(function() {
 
     $xhr.success(function(data) {
         var html = tmpl.render({
-            'comments': data.properties.comments,
+            'comments': data.properties.comments.length ? data.properties.comments : null,
             'count': data.properties.comments.length 
         });
         $('#changesetDiscussions').html(html);
