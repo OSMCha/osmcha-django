@@ -13,6 +13,7 @@ from .common import *  # noqa
 # DEBUG
 # ------------------------------------------------------------------------------
 DEBUG = env.bool('DJANGO_DEBUG', default=True)
+ALLOWED_HOSTS = ['*']
 TEMPLATES[0]['OPTIONS']['debug'] = DEBUG
 
 # SECRET CONFIGURATION
@@ -32,7 +33,7 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND',
 # ------------------------------------------------------------------------------
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         'LOCATION': ''
     }
 }
@@ -66,9 +67,14 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'osmcha',
-         'USER': '',
-         'PASSWORD': '',
+         'USER': env('PGUSER'),
+         'PASSWORD': env('PGPASSWORD'),
+         'HOST': env('PGHOST', default='localhost')
      }
 }
 
 # Your local stuff: Below this line define 3rd party library settings
+AUTHENTICATION_BACKENDS = (
+    'social.backends.openstreetmap.OpenStreetMapOAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)

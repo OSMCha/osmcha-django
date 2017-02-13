@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-
-from celery import shared_task, group
-import yaml
-from osmcha.changeset import Analyse, ChangesetList
-
-import requests
 from os.path import join
+import yaml
 
 from django.conf import settings
+
+import requests
+from celery import shared_task, group
+from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
 
@@ -24,11 +23,19 @@ def create_changeset(changeset_id):
     for key in ch.__dict__:
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
-    ch_dict.pop('suspicion_reasons')
+
+    fields_to_remove = [
+        'suspicion_reasons', 'create_threshold', 'modify_threshold',
+        'delete_threshold', 'percentage', 'top_threshold'
+        ]
+    for field in fields_to_remove:
+        ch_dict.pop(field)
 
     # save changeset
-    changeset = Changeset(**ch_dict)
-    changeset.save()
+    changeset, created = Changeset.objects.update_or_create(
+        id=ch_dict['id'],
+        defaults=ch_dict
+        )
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
@@ -44,7 +51,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c) for c in cl.changesets)()
+    group(create_changeset.s(c['id']) for c in cl.changesets)()
 
 
 def format_url(n):
@@ -78,6 +85,7 @@ def get_last_replication_id():
 def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
+    FIXME: define error in except line
     """
     try:
         last_import = Import.objects.all().order_by('-end')[0].end

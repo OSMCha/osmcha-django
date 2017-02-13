@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 from __future__ import absolute_import, unicode_literals
 
 import environ
+import os
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('osmchadjango')
@@ -40,12 +41,15 @@ THIRD_PARTY_APPS = (
     'allauth',  # registration
     'allauth.account',  # registration
     'allauth.socialaccount',  # registration
+    'social.apps.django_app.default',
+    'query_parameters',  # django-query-parameters
 )
 
 # Apps specific for this project go here.
 LOCAL_APPS = (
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
+    'osmchadjango.feature',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -54,13 +58,13 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE_CLASSES = (
-    # Make sure djangosecure.middleware.SecurityMiddleware is listed first
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'osmchadjango.changeset.middleware.errors.ExceptionMiddleware'
 )
 
 # MIGRATIONS CONFIGURATION
@@ -89,7 +93,7 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.s
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = (
-    ("""Wille Marcel""", 'wille@wille.blog.br'),
+    ('name', 'email@email.com'),
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
@@ -99,8 +103,13 @@ MANAGERS = ADMINS
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
 DATABASES = {
-    # Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
-    'default': env.db("DATABASE_URL", default="postgres:///osmchadjango"),
+    'default': {
+         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+         'NAME': 'osmcha',
+         'USER': env('PGUSER'),
+         'PASSWORD': env('PGPASSWORD'),
+         'HOST': env('PGHOST', default='localhost')
+     }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
@@ -217,10 +226,28 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'users:redirect'
-LOGIN_URL = '/social/login/openstreetmap'
+LOGIN_URL = '/social/login/openstreetmap/'
 
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
+
+# SOCIAL AUTH CONFIGURATION
+SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
+SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
+SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
+SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.social_auth.associate_by_email',
+    'social.pipeline.user.get_username',
+    'social.pipeline.user.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'social.pipeline.user.user_details'
+)
 
 
 # LOGGING CONFIGURATION
@@ -231,33 +258,34 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 # the site admins on every HTTP 500 error when DEBUG=False.
 # See http://docs.djangoproject.com/en/dev/topics/logging for
 # more details on how to customize your logging configuration.
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
     'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
     },
     'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
+        'django': {
+            'handlers': ['console'],
+            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
-    }
+    },
 }
 
 # PROJECT CONFIGURATION
+
 # If you want to filter the import of changesets to a defined area of the world,
 # define CHANGESETS_FILTER as a path to a GeoJSON file.
-CHANGESETS_FILTER = None
+CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
+
+# Define your prefered visualization tool link
+# Some options are 'https://nrenner.github.io/achavi/?changeset=',
+# https://overpass-api.de/achavi/?changeset=
+OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/changeset-map/#')
+FEATURE_CREATION_KEYS = env('DJANGO_FEATURE_CREATION_KEYS', default=[])
+
 
 # Your common stuff: Below this line define 3rd party library settings

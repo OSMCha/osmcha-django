@@ -63,8 +63,9 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'osmcha',
-         'USER': 'postgres',
-         'PASSWORD': '',
+         'USER': env('PGUSER'),
+         'PASSWORD': env('PGPASSWORD'),
+         'HOST': env('PGHOST', default='localhost')
      }
 }
 
@@ -73,34 +74,27 @@ DATABASES = {
 # Heroku URL does not pass the DB number, so we parse it in
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': ''
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'cache_table',
+        'TIMEOUT': 60
     }
 }
 
 
+# Marks the request as secure if it gets the X_FORWARDED_PROTO header
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Your production stuff: Below this line define 3rd party library settings
-CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', None)
 
 # PYTHON SOCIAL AUTH
-INSTALLED_APPS += ('social.apps.django_app.default',)
 AUTHENTICATION_BACKENDS = (
     'social.backends.openstreetmap.OpenStreetMapOAuth',
     'django.contrib.auth.backends.ModelBackend',
 )
-SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
-SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
-SOCIAL_AUTH_PIPELINE = (
-    'social.pipeline.social_auth.social_details',
-    'social.pipeline.social_auth.social_uid',
-    'social.pipeline.social_auth.auth_allowed',
-    'social.pipeline.social_auth.social_user',
-    'social.pipeline.social_auth.associate_by_email',
-    'social.pipeline.user.get_username',
-    'social.pipeline.user.create_user',
-    'social.pipeline.social_auth.associate_user',
-    'social.pipeline.social_auth.load_extra_data',
-    'social.pipeline.user.user_details'
-)
+
+CELERYBEAT_SCHEDULE = {
+    'schedule-name': {
+        'task': 'osmchadjango.changeset.tasks.fetch_latest',
+        'schedule': 60 #Run every 60 seconds
+    },
+}
