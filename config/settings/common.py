@@ -279,12 +279,13 @@ LOGGING = {
 
 # If you want to filter the import of changesets to a defined area of the world,
 # define CHANGESETS_FILTER as a path to a GeoJSON file.
-CHANGESETS_FILTER = None
+CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
 # Define your prefered visualization tool link
 # Some options are 'https://nrenner.github.io/achavi/?changeset=',
 # https://overpass-api.de/achavi/?changeset=
 OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/changeset-map/#')
+FEATURE_CREATION_KEYS = env('DJANGO_FEATURE_CREATION_KEYS', default=[])
 
 
 # Your common stuff: Below this line define 3rd party library settings

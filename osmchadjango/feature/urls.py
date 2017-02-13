@@ -18,7 +18,7 @@ urlpatterns = [
         name='detail'
     ),
     url(
-        regex=r'^features/api/suspicion$',
+        regex=r'^features/api/suspicion/$',
         view=views.suspicion_create,
         name='create_suspicion'
     ),

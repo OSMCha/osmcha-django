@@ -85,7 +85,6 @@ CACHES = {
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Your production stuff: Below this line define 3rd party library settings
-CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
 # PYTHON SOCIAL AUTH
 AUTHENTICATION_BACKENDS = (

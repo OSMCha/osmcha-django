@@ -46,6 +46,7 @@ DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER                 None  
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
+DJANGO_FEATURE_CREATION_KEYS            CREATION_KEYS                     []                                        None
 ======================================= ================================= ========================================= ===========================================
 
 

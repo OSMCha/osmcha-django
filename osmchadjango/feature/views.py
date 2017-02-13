@@ -12,6 +12,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db import IntegrityError
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from osmchadjango.changeset import models as changeset_models
 
@@ -122,105 +123,112 @@ def get_geojson(request, changeset, slug):
 
 @csrf_exempt
 def suspicion_create(request):
+    """Create Suspicion Features. It nees to receive a key as get parameter in
+    the url.
+    """
     if request.method == 'POST':
-        try:
-            feature = json.loads(request.body)
-        except:
-            return HttpResponse("Improperly formatted JSON body", status=400)
-        if 'properties' not in feature:
-            return HttpResponse("Expecting a single GeoJSON feature", status=400)
-        properties = feature.get('properties', {})
-        changeset_id = properties.get('osm:changeset')
-
-        if not changeset_id:
-            return HttpResponse(
-                "Expecting 'osm:changeset' key in the GeoJSON properties",
-                status=400
-                )
-
-        # Each changed feature should have a "suspicions" array of objects in its properties
-        suspicions = properties.get('suspicions')
-        reasons_texts = set()
-        if suspicions:
-            # Each "suspicion" object should two attributes: a "reason" describing
-            # the suspicion and a "score" roughly describing the badness.
-            # For now, I'm ignoring the score, but in the future it could be used
-            # by osmcha to compute an overall changeset badness score
-            for suspicion in suspicions:
-                reasons_texts.add(suspicion['reason'])
-
-        reasons = set()
-        for reason_text in reasons_texts:
-            reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
-                name=reason_text
-                )
-            reasons.add(reason)
-
-        feature['properties'].pop("suspicions")
-
-        defaults = {
-            "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-            "uid": properties.get('osm:uid'),
-            "is_suspect": True,
-            }
-
-        changeset, created = changeset_models.Changeset.objects.get_or_create(
-            id=changeset_id,
-            defaults=defaults
-            )
-        changeset.is_suspect = True
-        try:
-            changeset.reasons.add(*reasons)
-        except IntegrityError:
-            # This most often happens due to a race condition,
-            # where two processes are saving to the same changeset
-            # In this case, we can safely ignore this attempted DB Insert,
-            # since what we wanted inserted has already been done through
-            # a separate web request.
-            print("Integrity error with changeset %d" % changeset_id)
-        except ValueError as e:
-            print("Value error with changeset %d" % changeset_id)
-        changeset.save()
-
-        try:
-            geometry = GEOSGeometry(json.dumps(feature['geometry']))
-        except:
-            geometry = None
-        defaults = {
-            "geometry": geometry,
-            "geojson": feature,
-            "osm_id": properties['osm:id'],
-            "osm_type": properties['osm:type'],
-            "osm_version": properties['osm:version'],
-            }
-        suspicious_feature, created = Feature.objects.get_or_create(
-            osm_id=properties['osm:id'],
-            changeset=changeset,
-            defaults=defaults
-            )
-        if 'oldVersion' in properties.keys():
+        if ('key' in request.GET.dict().keys() and
+                request.GET.dict()['key'] in settings.FEATURE_CREATION_KEYS):
             try:
-                suspicious_feature.old_geometry = GEOSGeometry(
-                    json.dumps(properties['oldVersion']['geometry'])
-                    )
+                feature = json.loads(request.body)
             except:
-                suspicious_feature.old_geometry = None
-            suspicious_feature.old_geojson = feature['properties'].pop("oldVersion")
-        suspicious_feature.geojson = feature
-        suspicious_feature.comparator_version = feature.get('comparator_version')
-        suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
-        try:
-            suspicious_feature.reasons.add(*reasons)
-        except IntegrityError:
-            # This most often happens due to duplicates in dynamosm stream
-            print("Integrity error with feature %d" % suspicious_feature.osm_id)
-        except ValueError as e:
-            print("Value error with feature %d" % suspicious_feature.osm_id)
+                return HttpResponse("Improperly formatted JSON body", status=400)
+            if 'properties' not in feature:
+                return HttpResponse("Expecting a single GeoJSON feature", status=400)
+            properties = feature.get('properties', {})
+            changeset_id = properties.get('osm:changeset')
 
-        suspicious_feature.save()
-        return JsonResponse({'success': "Suspicion created."})
+            if not changeset_id:
+                return HttpResponse(
+                    "Expecting 'osm:changeset' key in the GeoJSON properties",
+                    status=400
+                    )
+
+            # Each changed feature should have a "suspicions" array of objects in its properties
+            suspicions = properties.get('suspicions')
+            reasons_texts = set()
+            if suspicions:
+                # Each "suspicion" object should two attributes: a "reason" describing
+                # the suspicion and a "score" roughly describing the badness.
+                # For now, I'm ignoring the score, but in the future it could be used
+                # by osmcha to compute an overall changeset badness score
+                for suspicion in suspicions:
+                    reasons_texts.add(suspicion['reason'])
+
+            reasons = set()
+            for reason_text in reasons_texts:
+                reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
+                    name=reason_text
+                    )
+                reasons.add(reason)
+
+            feature['properties'].pop("suspicions")
+
+            defaults = {
+                "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+                "uid": properties.get('osm:uid'),
+                "is_suspect": True,
+                }
+
+            changeset, created = changeset_models.Changeset.objects.get_or_create(
+                id=changeset_id,
+                defaults=defaults
+                )
+            changeset.is_suspect = True
+            try:
+                changeset.reasons.add(*reasons)
+            except IntegrityError:
+                # This most often happens due to a race condition,
+                # where two processes are saving to the same changeset
+                # In this case, we can safely ignore this attempted DB Insert,
+                # since what we wanted inserted has already been done through
+                # a separate web request.
+                print("Integrity error with changeset %d" % changeset_id)
+            except ValueError as e:
+                print("Value error with changeset %d" % changeset_id)
+            changeset.save()
+
+            try:
+                geometry = GEOSGeometry(json.dumps(feature['geometry']))
+            except:
+                geometry = None
+            defaults = {
+                "geometry": geometry,
+                "geojson": feature,
+                "osm_id": properties['osm:id'],
+                "osm_type": properties['osm:type'],
+                "osm_version": properties['osm:version'],
+                }
+            suspicious_feature, created = Feature.objects.get_or_create(
+                osm_id=properties['osm:id'],
+                changeset=changeset,
+                defaults=defaults
+                )
+            if 'oldVersion' in properties.keys():
+                try:
+                    suspicious_feature.old_geometry = GEOSGeometry(
+                        json.dumps(properties['oldVersion']['geometry'])
+                        )
+                except:
+                    suspicious_feature.old_geometry = None
+                suspicious_feature.old_geojson = feature['properties'].pop("oldVersion")
+            suspicious_feature.geojson = feature
+            suspicious_feature.comparator_version = feature.get('comparator_version')
+            suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
+            try:
+                suspicious_feature.reasons.add(*reasons)
+            except IntegrityError:
+                # This most often happens due to duplicates in dynamosm stream
+                print("Integrity error with feature %d" % suspicious_feature.osm_id)
+            except ValueError as e:
+                print("Value error with feature %d" % suspicious_feature.osm_id)
+
+            suspicious_feature.save()
+            return JsonResponse({'success': "Suspicion created."})
+        else:
+            return HttpResponse(status=401)
     else:
-        return HttpResponse(400)
+        return HttpResponse(status=400)
 
 
 class SetHarmfulFeature(SingleObjectMixin, View):
