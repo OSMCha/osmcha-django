@@ -3,6 +3,7 @@ from datetime import datetime
 from django.test import TestCase
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ValidationError
+from osmcha.changeset import Analyse
 
 from ..models import Changeset, SuspicionReasons, Import
 
@@ -52,6 +53,48 @@ class TestChangesetModel(TestCase):
              )
             )
         self.assertEqual(SuspicionReasons.objects.all().count(), 2)
+
+    def test_save_user_details(self):
+        analyze = Analyse(31450443)  # A random changeset
+        analyze.full_analysis()
+
+        # Removing these values from the object
+        analyze_dict = analyze.__dict__.copy()
+        for key in analyze.__dict__:
+            if analyze.__dict__.get(key) == '':
+                analyze_dict.pop(key)
+        analyze_dict.pop('suspicion_reasons')
+        analyze_dict.pop('user_details')
+
+        changeset = Changeset.objects.create(**analyze_dict)
+        changeset.save()
+
+        self.assertIsNone(changeset.user_detail)
+        changeset.save_user_details(analyze)
+        self.assertIsNotNone(changeset.user_detail)
+
+        self.assertEqual(changeset.user_detail.contributor_name, 'Tobsen Laufi')
+        self.assertEqual(changeset.user_detail.contributor_blocks, 0)
+        self.assertEqual(changeset.user_detail.contributor_since, datetime(2015, 01, 15))
+        self.assertEqual(changeset.user_detail.contributor_traces, 0)
+
+        self.assertEqual(changeset.user_detail.nodes_c, 0)
+        self.assertEqual(changeset.user_detail.nodes_m, 0)
+        self.assertEqual(changeset.user_detail.nodes_d, 975)
+
+        self.assertEqual(changeset.user_detail.ways_c, 0)
+        self.assertEqual(changeset.user_detail.ways_m, 0)
+        self.assertEqual(changeset.user_detail.ways_d, 43)
+
+        self.assertEqual(changeset.user_detail.relations_c, 0)
+        self.assertEqual(changeset.user_detail.relations_m, 0)
+        self.assertEqual(changeset.user_detail.relations_d, 1)
+
+        self.assertEqual(changeset.user_detail.changesets_no, 1)
+        self.assertEqual(changeset.user_detail.changesets_changes, 1019)
+        self.assertEqual(changeset.user_detail.changesets_f_tstamp, datetime(2015, 05, 25, 16, 30, 43))
+        self.assertEqual(changeset.user_detail.changesets_l_tstamp, datetime(2015, 05, 25, 16, 30, 43))
+        self.assertEqual(changeset.user_detail.changesets_mapping_days, '2015=1')
 
 
 class TestImportModel(TestCase):

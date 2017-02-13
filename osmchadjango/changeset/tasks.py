@@ -10,7 +10,7 @@ from os.path import join
 
 from django.conf import settings
 
-from .models import Changeset, SuspicionReasons, Import
+from .models import Changeset, SuspicionReasons, Import, SuspicionScore, UserSuspicionScore
 
 
 @shared_task
@@ -24,16 +24,36 @@ def create_changeset(changeset_id):
     for key in ch.__dict__:
         if ch.__dict__.get(key) == '':
             ch_dict.pop(key)
+
+    ch_dict['score'] = ch_dict['changeset_score']
     ch_dict.pop('suspicion_reasons')
 
+    # NOTE: Added temporarily to debug
+    if 'user_details' in ch_dict:
+        ch_dict.pop('user_details')
+
+    ch_dict.pop('user_score')
+    ch_dict.pop('changeset_score')
+    ch_dict.pop('user_score_details')
+    ch_dict.pop('changeset_score_details')
+
     # save changeset
-    changeset = Changeset(**ch_dict)
-    changeset.save()
+    changeset, created = Changeset.objects.update_or_create(id=ch_dict['id'], defaults=ch_dict)
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
+
+    SuspicionScore.objects.filter(changeset=changeset).delete()
+    for detail in ch.changeset_score_details:
+        s = SuspicionScore(changeset=changeset)
+        s.score = detail['score']
+        s.reason = detail['reason']
+        s.save()
+
+    # if ch.user_details:
+    #     changeset.save_user_details(ch)
 
     print('{c[id]} created'.format(c=ch_dict))
 
@@ -44,7 +64,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c) for c in cl.changesets)()
+    group(create_changeset.s(c['id']) for c in cl.changesets)()
 
 
 def format_url(n):
