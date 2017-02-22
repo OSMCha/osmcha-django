@@ -5,6 +5,7 @@ import os
 
 from celery import Celery
 
+
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings.local')
 
@@ -12,7 +13,7 @@ from django.conf import settings
 
 app = Celery('config',
     backend='rpc://',
-    broker='amqp://guest:guest@localhost:5672//'
+    broker=settings.BROKER_URL
     )
 
 app.conf.update(

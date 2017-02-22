@@ -1,5 +1,5 @@
 ##basic build dependencies of various Django apps for Ubuntu 14.04
-#build-essential metapackage install: make, gcc, g++, 
+#build-essential metapackage install: make, gcc, g++,
 build-essential
 #required to translate
 gettext
@@ -22,3 +22,12 @@ libwebp-dev
 
 ##django-extensions
 graphviz-dev
+
+# GeoDjango
+binutils
+libproj-dev
+gdal-bin
+
+# osmcha / homura
+curl
+libcurl4-openssl-dev

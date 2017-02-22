@@ -18,6 +18,19 @@ APPS_DIR = ROOT_DIR.path('osmchadjango')
 
 env = environ.Env()
 
+# .env file, should load only in development environment
+READ_DOT_ENV_FILE = env('DJANGO_READ_DOT_ENV_FILE', default=False)
+
+if READ_DOT_ENV_FILE:
+    # Operating System Environment variables have precedence over variables defined in the .env file,
+    # that is to say variables from the .env files will only be used if not defined
+    # as environment variables.
+    env_file = str(ROOT_DIR.path('.env'))
+    print('Loading : {}'.format(env_file))
+    env.read_env(env_file)
+    print('The .env file has been loaded. See common.py for more information')
+
+
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
 DJANGO_APPS = (
@@ -58,6 +71,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
 MIDDLEWARE_CLASSES = (
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -102,12 +116,15 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
+# DATABASES = {
+#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
+# }
 DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'osmcha',
-         'USER': env('PGUSER'),
-         'PASSWORD': env('PGPASSWORD'),
+         'USER': env('POSTGRES_USER'),
+         'PASSWORD': env('POSTGRES_PASSWORD'),
          'HOST': env('PGHOST', default='localhost')
      }
 }
@@ -209,6 +226,9 @@ ROOT_URLCONF = 'config.urls'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
+
+# CELERY CONFIGURATION
+BROKER_URL = env('CELERY_BROKER_URL', default='amqp://guest:guest@localhost:5672//')
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------

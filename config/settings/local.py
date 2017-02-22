@@ -67,8 +67,8 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'osmcha',
-         'USER': env('PGUSER'),
-         'PASSWORD': env('PGPASSWORD'),
+         'USER': env('POSTGRES_USER'),
+         'PASSWORD': env('POSTGRES_PASSWORD'),
          'HOST': env('PGHOST', default='localhost')
      }
 }

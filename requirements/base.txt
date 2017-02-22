@@ -35,6 +35,10 @@ pytz==2015.4
 # Celery support
 celery==3.1.19
 
+# Redis support
+django-redis==4.7.0
+redis>=2.10.5
+
 # Your custom requirements go here
 PyYAML==3.11
 # using the premerge version of osmcha
