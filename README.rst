@@ -8,8 +8,8 @@ osmcha-django
     :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
 
-    A database and frontend to OSMCHA. The aim of OSMCHA is to help find harmful
-    edits in the OpenStreetMap.
+A database and frontend to `OSMCHA<https://github.com/willemarcel/osmcha>`_. The aim of OSMCHA is to help find harmful
+edits in the OpenStreetMap.
 
 
 License: GPLv3
@@ -52,12 +52,12 @@ DJANGO_FEATURE_CREATION_KEYS            CREATION_KEYS                     []    
 ======================================= ================================= ========================================= ===========================================
 
 
-
 You can set each of these variables with:
 
     $ export VAR=VALUE
 
 During the development, you can define the values inside your virtualenv ``bin/activate`` file.
+
 
 Filtering Changesets
 ---------------------
@@ -72,14 +72,19 @@ Getting up and running
 Basics
 ^^^^^^
 
-The steps below will get you up and running with a local development environment. We assume you have the following
-installed:
+The steps below will get you up and running with a local development environment.
+We assume you have the following installed:
 
 * pip
 * virtualenv
 * PostgreSQL
 
-First make sure to create and activate a virtualenv_, then open a terminal at the project root and install the
+Before to install the python libraries, we need to install some packages in the
+operational system::
+
+    $ sudo ./install_os_dependencies.sh install
+
+For the next step, make sure to create and activate a virtualenv_, then open a terminal at the project root and install the
 requirements for local development::
 
     $ pip install -r requirements/local.txt
@@ -110,36 +115,6 @@ To create an **superuser account**, use this command::
     $ python manage.py createsuperuser
 
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
-
-Live reloading and Sass CSS compilation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If you'd like to take advantage of live reloading and Sass / Compass CSS compilation you can do so with a little bit of prep work.
-
-Make sure that nodejs_ is installed. Then in the project root run::
-
-    $ npm install
-
-.. _nodejs: http://nodejs.org/download/
-
-If you don't already have it, install `compass` (doesn't hurt if you run this command twice)::
-
-    gem install compass
-
-Now you just need::
-
-    $ grunt serve
-
-The base app will now run as it would with the usual ``manage.py runserver`` but with live reloading and Sass
-compilation enabled.
-
-To get live reloading to work you'll probably need to install an `appropriate browser extension`_
-
-.. _appropriate browser extension: http://feedback.livereload.com/knowledgebase/articles/86242-how-do-i-install-and-use-the-browser-extensions-
-
-
-It's time to write the code!!!
-
 
 Deployment
 ------------
