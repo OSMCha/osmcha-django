@@ -15,6 +15,15 @@ class TestSuspicionReasonsModel(TestCase):
     def test_creation(self):
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(self.reason.__str__(), 'possible import')
+        self.assertEqual(self.reason.is_visible, True)
+        self.reason_2 = SuspicionReasons.objects.create(
+            name='Suspect word',
+            description="""Changeset comment, source or imagery_used fields have
+                a suspect word.""",
+            is_visible=False
+            )
+        self.assertEqual(SuspicionReasons.objects.count(), 2)
+        self.assertEqual(self.reason_2.is_visible, False)
 
     def test_merge(self):
         self.reason_2 = SuspicionReasons.objects.create(name='possible import')

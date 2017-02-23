@@ -7,6 +7,8 @@ from ..users.models import User
 
 class SuspicionReasons(models.Model):
     name = models.CharField(max_length=255, db_index=True)
+    description = models.CharField(max_length=1000, blank=True)
+    is_visible = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
