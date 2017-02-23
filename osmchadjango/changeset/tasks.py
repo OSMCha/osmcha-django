@@ -18,18 +18,9 @@ def create_changeset(changeset_id):
     ch = Analyse(changeset_id)
     ch.full_analysis()
 
-    # remove suspicion_reasons and empty values from dict
-    ch_dict = ch.__dict__.copy()
-    for key in ch.__dict__:
-        if ch.__dict__.get(key) == '':
-            ch_dict.pop(key)
-
-    fields_to_remove = [
-        'suspicion_reasons', 'create_threshold', 'modify_threshold',
-        'delete_threshold', 'percentage', 'top_threshold'
-        ]
-    for field in fields_to_remove:
-        ch_dict.pop(field)
+    # remove suspicion_reasons
+    ch_dict = ch.get_dict()
+    ch_dict.pop('suspicion_reasons')
 
     # save changeset
     changeset, created = Changeset.objects.update_or_create(
