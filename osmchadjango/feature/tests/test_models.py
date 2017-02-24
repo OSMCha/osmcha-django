@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 
 from ...changeset.tests.modelfactories import ChangesetFactory
-from ...changeset.models import SuspicionReasons
+from ...changeset.models import SuspicionReasons, HarmfulReason
 from ..models import Feature
 
 
@@ -34,10 +34,6 @@ class TestFeatureModel(TestCase):
             old_geojson=self.old_geojson,
             url='way-169218447'
             )
-        self.reason = SuspicionReasons.objects.create(
-            name='new mapper edits'
-            )
-        self.reason.features.add(self.feature)
 
     def test_feature_creation(self):
         self.assertEqual(Feature.objects.count(), 1)
@@ -46,8 +42,19 @@ class TestFeatureModel(TestCase):
             'http://www.openstreetmap.org/way/169218447'
             )
         self.assertEqual(self.feature.__str__(), 'way 169218447 v24')
-        self.assertEqual(self.feature.reasons.count(), 1)
         self.assertEqual(len(self.feature.all_tags), 15)
+
+    def test_suspicion_reasons(self):
+        self.reason = SuspicionReasons.objects.create(
+            name='new mapper edits'
+            )
+        self.reason.features.add(self.feature)
+        self.assertEqual(self.feature.reasons.count(), 1)
+
+    def test_harmful_reason(self):
+        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
+        harmful_reason.features.add(self.feature)
+        self.assertEqual(self.feature.harmful_reasons.count(), 1)
 
     def test_forbid_duplicated(self):
         with self.assertRaises(IntegrityError):
