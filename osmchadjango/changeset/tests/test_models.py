@@ -17,20 +17,20 @@ class TestSuspicionReasonsModel(TestCase):
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(self.reason.__str__(), 'possible import')
         self.assertTrue(self.reason.is_visible)
-        self.assertTrue(self.reason.available_to_changeset)
-        self.assertTrue(self.reason.available_to_feature)
+        self.assertTrue(self.reason.for_changeset)
+        self.assertTrue(self.reason.for_feature)
         self.reason_2 = SuspicionReasons.objects.create(
             name='Suspect word',
             description="""Changeset comment, source or imagery_used fields have
                 a suspect word.""",
             is_visible=False,
-            available_to_changeset=False,
-            available_to_feature=True,
+            for_changeset=False,
+            for_feature=True,
             )
         self.assertEqual(SuspicionReasons.objects.count(), 2)
         self.assertFalse(self.reason_2.is_visible)
-        self.assertFalse(self.reason_2.available_to_changeset)
-        self.assertTrue(self.reason_2.available_to_feature)
+        self.assertFalse(self.reason_2.for_changeset)
+        self.assertTrue(self.reason_2.for_feature)
 
     def test_merge(self):
         self.reason_2 = SuspicionReasons.objects.create(name='possible import')
@@ -52,19 +52,19 @@ class TestHarmfulReasonModel(TestCase):
         self.assertEqual(HarmfulReason.objects.count(), 1)
         self.assertEqual(self.reason.__str__(), 'Illegal import')
         self.assertTrue(self.reason.is_visible)
-        self.assertTrue(self.reason.available_to_changeset)
-        self.assertTrue(self.reason.available_to_feature)
+        self.assertTrue(self.reason.for_changeset)
+        self.assertTrue(self.reason.for_feature)
         self.reason_2 = HarmfulReason.objects.create(
             name='Vandalism',
             description='The changeset is an act of vandalism.',
             is_visible=False,
-            available_to_changeset=False,
-            available_to_feature=True,
+            for_changeset=False,
+            for_feature=True,
             )
         self.assertEqual(HarmfulReason.objects.count(), 2)
         self.assertFalse(self.reason_2.is_visible)
-        self.assertFalse(self.reason_2.available_to_changeset)
-        self.assertTrue(self.reason_2.available_to_feature)
+        self.assertFalse(self.reason_2.for_changeset)
+        self.assertTrue(self.reason_2.for_feature)
 
     def test_validation(self):
         with self.assertRaises(ValidationError):
