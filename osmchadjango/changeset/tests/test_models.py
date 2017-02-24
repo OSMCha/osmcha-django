@@ -20,10 +20,14 @@ class TestSuspicionReasonsModel(TestCase):
             name='Suspect word',
             description="""Changeset comment, source or imagery_used fields have
                 a suspect word.""",
-            is_visible=False
+            is_visible=False,
+            available_to_changeset=False,
+            available_to_feature=True,
             )
         self.assertEqual(SuspicionReasons.objects.count(), 2)
-        self.assertEqual(self.reason_2.is_visible, False)
+        self.assertFalse(self.reason_2.is_visible)
+        self.assertFalse(self.reason_2.available_to_changeset)
+        self.assertTrue(self.reason_2.available_to_feature)
 
     def test_merge(self):
         self.reason_2 = SuspicionReasons.objects.create(name='possible import')
