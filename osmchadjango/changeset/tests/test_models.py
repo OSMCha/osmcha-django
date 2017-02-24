@@ -95,16 +95,12 @@ class TestWhitelistUserModel(TestCase):
 class TestChangesetModel(TestCase):
 
     def setUp(self):
-        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
-        self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
         self.changeset = ChangesetFactory(id=31982803)
-        self.reason_1.changesets.add(self.changeset)
-        self.reason_2.changesets.add(self.changeset)
 
     def test_changeset_creation(self):
         self.assertIsInstance(self.changeset, Changeset)
         self.assertEqual(Changeset.objects.all().count(), 1)
-        self.assertEqual(self.changeset.reasons.all().count(), 2)
+
         self.assertFalse(self.changeset.checked)
         self.assertEqual(
             self.changeset.viz_tool_link(),
@@ -124,7 +120,20 @@ class TestChangesetModel(TestCase):
             self.changeset.id_link(),
             'http://www.openstreetmap.org/edit?editor=id#map=16/44.2401/-71.03477'
             )
-        self.assertEqual(SuspicionReasons.objects.all().count(), 2)
+
+    def test_suspicion_reasons(self):
+        reason_1 = SuspicionReasons.objects.create(name='possible import')
+        reason_2 = SuspicionReasons.objects.create(name='suspect_word')
+        reason_1.changesets.add(self.changeset)
+        reason_2.changesets.add(self.changeset)
+        self.assertEqual(self.changeset.reasons.all().count(), 2)
+
+    def test_harmful_reason(self):
+        harmful_reason = HarmfulReason.objects.create(name='Illegal import')
+        harmful_reason_2 = HarmfulReason.objects.create(name='Vandalism')
+        harmful_reason.changesets.add(self.changeset)
+        harmful_reason_2.changesets.add(self.changeset)
+        self.assertEqual(self.changeset.harmful_reasons.all().count(), 2)
 
 
 class TestImportModel(TestCase):

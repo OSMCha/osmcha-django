@@ -83,6 +83,7 @@ class Changeset(models.Model):
     bbox = models.PolygonField(null=True, db_index=True)
     is_suspect = models.BooleanField(db_index=True)
     harmful = models.NullBooleanField(db_index=True)
+    harmful_reasons = models.ManyToManyField(HarmfulReason, related_name='changesets')
     checked = models.BooleanField(default=False, db_index=True)
     check_user = models.ForeignKey(User, null=True, blank=True, db_index=True)
     check_date = models.DateTimeField(null=True, blank=True)
