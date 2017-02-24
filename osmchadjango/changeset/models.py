@@ -40,6 +40,21 @@ class SuspicionReasons(models.Model):
                     same_reason.delete()
 
 
+class HarmfulReason(models.Model):
+    name = models.CharField(max_length=255, db_index=True, unique=True)
+    description = models.CharField(max_length=1000, blank=True)
+    is_visible = models.BooleanField(default=True)
+    available_to_changeset = models.BooleanField(default=True)
+    available_to_feature = models.BooleanField(default=True)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(HarmfulReason, self).save(*args, **kwargs)
+
+
 class UserWhitelist(models.Model):
     user = models.ForeignKey(User)
     whitelist_user = models.CharField(max_length=1000, db_index=True)

@@ -4,7 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from ..models import Changeset, SuspicionReasons, Import, UserWhitelist
+from ..models import (Changeset, SuspicionReasons, Import, UserWhitelist,
+    HarmfulReason)
 from .modelfactories import ChangesetFactory, UserFactory
 
 
@@ -15,7 +16,9 @@ class TestSuspicionReasonsModel(TestCase):
     def test_creation(self):
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(self.reason.__str__(), 'possible import')
-        self.assertEqual(self.reason.is_visible, True)
+        self.assertTrue(self.reason.is_visible)
+        self.assertTrue(self.reason.available_to_changeset)
+        self.assertTrue(self.reason.available_to_feature)
         self.reason_2 = SuspicionReasons.objects.create(
             name='Suspect word',
             description="""Changeset comment, source or imagery_used fields have
@@ -39,6 +42,33 @@ class TestSuspicionReasonsModel(TestCase):
         SuspicionReasons.merge()
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(self.changeset.reasons.count(), 1)
+
+
+class TestHarmfulReasonModel(TestCase):
+    def setUp(self):
+        self.reason = HarmfulReason.objects.create(name='Illegal import')
+
+    def test_creation(self):
+        self.assertEqual(HarmfulReason.objects.count(), 1)
+        self.assertEqual(self.reason.__str__(), 'Illegal import')
+        self.assertTrue(self.reason.is_visible)
+        self.assertTrue(self.reason.available_to_changeset)
+        self.assertTrue(self.reason.available_to_feature)
+        self.reason_2 = HarmfulReason.objects.create(
+            name='Vandalism',
+            description='The changeset is an act of vandalism.',
+            is_visible=False,
+            available_to_changeset=False,
+            available_to_feature=True,
+            )
+        self.assertEqual(HarmfulReason.objects.count(), 2)
+        self.assertFalse(self.reason_2.is_visible)
+        self.assertFalse(self.reason_2.available_to_changeset)
+        self.assertTrue(self.reason_2.available_to_feature)
+
+    def test_validation(self):
+        with self.assertRaises(ValidationError):
+            HarmfulReason.objects.create(name='Illegal import')
 
 
 class TestWhitelistUserModel(TestCase):
