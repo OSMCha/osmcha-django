@@ -63,6 +63,7 @@ LOCAL_APPS = (
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
     'osmchadjango.feature',
+    'osmchadjango.supervise',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
