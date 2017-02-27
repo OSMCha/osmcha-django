@@ -39,6 +39,10 @@ class SuspicionReasons(models.Model):
                     print("deleting %s" % same_reason.name)
                     same_reason.delete()
 
+    class Meta:
+        verbose_name = 'Suspicion reason'
+        verbose_name_plural = 'Suspicion reasons'
+
 
 class HarmfulReason(models.Model):
     name = models.CharField(max_length=255, db_index=True, unique=True)

@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from .models import Changeset, SuspicionReasons
+from .models import Changeset, SuspicionReasons, HarmfulReason
 
 
 class ChangesetAdmin(admin.OSMGeoAdmin):
@@ -11,5 +11,12 @@ class ChangesetAdmin(admin.OSMGeoAdmin):
     date_hierarchy = 'date'
 
 
+class ReasonsAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    list_display = ['name', 'is_visible', 'for_changeset', 'for_feature']
+    list_filter = ['is_visible', 'for_changeset', 'for_feature']
+
+
 admin.site.register(Changeset, ChangesetAdmin)
-admin.site.register(SuspicionReasons, admin.ModelAdmin)
+admin.site.register(SuspicionReasons, ReasonsAdmin)
+admin.site.register(HarmfulReason, ReasonsAdmin)
