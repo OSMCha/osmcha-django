@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 
-from osmchadjango.changeset.models import Changeset
+from osmchadjango.changeset.filters import ChangesetFilter
 
 
 class AreaOfInterest(models.Model):
@@ -16,8 +16,8 @@ class AreaOfInterest(models.Model):
     def changesets(self):
         """Returns the changesets whose bbox intersects with the AreaOfInterest
         and weren't made by this user.
-        TODO: implement the other filters.
         """
-        return Changeset.objects.filter(
+        qs = ChangesetFilter(self.filters).qs
+        return qs.filter(
             bbox__intersects=self.place
             ).exclude(user=self.user)

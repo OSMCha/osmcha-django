@@ -20,7 +20,7 @@ class TestAreaOfInterestModel(TestCase):
         self.area = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor': 'Potlatch 2', 'harmful': 'false'},
+            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
             place=self.m_polygon
             )
         self.area_2 = AreaOfInterest.objects.create(
@@ -52,13 +52,24 @@ class TestAreaOfInterestModel(TestCase):
         # changeset created by the same user of the AreaOfInterest
         ChangesetFactory(
             user=self.user.username,
+            harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
+            )
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        ChangesetFactory(
+            harmful=True,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
         changeset = ChangesetFactory(
             id=31982804,
+            harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
         self.assertEqual(self.area.changesets().count(), 1)
-        self.assertEqual(self.area_2.changesets().count(), 0)
         self.assertIn(changeset, self.area.changesets())
+        self.assertEqual(self.area_2.changesets().count(), 0)
