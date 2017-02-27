@@ -27,18 +27,24 @@ class TestAreaOfInterestModel(TestCase):
             user=self.user,
             place=self.m_polygon_2
             )
+        self.area_3 = AreaOfInterest.objects.create(
+            user=self.user,
+            name='Empty filters'
+            )
 
     def test_creation(self):
-        self.assertEqual(AreaOfInterest.objects.count(), 2)
+        self.assertEqual(AreaOfInterest.objects.count(), 3)
         self.assertEqual(
             self.area.__str__(),
             '{} - {}'.format(self.area.id, self.area.name)
             )
 
-    def test_required_place_field(self):
+    def test_unique_name_for_user(self):
         with self.assertRaises(IntegrityError):
             AreaOfInterest.objects.create(
-                user=self.user
+                user=self.user,
+                name='Best place in the world',
+                place=self.m_polygon
                 )
 
     def test_required_user_field(self):
@@ -50,11 +56,6 @@ class TestAreaOfInterestModel(TestCase):
     def test_changesets_method(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
         # changeset created by the same user of the AreaOfInterest
-        ChangesetFactory(
-            user=self.user.username,
-            harmful=False,
-            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
-            )
         ChangesetFactory(
             editor='JOSM 1.5',
             harmful=False,
