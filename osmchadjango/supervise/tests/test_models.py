@@ -29,7 +29,8 @@ class TestAreaOfInterestModel(TestCase):
             )
         self.area_3 = AreaOfInterest.objects.create(
             user=self.user,
-            name='Empty filters'
+            name='Harmful edits',
+            filters={'harmful': 'False'},
             )
 
     def test_creation(self):
@@ -74,3 +75,4 @@ class TestAreaOfInterestModel(TestCase):
         self.assertEqual(self.area.changesets().count(), 1)
         self.assertIn(changeset, self.area.changesets())
         self.assertEqual(self.area_2.changesets().count(), 0)
+        self.assertEqual(self.area_3.changesets().count(), 2)
