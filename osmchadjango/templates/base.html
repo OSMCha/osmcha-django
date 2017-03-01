@@ -52,12 +52,6 @@
             <li><a href="{% url 'changeset:stats' %}">Stats</a></li>
             <li><a href="{% url 'feature:features' %}">Features</a></li>
           </ul>
-
-          <ul class="nav navbar-nav navbar-right">
-            {% if request.user.is_authenticated %}
-              <li><a href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
-            {% endif %}
-          </ul>
         </div>
       </div>
     </div>
