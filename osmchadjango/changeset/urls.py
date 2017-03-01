@@ -15,7 +15,7 @@ urlpatterns = [
     ),
     url(
         regex=r'^(?P<pk>\d+)/$',
-        view=views.ChangesetDetailView.as_view(),
+        view=views.ChangesetDetailAPIView.as_view(),
         name='detail'
     ),
     url(

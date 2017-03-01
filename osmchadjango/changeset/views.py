@@ -13,9 +13,11 @@ from django.db.models import Q, Count
 from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
+from rest_framework.generics import RetrieveAPIView
 
 from .models import Changeset, UserWhitelist, SuspicionReasons
 from .filters import ChangesetFilter
+from .serializers import ChangesetSerializer
 
 
 class CheckedChangesetsView(ListView):
@@ -170,10 +172,10 @@ class ChangesetListView(ListView):
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
 
 
-class ChangesetDetailView(DetailView):
-    """DetailView of Changeset Model"""
-    model = Changeset
-    context_object_name = 'changeset'
+class ChangesetDetailAPIView(RetrieveAPIView):
+    """Return details of a Changeset. Type: GeoJSON."""
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetSerializer
 
 
 class SetHarmfulChangeset(SingleObjectMixin, View):

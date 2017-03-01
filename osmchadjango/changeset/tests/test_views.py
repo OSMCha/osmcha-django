@@ -51,6 +51,9 @@ class TestChangesetDetailView(TestCase):
     def test_changeset_detail_response(self):
         response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('id'), 31982803)
+        self.assertIn('properties', response.data.keys())
+        self.assertIn('geometry', response.data.keys())
 
 
 class TestCheckChangesetViews(TestCase):

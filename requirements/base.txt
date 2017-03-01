@@ -17,9 +17,12 @@ django-model-utils==2.5.2
 # Images
 Pillow==2.9.0
 
-# For user registration, either via email or social
-# Well-built with regular release cycles!
+# For authentication with OSM
 rest-social-auth==1.1.0
+
+# DRF and DRF-gis
+djangorestframework==3.5.4
+djangorestframework-gis==0.11
 
 # For the persistence stores
 psycopg2==2.6.1
