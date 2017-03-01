@@ -15,10 +15,10 @@ urlpatterns = [
     # Django Admin
     url(r'^admin/', include(admin.site.urls)),
 
+    # django-rest-social-auth token urls
+    url(r'^api/login/', include('rest_social_auth.urls_token')),
     # User management
     url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
-    url(r'^accounts/', include('allauth.urls')),
-    url('^social/', include('social.apps.django_app.urls', namespace='social')),
 
     # Your stuff: custom urls includes go here
     url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
@@ -43,4 +43,3 @@ if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
     urlpatterns += [
         url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
     ]
-

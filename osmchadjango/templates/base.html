@@ -56,9 +56,6 @@
           <ul class="nav navbar-nav navbar-right">
             {% if request.user.is_authenticated %}
               <li><a href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a></li>
-              <li><a href="{% url 'account_logout' %}">{% trans "Logout" %}</a></li>
-            {% else %}
-              <li><a href="{% url 'social:begin' 'openstreetmap' %}">{% trans "Log In" %}</a></li>
             {% endif %}
           </ul>
         </div>

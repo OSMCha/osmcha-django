@@ -51,11 +51,11 @@ DJANGO_APPS = (
 )
 THIRD_PARTY_APPS = (
     'crispy_forms',  # Form layouts
-    'allauth',  # registration
-    'allauth.account',  # registration
-    'allauth.socialaccount',  # registration
-    'social.apps.django_app.default',
     'query_parameters',  # django-query-parameters
+    'rest_framework',
+    'rest_framework.authtoken',
+    'social_django',
+    'rest_social_auth',
 )
 
 # Apps specific for this project go here.
@@ -231,23 +231,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # CELERY CONFIGURATION
 BROKER_URL = env('CELERY_BROKER_URL', default='amqp://guest:guest@localhost:5672//')
 
-# AUTHENTICATION CONFIGURATION
-# ------------------------------------------------------------------------------
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
 
 # Some really nice defaults
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_AUTHENTICATION_METHOD = 'username'
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
-LOGIN_REDIRECT_URL = 'users:redirect'
-LOGIN_URL = '/social/login/openstreetmap/'
 
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
@@ -255,8 +247,17 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 # SOCIAL AUTH CONFIGURATION
 SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+
 SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
 SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
+
+# AUTHENTICATION CONFIGURATION
+# ------------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.openstreetmap.OpenStreetMapOAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.social_details',
     'social.pipeline.social_auth.social_uid',
@@ -269,7 +270,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.load_extra_data',
     'social.pipeline.user.user_details'
 )
-
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -307,6 +307,5 @@ CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 # https://overpass-api.de/achavi/?changeset=
 OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/changeset-map/#')
 FEATURE_CREATION_KEYS = env('DJANGO_FEATURE_CREATION_KEYS', default=[])
-
 
 # Your common stuff: Below this line define 3rd party library settings

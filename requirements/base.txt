@@ -19,8 +19,7 @@ Pillow==2.9.0
 
 # For user registration, either via email or social
 # Well-built with regular release cycles!
-django-allauth==0.27.0
-python-social-auth==0.2.21
+django-rest-social-auth==1.1.0
 
 # For the persistence stores
 psycopg2==2.6.1

@@ -74,7 +74,3 @@ DATABASES = {
 }
 
 # Your local stuff: Below this line define 3rd party library settings
-AUTHENTICATION_BACKENDS = (
-    'social.backends.openstreetmap.OpenStreetMapOAuth',
-    'django.contrib.auth.backends.ModelBackend',
-)

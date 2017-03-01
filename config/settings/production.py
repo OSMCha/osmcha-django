@@ -152,12 +152,6 @@ LOGGING = {
 
 # Your production stuff: Below this line define 3rd party library settings
 
-# PYTHON SOCIAL AUTH
-AUTHENTICATION_BACKENDS = (
-    'social.backends.openstreetmap.OpenStreetMapOAuth',
-    'django.contrib.auth.backends.ModelBackend',
-)
-
 CELERYBEAT_SCHEDULE = {
     'schedule-name': {
         'task': 'osmchadjango.changeset.tasks.fetch_latest',
