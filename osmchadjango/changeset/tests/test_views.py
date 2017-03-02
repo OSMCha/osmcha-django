@@ -7,8 +7,8 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Polygon
 
 from ...users.models import User
-
 from ..models import SuspicionReasons, Changeset
+from .modelfactories import ChangesetFactory
 
 client = Client()
 
@@ -16,11 +16,20 @@ client = Client()
 class TestChangesetListView(TestCase):
 
     def setUp(self):
-        pass
+        ChangesetFactory.create_batch(26, is_suspect=True)
+        ChangesetFactory.create_batch(26, is_suspect=False)
 
-    def test_changeset_home_response(self):
-        response = client.get(reverse('changeset:home'))
+    def test_changeset_list_response(self):
+        response = client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['features']), 50)
+        self.assertEqual(response.data['count'], 52)
+
+    def test_pagination(self):
+        response = client.get(reverse('changeset:list'), {'page': 2})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['features']), 2)
+        self.assertEqual(response.data['count'], 52)
 
 
 class TestChangesetDetailView(TestCase):
@@ -28,23 +37,7 @@ class TestChangesetDetailView(TestCase):
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
-        self.changeset = Changeset.objects.create(
-            id=31982803,
-            user='test',
-            uid='123123',
-            editor='Potlatch 2',
-            powerfull_editor=False,
-            date=datetime.now(),
-            create=2000,
-            modify=10,
-            delete=30,
-            is_suspect=True,
-            bbox=Polygon([
-                (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
-                (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
-                (-71.0646843, 44.2371354)
-                ])
-            )
+        self.changeset = ChangesetFactory(id=31982803)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
 
@@ -54,6 +47,8 @@ class TestChangesetDetailView(TestCase):
         self.assertEqual(response.data.get('id'), 31982803)
         self.assertIn('properties', response.data.keys())
         self.assertIn('geometry', response.data.keys())
+        self.assertIn('possible import', response.data['properties']['reasons'])
+        self.assertIn('suspect_word', response.data['properties']['reasons'])
 
 
 class TestCheckChangesetViews(TestCase):

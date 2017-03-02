@@ -10,8 +10,8 @@ urlpatterns = [
     # URL pattern for the UserListView
     url(
         regex=r'^$',
-        view=views.ChangesetListView.as_view(),
-        name='home'
+        view=views.ChangesetListAPIView.as_view(),
+        name='list'
     ),
     url(
         regex=r'^(?P<pk>\d+)/$',

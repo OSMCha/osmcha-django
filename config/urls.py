@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
 
     # Your stuff: custom urls includes go here
-    url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
+    url(r'^changesets/', include("osmchadjango.changeset.urls", namespace="changeset")),
     url(r'^', include("osmchadjango.feature.urls", namespace="feature")),
 
 

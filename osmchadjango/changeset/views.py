@@ -1,6 +1,6 @@
 import datetime
 
-from django.views.generic import View, ListView, DetailView
+from django.views.generic import View, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
@@ -9,11 +9,12 @@ from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.exceptions import ValidationError
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework_gis.pagination import GeoJsonPagination
 
 from .models import Changeset, UserWhitelist, SuspicionReasons
 from .filters import ChangesetFilter
@@ -172,8 +173,21 @@ class ChangesetListView(ListView):
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
 
 
+class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class ChangesetListAPIView(ListAPIView):
+    """List changesets. Type: GeoJSON FeatureCollection."""
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetSerializer
+    pagination_class = StandardResultsSetPagination
+
+
 class ChangesetDetailAPIView(RetrieveAPIView):
-    """Return details of a Changeset. Type: GeoJSON."""
+    """Return details of a Changeset. Type: GeoJSON Feature."""
     queryset = Changeset.objects.all()
     serializer_class = ChangesetSerializer
 
