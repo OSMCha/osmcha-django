@@ -9,6 +9,7 @@ class AreaOfInterest(models.Model):
     user = models.ForeignKey('users.User')
     filters = JSONField(blank=True, null=True)
     place = models.MultiPolygonField(blank=True, null=True)
+    objects = models.GeoManager()
 
     def __str__(self):
         return '{} - {}'.format(self.id, self.name)
