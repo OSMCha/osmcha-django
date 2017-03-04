@@ -13,12 +13,40 @@ from django.db.models import Q
 from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
+import django_filters.rest_framework
 from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework_gis.pagination import GeoJsonPagination
+from rest_framework_gis.filters import InBBoxFilter
 
 from .models import Changeset, UserWhitelist, SuspicionReasons
 from .filters import ChangesetFilter
 from .serializers import ChangesetSerializer
+
+
+class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class ChangesetListAPIView(ListAPIView):
+    """List changesets. Type: GeoJSON FeatureCollection."""
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetSerializer
+    pagination_class = StandardResultsSetPagination
+    bbox_filter_field = 'bbox'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = ChangesetFilter
+
+
+class ChangesetDetailAPIView(RetrieveAPIView):
+    """Return details of a Changeset. Type: GeoJSON Feature."""
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetSerializer
 
 
 class CheckedChangesetsView(ListView):
@@ -171,25 +199,6 @@ class ChangesetListView(ListView):
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-class StandardResultsSetPagination(GeoJsonPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 500
-
-
-class ChangesetListAPIView(ListAPIView):
-    """List changesets. Type: GeoJSON FeatureCollection."""
-    queryset = Changeset.objects.all()
-    serializer_class = ChangesetSerializer
-    pagination_class = StandardResultsSetPagination
-
-
-class ChangesetDetailAPIView(RetrieveAPIView):
-    """Return details of a Changeset. Type: GeoJSON Feature."""
-    queryset = Changeset.objects.all()
-    serializer_class = ChangesetSerializer
 
 
 class SetHarmfulChangeset(SingleObjectMixin, View):

@@ -18,18 +18,36 @@ class TestChangesetListView(TestCase):
     def setUp(self):
         ChangesetFactory.create_batch(26, is_suspect=True)
         ChangesetFactory.create_batch(26, is_suspect=False)
+        self.url = reverse('changeset:list')
 
     def test_changeset_list_response(self):
-        response = client.get(reverse('changeset:list'))
+        response = client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 50)
         self.assertEqual(response.data['count'], 52)
 
     def test_pagination(self):
-        response = client.get(reverse('changeset:list'), {'page': 2})
+        response = client.get(self.url, {'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 2)
         self.assertEqual(response.data['count'], 52)
+
+    def test_filters(self):
+        response = client.get(self.url, {'in_bbox': '-72,43,-70,45'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+
+        response = client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = client.get(self.url, {'is_suspect': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 26)
+
+        response = client.get(self.url, {'is_suspect': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 26)
 
 
 class TestChangesetDetailView(TestCase):
