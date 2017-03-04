@@ -1,31 +1,19 @@
-from django_filters import filters, FilterSet
+from django_filters import FilterSet, filters
+from django_filters.widgets import BooleanWidget
 
 from .models import Feature
 
 
 class FeatureFilter(FilterSet):
 
-    checked = filters.MethodFilter()
-    harmful = filters.MethodFilter()
-    changeset__user = filters.MethodFilter()
+    checked = filters.BooleanFilter(widget=BooleanWidget())
+    harmful = filters.BooleanFilter(widget=BooleanWidget())
+    changeset_users = filters.CharFilter(name='changeset__user', method='filter_users')
 
-    def filter_checked(self, queryset, value):
-        if value and value == 'True':
-            return queryset.filter(checked=True)
-        elif value and value == 'False':
-            return queryset.filter(checked=False)
-        return queryset
-
-    def filter_harmful(self, queryset, value):
-        if value and value == 'True':
-            return queryset.filter(harmful=True)
-        return queryset
-
-    def filter_changeset__user(self, queryset, value):
-        if value:
-            users_array = [t.strip() for t in value.split(',')]
-            return queryset.filter(changeset__user__in=users_array)
-        return queryset
+    def filter_changeset_users(self, queryset, name, value):
+        lookup = '__'.join([name, 'in'])
+        users_array = [t.strip() for t in value.split(',')]
+        return queryset.filter(**{lookup: users_array})
 
     class Meta:
         model = Feature
@@ -35,7 +23,4 @@ class FeatureFilter(FilterSet):
             'changeset__date': ['gte', 'lte'],
             'changeset__editor': ['icontains'],
             'changeset__source': ['icontains'],
-            'harmful': [],
-            'checked': [],
-            'changeset__user': [],
             }
