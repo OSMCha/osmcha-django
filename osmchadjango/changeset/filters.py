@@ -11,6 +11,7 @@ class ChangesetFilter(GeoFilterSet):
     checked_by = filters.CharFilter(name='check_user', method='filter_checked_by')
     users = filters.CharFilter(name='user', method='filter_users')
     ids = filters.CharFilter(name='id', method='filter_ids')
+    reasons = filters.CharFilter(name='reasons', method='filter_reasons')
     checked = filters.BooleanFilter(widget=BooleanWidget())
     harmful = filters.BooleanFilter(widget=BooleanWidget())
     is_suspect = filters.BooleanFilter(widget=BooleanWidget())
@@ -30,6 +31,11 @@ class ChangesetFilter(GeoFilterSet):
         lookup = '__'.join([name, 'in'])
         values = [int(n) for n in value.split(',')]
         return queryset.filter(**{lookup: values})
+
+    def filter_reasons(self, queryset, name, value):
+        lookup = '__'.join([name, 'name', 'in'])
+        values = map(lambda x: x.strip(), value.split(','))
+        return queryset.filter(**{lookup: values}).distinct()
 
     class Meta:
         model = Changeset

@@ -6,7 +6,7 @@ from ..filters import ChangesetFilter
 from ..filters import Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, UserFactory,
-    HarmfulChangesetFactory, GoodChangesetFactory,
+    HarmfulChangesetFactory, GoodChangesetFactory, SuspicionReasonsFactory,
     )
 
 
@@ -14,14 +14,30 @@ class TestChangesetFilter(TestCase):
     def setUp(self):
         self.user = UserFactory(username='test_user')
         self.user_2 = UserFactory(username='test_user_2')
-        ChangesetFactory(id=2343, editor='iD 2.0.2', comment='My first edit')
-        SuspectChangesetFactory(user='suspect_user', uid='343', source='Bing')
-        HarmfulChangesetFactory(
+        self.changeset = ChangesetFactory(
+            id=2343,
+            editor='iD 2.0.2',
+            comment='My first edit'
+            )
+        self.suspect_changeset = SuspectChangesetFactory(
+            user='suspect_user',
+            uid='343',
+            source='Bing'
+            )
+        self.harmful_changeset = HarmfulChangesetFactory(
             check_user=self.user,
             editor='JOSM 1.5',
             powerfull_editor=True
             )
-        GoodChangesetFactory(check_user=self.user_2, source='Mapbox')
+        self.good_changeset = GoodChangesetFactory(
+            check_user=self.user_2,
+            source='Mapbox'
+            )
+        reason_1 = SuspicionReasonsFactory(name='possible import')
+        reason_1.changesets.add(self.suspect_changeset)
+        reason_2 = SuspicionReasonsFactory(name='suspect word')
+        reason_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
+        SuspicionReasonsFactory(name='mass deletion')
 
     def test_boolean_filters(self):
         self.assertEqual(Changeset.objects.count(), 4)
@@ -129,4 +145,26 @@ class TestChangesetFilter(TestCase):
             )
         self.assertEqual(
             ChangesetFilter({'source__icontains': 'Google'}).qs.count(), 0
+            )
+
+    def test_suspicion_reasons_filter(self):
+        self.assertEqual(
+            ChangesetFilter({'reasons': 'possible import'}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'reasons': 'suspect word'}).qs.count(),
+            2
+            )
+        self.assertEqual(
+            ChangesetFilter({'reasons': 'possible import, suspect word'}).qs.count(),
+            2
+            )
+        self.assertEqual(
+            ChangesetFilter({'reasons': 'mass deletion'}).qs.count(),
+            0
+            )
+        self.assertEqual(
+            ChangesetFilter({'reasons': 'mass modification'}).qs.count(),
+            0
             )
