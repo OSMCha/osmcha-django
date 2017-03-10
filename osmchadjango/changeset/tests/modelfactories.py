@@ -29,6 +29,7 @@ class ChangesetFactory(factory.django.DjangoModelFactory):
     uid = '123123'
     user = 'test'
     editor = 'Potlatch 2'
+    imagery_used = 'Mapbox'
     powerfull_editor = False
     date = factory.LazyFunction(datetime.now)
     is_suspect = False

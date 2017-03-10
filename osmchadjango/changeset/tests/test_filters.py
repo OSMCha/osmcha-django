@@ -18,17 +18,19 @@ class TestChangesetFilter(TestCase):
         self.changeset = ChangesetFactory(
             id=2343,
             editor='iD 2.0.2',
-            comment='My first edit'
+            comment='My first edit',
             )
         self.suspect_changeset = SuspectChangesetFactory(
             user='suspect_user',
             uid='343',
-            source='Bing'
+            source='Bing',
+            imagery_used='Bing'
             )
         self.harmful_changeset = HarmfulChangesetFactory(
             check_user=self.user,
             editor='JOSM 1.5',
-            powerfull_editor=True
+            powerfull_editor=True,
+            imagery_used='Mapbox, Mapillary'
             )
         self.good_changeset = GoodChangesetFactory(
             check_user=self.user_2,
@@ -121,6 +123,7 @@ class TestChangesetFilter(TestCase):
             )
 
     def test_char_field_filters(self):
+        # editor field
         self.assertEqual(
             ChangesetFilter({'editor__icontains': 'id'}).qs.count(), 1
             )
@@ -130,6 +133,7 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(
             ChangesetFilter({'editor__icontains': 'potlatch'}).qs.count(), 2
             )
+        # comment field
         self.assertEqual(
             ChangesetFilter({'comment': 'My first edit'}).qs.count(), 1
             )
@@ -139,6 +143,7 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(
             ChangesetFilter({'comment__icontains': 'import'}).qs.count(), 0
             )
+        # source field
         self.assertEqual(ChangesetFilter({'source': 'Mapbox'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'source': 'Bing'}).qs.count(), 1)
         self.assertEqual(
@@ -146,6 +151,21 @@ class TestChangesetFilter(TestCase):
             )
         self.assertEqual(
             ChangesetFilter({'source__icontains': 'Google'}).qs.count(), 0
+            )
+        # imagery_used field
+        self.assertEqual(ChangesetFilter({'imagery_used': 'Bing'}).qs.count(), 1)
+        self.assertEqual(
+            ChangesetFilter({'imagery_used': 'Mapbox'}).qs.count(), 2
+            )
+        self.assertEqual(
+            ChangesetFilter({'imagery_used': 'Mapillary'}).qs.count(), 0
+            )
+        self.assertEqual(
+            ChangesetFilter({'imagery_used__icontains': 'Mapbox'}).qs.count(), 3
+            )
+        self.assertEqual(
+            ChangesetFilter({'imagery_used__icontains': 'Mapillary'}).qs.count(),
+            1
             )
 
     def test_suspicion_reasons_filter(self):
