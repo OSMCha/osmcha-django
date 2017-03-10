@@ -168,3 +168,11 @@ class TestChangesetFilter(TestCase):
             ChangesetFilter({'reasons': 'mass modification'}).qs.count(),
             0
             )
+        self.assertEqual(
+            ChangesetFilter({'all_reasons': 'possible import, suspect word'}).qs.count(),
+            1
+            )
+        self.assertIn(
+            self.suspect_changeset,
+            ChangesetFilter({'all_reasons': 'possible import, suspect word'}).qs,
+            )
