@@ -3,7 +3,7 @@ from rest_framework_gis.filters import GeometryFilter
 from django_filters import filters
 from django_filters.widgets import BooleanWidget
 
-from .models import Changeset, SuspicionReasons
+from .models import Changeset
 
 
 class ChangesetFilter(GeoFilterSet):
@@ -12,6 +12,15 @@ class ChangesetFilter(GeoFilterSet):
     users = filters.CharFilter(name='user', method='filter_users')
     ids = filters.CharFilter(name='id', method='filter_ids')
     reasons = filters.CharFilter(name='reasons', method='filter_any_reasons')
+    all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
+    harmful_reasons = filters.CharFilter(
+        name='harmful_reasons',
+        method='filter_any_harmful_reasons'
+        )
+    all_harmful_reasons = filters.CharFilter(
+        name='harmful_reasons',
+        method='filter_all_harmful_reasons'
+        )
     all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
     checked = filters.BooleanFilter(widget=BooleanWidget())
     harmful = filters.BooleanFilter(widget=BooleanWidget())
@@ -39,6 +48,18 @@ class ChangesetFilter(GeoFilterSet):
         return queryset.filter(**{lookup: values}).distinct()
 
     def filter_all_reasons(self, queryset, name, value):
+        lookup = '__'.join([name, 'name'])
+        values = map(lambda x: x.strip(), value.split(','))
+        for term in values:
+            queryset = queryset.filter(**{lookup: term})
+        return queryset
+
+    def filter_any_harmful_reasons(self, queryset, name, value):
+        lookup = '__'.join([name, 'name', 'in'])
+        values = map(lambda x: x.strip(), value.split(','))
+        return queryset.filter(**{lookup: values}).distinct()
+
+    def filter_all_harmful_reasons(self, queryset, name, value):
         lookup = '__'.join([name, 'name'])
         values = map(lambda x: x.strip(), value.split(','))
         for term in values:
