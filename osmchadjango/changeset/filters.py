@@ -10,7 +10,7 @@ class ChangesetFilter(GeoFilterSet):
     """Allows to filter Changesets by any of its fields except 'uuid'
     (id of OSM user). The reasons and the harmful_reasons fields can be filtered
     by the exact match (filter changesets that have all the search reasons) or
-    by contains match (filter changesets that have any of the reasons)
+    by contains match (filter changesets that have any of the reasons).
     """
     bbox_overlaps = GeometryFilter(name='bbox', lookup_expr='overlaps')
     checked_by = filters.CharFilter(name='check_user', method='filter_checked_by')
@@ -73,7 +73,6 @@ class ChangesetFilter(GeoFilterSet):
     class Meta:
         model = Changeset
         fields = {
-            # 'reasons': ['exact'],
             'create': ['gte', 'lte'],
             'modify': ['gte', 'lte'],
             'delete': ['gte', 'lte'],
