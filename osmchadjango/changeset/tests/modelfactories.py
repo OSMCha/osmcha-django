@@ -56,6 +56,9 @@ class HarmfulChangesetFactory(SuspectChangesetFactory):
 
 class GoodChangesetFactory(HarmfulChangesetFactory):
     harmful = False
+    checked = True
+    check_user = factory.SubFactory(UserFactory)
+    check_date = factory.LazyFunction(datetime.now)
 
 
 class SuspicionReasonsFactory(factory.django.DjangoModelFactory):

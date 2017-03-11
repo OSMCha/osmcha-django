@@ -136,6 +136,19 @@ class TestChangesetModel(TestCase):
         self.assertEqual(self.changeset.harmful_reasons.all().count(), 2)
 
 
+class TestChangesetModelOrdering(TestCase):
+    def setUp(self):
+        ChangesetFactory.create_batch(10)
+        self.last_id = Changeset.objects.all()[0].id
+        self.first_id = self.last_id - Changeset.objects.count()
+
+    def test_changeset_ordering(self):
+        self.assertEqual(
+            [i.id for i in Changeset.objects.all()],
+            list(range(self.last_id, self.first_id, -1))
+            )
+
+
 class TestImportModel(TestCase):
     def setUp(self):
         self.import_1 = Import.objects.create(start=1, end=1000)

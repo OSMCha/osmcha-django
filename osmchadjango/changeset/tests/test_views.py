@@ -8,7 +8,10 @@ from django.contrib.gis.geos import Polygon
 
 from ...users.models import User
 from ..models import SuspicionReasons, Changeset
-from .modelfactories import ChangesetFactory
+from .modelfactories import (
+    ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
+    HarmfulChangesetFactory
+    )
 
 client = Client()
 
@@ -16,8 +19,8 @@ client = Client()
 class TestChangesetListView(TestCase):
 
     def setUp(self):
-        ChangesetFactory.create_batch(26, is_suspect=True)
-        ChangesetFactory.create_batch(26, is_suspect=False)
+        SuspectChangesetFactory.create_batch(26)
+        ChangesetFactory.create_batch(26)
         self.url = reverse('changeset:list')
 
     def test_changeset_list_response(self):
@@ -48,6 +51,89 @@ class TestChangesetListView(TestCase):
         response = client.get(self.url, {'is_suspect': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
+
+
+class TestChangesetListViewOrdering(TestCase):
+
+    def setUp(self):
+        SuspectChangesetFactory.create_batch(2, delete=2)
+        HarmfulChangesetFactory.create_batch(24, form_create=20, modify=2, delete=40)
+        GoodChangesetFactory.create_batch(24, form_create=1000, modify=20)
+        self.url = reverse('changeset:list')
+
+    def test_ordering(self):
+        # default ordering is by descending id
+        response = client.get(self.url)
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.all()]
+            )
+        # ascending id
+        response = client.get(self.url, {'order_by': 'id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('id')]
+            )
+        # ascending date ordering
+        response = client.get(self.url, {'order_by': 'date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('date')]
+            )
+        # descending date ordering
+        response = client.get(self.url, {'order_by': '-date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-date')]
+            )
+        # ascending check_date
+        response = client.get(self.url, {'order_by': 'check_date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('check_date')]
+            )
+        # descending check_date ordering
+        response = client.get(self.url, {'order_by': '-check_date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-check_date')]
+            )
+        # ascending create ordering
+        response = client.get(self.url, {'order_by': 'create'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('create')]
+            )
+        # descending create ordering
+        response = client.get(self.url, {'order_by': '-create'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-create')]
+            )
+        # ascending modify ordering
+        response = client.get(self.url, {'order_by': 'modify'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('modify')]
+            )
+        # descending modify ordering
+        response = client.get(self.url, {'order_by': '-modify'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-modify')]
+            )
+        # ascending delete ordering
+        response = client.get(self.url, {'order_by': 'delete'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('delete')]
+            )
+        # descending delete ordering
+        response = client.get(self.url, {'order_by': '-delete'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-delete')]
+            )
 
 
 class TestChangesetDetailView(TestCase):

@@ -30,6 +30,7 @@ class ChangesetFilter(GeoFilterSet):
     harmful = filters.BooleanFilter(widget=BooleanWidget())
     is_suspect = filters.BooleanFilter(widget=BooleanWidget())
     powerfull_editor = filters.BooleanFilter(widget=BooleanWidget())
+    order_by = filters.CharFilter(name=None, method='order_queryset')
 
     def filter_checked_by(self, queryset, name, value):
         lookup = '__'.join([name, 'username__in'])
@@ -69,6 +70,16 @@ class ChangesetFilter(GeoFilterSet):
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset
+
+    def order_queryset(self, queryset, name, value):
+        allowed_fields = [
+            'date', '-date', 'id', 'check_date', '-check_date', 'create',
+            'modify', 'delete', '-create', '-modify', '-delete'
+            ]
+        if value in allowed_fields:
+            return queryset.order_by(value)
+        else:
+            return queryset
 
     class Meta:
         model = Changeset

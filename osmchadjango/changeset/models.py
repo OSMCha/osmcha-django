@@ -148,6 +148,9 @@ class Changeset(models.Model):
     def features(self):
         return self.feature_set.all()
 
+    class Meta:
+        ordering = ['-id']
+
 
 class Import(models.Model):
     """Class to register the import of Changesets."""
