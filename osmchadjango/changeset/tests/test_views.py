@@ -135,6 +135,14 @@ class TestChangesetListViewOrdering(TestCase):
             [i.id for i in Changeset.objects.order_by('-delete')]
             )
 
+    def test_invalid_ordering_field(self):
+        # default ordering is by descending id
+        response = client.get(self.url, {'order_by': 'user'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.all()]
+            )
+
 
 class TestChangesetDetailView(TestCase):
 
