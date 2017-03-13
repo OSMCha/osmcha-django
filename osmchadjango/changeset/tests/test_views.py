@@ -34,6 +34,10 @@ class TestChangesetListView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 2)
         self.assertEqual(response.data['count'], 52)
+        # test page_size parameter
+        response = client.get(self.url, {'page_size': 60})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['features']), 52)
 
     def test_filters(self):
         response = client.get(self.url, {'in_bbox': '-72,43,-70,45'})

@@ -30,7 +30,13 @@ class StandardResultsSetPagination(GeoJsonPagination):
 
 
 class ChangesetListAPIView(ListAPIView):
-    """List changesets. Type: GeoJSON FeatureCollection."""
+    """List changesets. The data can be filtered by any field, except 'id' and
+    'uuid'. There are two ways of filtering changesets by geolocation. The first
+    option is to use the 'bbox_overlaps' filter field, which can receive any
+    type of geometry. The other is the 'in_bbox' parameter, which needs to
+    receive the min Lat, min Lon, max Lat, max Lon values.
+    Type: GeoJSON FeatureCollection.
+    """
     queryset = Changeset.objects.all()
     serializer_class = ChangesetSerializer
     pagination_class = StandardResultsSetPagination
