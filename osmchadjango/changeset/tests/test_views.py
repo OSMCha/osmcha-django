@@ -7,7 +7,7 @@ from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import Polygon
 
 from ...users.models import User
-from ..models import SuspicionReasons, Changeset
+from ..models import SuspicionReasons, HarmfulReason, Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
     HarmfulChangesetFactory
@@ -196,7 +196,7 @@ class TestChangesetDetailView(TestCase):
 
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
-        self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
         self.changeset = ChangesetFactory(id=31982803)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
@@ -207,8 +207,66 @@ class TestChangesetDetailView(TestCase):
         self.assertEqual(response.data.get('id'), 31982803)
         self.assertIn('properties', response.data.keys())
         self.assertIn('geometry', response.data.keys())
-        self.assertIn('possible import', response.data['properties']['reasons'])
-        self.assertIn('suspect_word', response.data['properties']['reasons'])
+        self.assertIn(
+            {'name': 'possible import', 'is_visible': True},
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'name': 'suspect word', 'is_visible': True},
+            response.data['properties']['reasons']
+            )
+
+
+class TestSuspicionReasonsAPIListView(TestCase):
+    def setUp(self):
+        self.reason_1 = SuspicionReasons.objects.create(
+            name='possible import',
+            description='A changeset that created too much map elements.'
+            )
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
+
+    def test_view(self):
+        response = client.get(reverse('changeset:suspicion-reasons-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+        reason_dict = {
+            'id': self.reason_1.id,
+            'name': 'possible import',
+            'description': self.reason_1.description,
+            'is_visible': True,
+            'for_changeset': True,
+            'for_feature': True
+            }
+        self.assertIn(
+            reason_dict,
+            response.data
+            )
+
+
+class TestHarmfulReasonAPIListView(TestCase):
+    def setUp(self):
+        self.reason_1 = HarmfulReason.objects.create(
+            name='Illegal import',
+            description='A changeset that imported illegal data.'
+            )
+        self.reason_2 = HarmfulReason.objects.create(name='Vandalism')
+
+    def test_view(self):
+        response = client.get(reverse('changeset:harmful-reasons-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+        reason_dict = {
+            'id': self.reason_1.id,
+            'name': 'Illegal import',
+            'description': self.reason_1.description,
+            'is_visible': True,
+            'for_changeset': True,
+            'for_feature': True
+            }
+        self.assertIn(
+            reason_dict,
+            response.data
+            )
 
 
 class TestCheckChangesetViews(TestCase):
@@ -216,39 +274,16 @@ class TestCheckChangesetViews(TestCase):
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
-        self.changeset = Changeset.objects.create(
+        self.changeset = SuspectChangesetFactory(
             id=31982803,
             user='test',
-            uid='123123',
-            editor='Potlatch 2',
-            powerfull_editor=False,
-            date=datetime.now(),
-            create=2000,
-            modify=10,
-            delete=30,
-            is_suspect=True,
-            bbox=Polygon([
-                (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
-                (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
-                (-71.0646843, 44.2371354)
-                ])
+            uid='123123'
             )
-        self.changeset_2 = Changeset.objects.create(
+        self.changeset_2 = SuspectChangesetFactory(
             id=31982804,
             user='test2',
             uid='999999',
             editor='iD',
-            powerfull_editor=False,
-            date=datetime.now(),
-            create=2000,
-            modify=10,
-            delete=30,
-            is_suspect=True,
-            bbox=Polygon([
-                (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
-                (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
-                (-71.0646843, 44.2371354)
-                ])
             )
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)

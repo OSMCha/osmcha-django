@@ -18,9 +18,11 @@ from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
 
-from .models import Changeset, UserWhitelist, SuspicionReasons
+from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
-from .serializers import ChangesetSerializer
+from .serializers import (
+    ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer
+    )
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
@@ -95,6 +97,56 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
     parameters of ChangesetListAPIView.
     """
     queryset = Changeset.objects.filter(checked=False)
+
+
+class SuspicionReasonsListAPIView(ListAPIView):
+    queryset = SuspicionReasons.objects.all()
+    serializer_class = SuspicionReasonsSerializer
+
+
+class HarmfulReasonListAPIView(ListAPIView):
+    queryset = HarmfulReason.objects.all()
+    serializer_class = HarmfulReasonSerializer
+
+
+class SetHarmfulChangeset(SingleObjectMixin, View):
+    model = Changeset
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
+            self.object.checked = True
+            self.object.harmful = True
+            self.object.check_user = request.user
+            self.object.check_date = timezone.now()
+            self.object.save()
+            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+        else:
+            return render(request, 'changeset/not_allowed.html')
+
+
+class SetGoodChangeset(SingleObjectMixin, View):
+    model = Changeset
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
+            self.object.checked = True
+            self.object.harmful = False
+            self.object.check_user = request.user
+            self.object.check_date = timezone.now()
+            self.object.save()
+            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+        else:
+            return render(request, 'changeset/not_allowed.html')
 
 
 class CheckedChangesetsView(ListView):
@@ -247,46 +299,6 @@ class ChangesetListView(ListView):
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-class SetHarmfulChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = True
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
-
-class SetGoodChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = False
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-        else:
-            return render(request, 'changeset/not_allowed.html')
 
 
 def undo_changeset_marking(request, pk):

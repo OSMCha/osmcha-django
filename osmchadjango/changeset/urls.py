@@ -69,6 +69,16 @@ urlpatterns = [
         name='remove_from_whitelist'
     ),
     url(
+        regex=r'^suspicion-reasons$',
+        view=views.SuspicionReasonsListAPIView.as_view(),
+        name='suspicion-reasons-list'
+    ),
+    url(
+        regex=r'^harmful-reasons$',
+        view=views.HarmfulReasonListAPIView.as_view(),
+        name='harmful-reasons-list'
+    ),
+    url(
         regex=r'^stats$',
         view=views.stats,
         name='stats'
