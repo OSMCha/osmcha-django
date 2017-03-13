@@ -55,6 +55,48 @@ class ChangesetDetailAPIView(RetrieveAPIView):
     serializer_class = ChangesetSerializer
 
 
+class SuspectChangesetListAPIView(ChangesetListAPIView):
+    """Return the suspect changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(is_suspect=True)
+
+
+class NoSuspectChangesetListAPIView(ChangesetListAPIView):
+    """Return the not suspect changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(is_suspect=False)
+
+
+class HarmfulChangesetListAPIView(ChangesetListAPIView):
+    """Return the harmful changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(harmful=True)
+
+
+class NoHarmfulChangesetListAPIView(ChangesetListAPIView):
+    """Return the not harmful changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(harmful=False)
+
+
+class CheckedChangesetListAPIView(ChangesetListAPIView):
+    """Return the checked changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(checked=True)
+
+
+class UncheckedChangesetListAPIView(ChangesetListAPIView):
+    """Return the unchecked changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    queryset = Changeset.objects.filter(checked=False)
+
+
 class CheckedChangesetsView(ListView):
     context_object_name = 'changesets'
     paginate_by = 15

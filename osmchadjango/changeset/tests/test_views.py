@@ -57,6 +57,50 @@ class TestChangesetListView(TestCase):
         self.assertEqual(response.data['count'], 26)
 
 
+class TestChangesetFilteredViews(TestCase):
+    def setUp(self):
+        ChangesetFactory()
+        SuspectChangesetFactory()
+        HarmfulChangesetFactory()
+        GoodChangesetFactory()
+
+    def test_suspect_changesets_view(self):
+        url = reverse('changeset:suspect-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 3)
+
+    def test_no_suspect_changesets_view(self):
+        url = reverse('changeset:no-suspect-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_harmful_changesets_view(self):
+        url = reverse('changeset:harmful-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_no_harmful_changesets_view(self):
+        url = reverse('changeset:no-harmful-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+    def test_checked_changesets_view(self):
+        url = reverse('changeset:checked-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 2)
+
+    def test_unchecked_changesets_view(self):
+        url = reverse('changeset:unchecked-list')
+        response = client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 2)
+
+
 class TestChangesetListViewOrdering(TestCase):
 
     def setUp(self):

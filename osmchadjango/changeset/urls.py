@@ -14,6 +14,36 @@ urlpatterns = [
         name='list'
     ),
     url(
+        regex=r'^suspect$',
+        view=views.SuspectChangesetListAPIView.as_view(),
+        name='suspect-list'
+    ),
+    url(
+        regex=r'^no-suspect$',
+        view=views.NoSuspectChangesetListAPIView.as_view(),
+        name='no-suspect-list'
+    ),
+    url(
+        regex=r'^harmful$',
+        view=views.HarmfulChangesetListAPIView.as_view(),
+        name='harmful-list'
+    ),
+    url(
+        regex=r'^no-harmful$',
+        view=views.NoHarmfulChangesetListAPIView.as_view(),
+        name='no-harmful-list'
+    ),
+    url(
+        regex=r'^checked$',
+        view=views.CheckedChangesetListAPIView.as_view(),
+        name='checked-list'
+    ),
+    url(
+        regex=r'^unchecked$',
+        view=views.UncheckedChangesetListAPIView.as_view(),
+        name='unchecked-list'
+    ),
+    url(
         regex=r'^(?P<pk>\d+)/$',
         view=views.ChangesetDetailAPIView.as_view(),
         name='detail'
