@@ -8,6 +8,7 @@ from .models import Changeset
 class ChangesetSerializer(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
     reasons = StringRelatedField(many=True)
+    harmful_reasons = StringRelatedField(many=True)
 
     class Meta:
         model = Changeset
