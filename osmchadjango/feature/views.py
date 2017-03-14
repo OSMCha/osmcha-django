@@ -126,6 +126,7 @@ def suspicion_create(request):
     """Create Suspicion Features. It nees to receive a key as get parameter in
     the url.
     """
+    print request.body
     if request.method == 'POST':
         if ('key' in request.GET.dict().keys() and
                 request.GET.dict()['key'] in settings.FEATURE_CREATION_KEYS):
