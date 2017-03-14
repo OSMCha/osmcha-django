@@ -20,6 +20,11 @@ urlpatterns = [
     url(
         regex=r'^features/api/suspicion/$',
         view=views.suspicion_create,
+        name='create_suspicion_without_trailing_slash'
+    ),
+    url(
+        regex=r'^features/api/suspicion$',
+        view=views.suspicion_create,
         name='create_suspicion'
     ),
     url(
