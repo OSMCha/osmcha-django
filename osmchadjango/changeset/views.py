@@ -104,84 +104,82 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
 
 
 class SuspicionReasonsListAPIView(ListAPIView):
+    """List SuspicionReasons."""
     queryset = SuspicionReasons.objects.all()
     serializer_class = SuspicionReasonsSerializer
 
 
 class HarmfulReasonListAPIView(ListAPIView):
+    """List HarmfulReasons."""
     queryset = HarmfulReason.objects.all()
     serializer_class = HarmfulReasonSerializer
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_changeset(request, pk):
-    """Mark a changeset as harmful, update the check_user, check_date, checked
-    and harmful_reasons fields. Accepts only POST requests.
+    """Mark a changeset as harmful. Accepts only PUT requests. The 'harmful_reasons'
+    field is optional and needs to be a list with the ids of the reasons.
     """
-    if request.method == 'POST':
-        instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-        if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
-            if instance.checked is False:
-                instance.checked = True
-                instance.harmful = True
-                instance.check_user = request.user
-                instance.check_date = timezone.now()
-                instance.save()
-                if 'harmful_reasons' in request.data.keys():
-                    ids = [int(i) for i in request.data.pop('harmful_reasons')]
-                    harmful_reasons = HarmfulReason.objects.filter(
-                        id__in=ids
-                        )
-                    for reason in harmful_reasons:
-                        reason.changesets.add(instance)
-                return Response(
-                    {'message': 'Changeset marked as good.'},
-                    status=status.HTTP_200_OK
+    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
+    if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+        if instance.checked is False:
+            instance.checked = True
+            instance.harmful = True
+            instance.check_user = request.user
+            instance.check_date = timezone.now()
+            instance.save()
+            if 'harmful_reasons' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('harmful_reasons')]
+                harmful_reasons = HarmfulReason.objects.filter(
+                    id__in=ids
                     )
-            else:
-                return Response(
-                    {'message': 'Changeset could not be updated.'},
-                    status=status.HTTP_403_FORBIDDEN
-                    )
+                for reason in harmful_reasons:
+                    reason.changesets.add(instance)
+            return Response(
+                {'message': 'Changeset marked as good.'},
+                status=status.HTTP_200_OK
+                )
         else:
             return Response(
-                {'message': 'User does not have permission to update this changeset.'},
+                {'message': 'Changeset could not be updated.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
+    else:
+        return Response(
+            {'message': 'User does not have permission to update this changeset.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
 
 
-@api_view(['POST'])
+@api_view(['PUT'])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_changeset(request, pk):
-    """Mark a changeset as good, update the check_user, check_date, checked
-    and harmful_reasons fields. Accepts only POST requests.
-    """
-    if request.method == 'POST':
-        instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-        if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
-            if instance.checked is False:
-                instance.checked = True
-                instance.harmful = False
-                instance.check_user = request.user
-                instance.check_date = timezone.now()
-                instance.save()
-                return Response(
-                    {'message': 'Changeset marked as good.'},
-                    status=status.HTTP_200_OK
-                    )
-            else:
-                return Response(
-                    {'message': 'Changeset could not be updated.'},
-                    status=status.HTTP_403_FORBIDDEN
-                    )
+    """Mark a changeset as good. Accepts only PUT requests."""
+    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
+    if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+        if instance.checked is False:
+            instance.checked = True
+            instance.harmful = False
+            instance.check_user = request.user
+            instance.check_date = timezone.now()
+            instance.save()
+            return Response(
+                {'message': 'Changeset marked as good.'},
+                status=status.HTTP_200_OK
+                )
         else:
             return Response(
-                {'message': 'User does not have permission to update this changeset.'},
+                {'message': 'Changeset could not be updated.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
+    else:
+        return Response(
+            {'message': 'User does not have permission to update this changeset.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
 
 
 class CheckedChangesetsView(ListView):

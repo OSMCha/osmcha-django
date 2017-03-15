@@ -6,44 +6,43 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    # URL pattern for the UserListView
     url(
-        regex=r'^$',
+        regex=r'^changesets/$',
         view=views.ChangesetListAPIView.as_view(),
         name='list'
     ),
     url(
-        regex=r'^suspect$',
+        regex=r'^changesets/suspect$',
         view=views.SuspectChangesetListAPIView.as_view(),
         name='suspect-list'
     ),
     url(
-        regex=r'^no-suspect$',
+        regex=r'^changesets/no-suspect$',
         view=views.NoSuspectChangesetListAPIView.as_view(),
         name='no-suspect-list'
     ),
     url(
-        regex=r'^harmful$',
+        regex=r'^changesets/harmful$',
         view=views.HarmfulChangesetListAPIView.as_view(),
         name='harmful-list'
     ),
     url(
-        regex=r'^no-harmful$',
+        regex=r'^changesets/no-harmful$',
         view=views.NoHarmfulChangesetListAPIView.as_view(),
         name='no-harmful-list'
     ),
     url(
-        regex=r'^checked$',
+        regex=r'^changesets/checked$',
         view=views.CheckedChangesetListAPIView.as_view(),
         name='checked-list'
     ),
     url(
-        regex=r'^unchecked$',
+        regex=r'^changesets/unchecked$',
         view=views.UncheckedChangesetListAPIView.as_view(),
         name='unchecked-list'
     ),
     url(
-        regex=r'^(?P<pk>\d+)/$',
+        regex=r'^changesets/(?P<pk>\d+)/$',
         view=views.ChangesetDetailAPIView.as_view(),
         name='detail'
     ),
@@ -93,17 +92,17 @@ urlpatterns = [
         name='all_blacklist_users'
     ),
     url(
-        regex=r'^checked-changesets$',
+        regex=r'^changesets/checked-changesets$',
         view=views.CheckedChangesetsView.as_view(),
         name='checked_changesets'
     ),
     url(
-        regex=r'^harmful-changesets$',
+        regex=r'^changesets/harmful-changesets$',
         view=views.HarmfulChangesetsView.as_view(),
         name='harmful_changesets'
     ),
     url(
-        regex=r'^undo-changeset-marking/(?P<pk>\w+)/$',
+        regex=r'^changesets/undo-changeset-marking/(?P<pk>\w+)/$',
         view=views.undo_changeset_marking,
         name='undo_changeset_marking'
     )

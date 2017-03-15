@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.test.client import encode_multipart
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APIClient
@@ -294,7 +295,7 @@ class TestCheckChangesetViews(TestCase):
         self.harmful_reason_2 = HarmfulReasonFactory(name='Vandalism')
 
     def test_set_harmful_changeset_unlogged(self):
-        response = client.post(
+        response = client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
@@ -304,7 +305,7 @@ class TestCheckChangesetViews(TestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_unlogged(self):
-        response = client.post(
+        response = client.put(
             reverse('changeset:set_good', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
@@ -315,7 +316,7 @@ class TestCheckChangesetViews(TestCase):
 
     def test_set_harmful_changeset_not_allowed(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
 
@@ -327,7 +328,7 @@ class TestCheckChangesetViews(TestCase):
 
     def test_set_good_changeset_not_allowed(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset])
             )
 
@@ -349,11 +350,16 @@ class TestCheckChangesetViews(TestCase):
         self.assertIsNone(self.changeset_2.check_user)
         self.assertIsNone(self.changeset_2.check_date)
 
-    def test_set_harmful_changeset_post(self):
+    def test_set_harmful_changeset_put(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            )
+        response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
-            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]},
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
             )
 
         self.assertEqual(response.status_code, 200)
@@ -366,9 +372,9 @@ class TestCheckChangesetViews(TestCase):
         self.assertIn(self.harmful_reason_1, changeset_2.harmful_reasons.all())
         self.assertIn(self.harmful_reason_2, changeset_2.harmful_reasons.all())
 
-    def test_set_harmful_changeset_post_without_data(self):
+    def test_set_harmful_changeset_put_without_data(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk])
             )
 
@@ -392,9 +398,9 @@ class TestCheckChangesetViews(TestCase):
         self.assertIsNone(self.changeset_2.check_user)
         self.assertIsNone(self.changeset_2.check_date)
 
-    def test_set_good_changeset_post(self):
+    def test_set_good_changeset_put(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset_2]),
             )
         self.assertEqual(response.status_code, 200)
@@ -406,12 +412,12 @@ class TestCheckChangesetViews(TestCase):
 
     def test_404(self):
         self.client.login(username=self.user.username, password='password')
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_good', args=[4988787832]),
             )
         self.assertEqual(response.status_code, 404)
 
-        response = self.client.post(
+        response = self.client.put(
             reverse('changeset:set_harmful', args=[4988787832]),
             )
         self.assertEqual(response.status_code, 404)
