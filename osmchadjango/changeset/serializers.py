@@ -1,5 +1,5 @@
 from rest_framework.fields import ReadOnlyField
-from rest_framework.serializers import ModelSerializer, StringRelatedField
+from rest_framework.serializers import ModelSerializer
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import Changeset, HarmfulReason, SuspicionReasons
@@ -38,11 +38,3 @@ class ChangesetSerializer(GeoFeatureModelSerializer):
         model = Changeset
         geo_field = 'bbox'
         exclude = ('powerfull_editor', 'uid')
-
-
-class VerifyChangesetSerializer(ModelSerializer):
-    check_user = ReadOnlyField(source='check_user.username')
-
-    class Meta:
-        model = Changeset
-        fields = ()

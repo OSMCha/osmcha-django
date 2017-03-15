@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 
 from . import views
@@ -50,12 +49,12 @@ urlpatterns = [
     ),
     url(
         regex=r'^set-harmful/(?P<pk>\w+)/$',
-        view=login_required(views.SetHarmfulChangeset.as_view()),
+        view=views.set_harmful_changeset,
         name='set_harmful'
     ),
     url(
         regex=r'^set-good/(?P<pk>\w+)/$',
-        view=login_required(views.SetGoodChangeset.as_view()),
+        view=views.set_good_changeset,
         name='set_good'
     ),
     url(

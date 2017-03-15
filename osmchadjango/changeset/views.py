@@ -1,7 +1,6 @@
 import datetime
 
-from django.views.generic import View, ListView
-from django.views.generic.detail import SingleObjectMixin
+from django.views.generic import ListView
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse
@@ -15,13 +14,19 @@ from django.contrib.gis.geos import Polygon
 from djqscsv import render_to_csv_response
 import django_filters.rest_framework
 from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_gis.filters import InBBoxFilter
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer
+    ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer,
+    VerifyChangesetSerializer
     )
 
 
@@ -109,44 +114,75 @@ class HarmfulReasonListAPIView(ListAPIView):
     serializer_class = HarmfulReasonSerializer
 
 
-class SetHarmfulChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = True
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+@api_view(['POST'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def set_harmful_changeset(request, pk):
+    """Mark a changeset as harmful, update the check_user, check_date, checked
+    and harmful_reasons fields. Accepts only POST requests.
+    """
+    if request.method == 'POST':
+        instance = Changeset.objects.get(pk=pk)
+        if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+            if instance.checked is False:
+                instance.checked = True
+                instance.harmful = True
+                instance.check_user = request.user
+                instance.check_date = timezone.now()
+                instance.save()
+                if 'harmful_reasons' in request.data.keys():
+                    ids = [int(i) for i in request.data.pop('harmful_reasons')]
+                    harmful_reasons = HarmfulReason.objects.filter(
+                        id__in=ids
+                        )
+                    for reason in harmful_reasons:
+                        reason.changesets.add(instance)
+                return Response(
+                    {'message': 'ok'},
+                    status=status.HTTP_200_OK
+                    )
+            else:
+                return Response(
+                    {'message': 'Changeset could not be updated'},
+                    status=status.HTTP_403_FORBIDDEN
+                    )
         else:
-            return render(request, 'changeset/not_allowed.html')
+            return Response(
+                {'message': 'User has not permission to update this changeset'},
+                status=status.HTTP_403_FORBIDDEN
+                )
 
 
-class SetGoodChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = False
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
+@api_view(['POST'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def set_good_changeset(request, pk):
+    """Mark a changeset as good, update the check_user, check_date, checked
+    and harmful_reasons fields. Accepts only POST requests.
+    """
+    if request.method == 'POST':
+        instance = Changeset.objects.get(pk=pk)
+        if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+            if instance.checked is False:
+                instance.checked = True
+                instance.harmful = False
+                instance.check_user = request.user
+                instance.check_date = timezone.now()
+                instance.save()
+                return Response(
+                    {'message': 'ok'},
+                    status=status.HTTP_200_OK
+                    )
+            else:
+                return Response(
+                    {'message': 'Changeset could not be updated'},
+                    status=status.HTTP_403_FORBIDDEN
+                    )
         else:
-            return render(request, 'changeset/not_allowed.html')
+            return Response(
+                {'message': 'User has not permission to update this changeset'},
+                status=status.HTTP_403_FORBIDDEN
+                )
 
 
 class CheckedChangesetsView(ListView):

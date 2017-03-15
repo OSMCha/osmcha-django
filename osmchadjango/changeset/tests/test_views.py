@@ -1,19 +1,17 @@
-from social_django.models import UserSocialAuth
-
-from datetime import datetime
-
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.core.urlresolvers import reverse
-from django.contrib.gis.geos import Polygon
+
+from social_django.models import UserSocialAuth
+from rest_framework.test import APIClient
 
 from ...users.models import User
 from ..models import SuspicionReasons, HarmfulReason, Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
-    HarmfulChangesetFactory
+    HarmfulChangesetFactory, HarmfulReasonFactory
     )
 
-client = Client()
+client = APIClient()
 
 
 class TestChangesetListView(TestCase):
@@ -275,15 +273,10 @@ class TestCheckChangesetViews(TestCase):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
         self.changeset = SuspectChangesetFactory(
-            id=31982803,
-            user='test',
-            uid='123123'
+            id=31982803, user='test', uid='123123'
             )
         self.changeset_2 = SuspectChangesetFactory(
-            id=31982804,
-            user='test2',
-            uid='999999',
-            editor='iD',
+            id=31982804, user='test2', uid='999999', editor='iD',
             )
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
@@ -297,22 +290,24 @@ class TestCheckChangesetViews(TestCase):
             provider='openstreetmap',
             uid='123123',
             )
+        self.harmful_reason_1 = HarmfulReasonFactory(name='Illegal import')
+        self.harmful_reason_2 = HarmfulReasonFactory(name='Vandalism')
 
     def test_set_harmful_changeset_unlogged(self):
-        response = client.get(
+        response = client.post(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_unlogged(self):
-        response = client.get(
+        response = client.post(
             reverse('changeset:set_good', args=[self.changeset])
             )
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 401)
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -324,7 +319,7 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_harmful', args=[self.changeset])
             )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -336,7 +331,7 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_good', args=[self.changeset])
             )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 403)
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -346,10 +341,9 @@ class TestCheckChangesetViews(TestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('changeset:set_harmful', args=[self.changeset_2]),
-            follow=True
             )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)
         self.assertIsNone(self.changeset_2.harmful)
         self.assertFalse(self.changeset_2.checked)
         self.assertIsNone(self.changeset_2.check_user)
@@ -359,7 +353,7 @@ class TestCheckChangesetViews(TestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.post(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
-            follow=True
+            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]},
             )
 
         self.assertEqual(response.status_code, 200)
@@ -368,19 +362,31 @@ class TestCheckChangesetViews(TestCase):
         self.assertTrue(changeset_2.checked)
         self.assertEqual(changeset_2.check_user, self.user)
         self.assertIsNotNone(changeset_2.check_date)
-        self.assertRedirects(
-            response,
-            reverse('changeset:detail', args=[changeset_2])
+        self.assertEqual(changeset_2.harmful_reasons.count(), 2)
+        self.assertIn(self.harmful_reason_1, changeset_2.harmful_reasons.all())
+        self.assertIn(self.harmful_reason_2, changeset_2.harmful_reasons.all())
+
+    def test_set_harmful_changeset_post_without_data(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:set_harmful', args=[self.changeset_2.pk])
             )
+
+        self.assertEqual(response.status_code, 200)
+        changeset_2 = Changeset.objects.get(id=31982804)
+        self.assertTrue(changeset_2.harmful)
+        self.assertTrue(changeset_2.checked)
+        self.assertEqual(changeset_2.check_user, self.user)
+        self.assertIsNotNone(changeset_2.check_date)
+        self.assertEqual(changeset_2.harmful_reasons.count(), 0)
 
     def test_set_good_changeset_get(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('changeset:set_good', args=[self.changeset_2]),
-            follow=True
             )
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 405)
         self.assertIsNone(self.changeset_2.harmful)
         self.assertFalse(self.changeset_2.checked)
         self.assertIsNone(self.changeset_2.check_user)
@@ -390,7 +396,6 @@ class TestCheckChangesetViews(TestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.post(
             reverse('changeset:set_good', args=[self.changeset_2]),
-            follow=True
             )
         self.assertEqual(response.status_code, 200)
         changeset_2 = Changeset.objects.get(id=31982804)
@@ -398,7 +403,3 @@ class TestCheckChangesetViews(TestCase):
         self.assertTrue(changeset_2.checked)
         self.assertEqual(changeset_2.check_user, self.user)
         self.assertIsNotNone(changeset_2.check_date)
-        self.assertRedirects(
-            response,
-            reverse('changeset:detail', args=[changeset_2])
-            )
