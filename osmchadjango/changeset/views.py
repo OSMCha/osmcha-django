@@ -13,20 +13,19 @@ from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
 import django_filters.rest_framework
-from rest_framework.generics import RetrieveAPIView, ListAPIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_gis.pagination import GeoJsonPagination
-from rest_framework_gis.filters import InBBoxFilter
 from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.generics import RetrieveAPIView, ListAPIView
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_gis.filters import InBBoxFilter
+from rest_framework_gis.pagination import GeoJsonPagination
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer,
-    VerifyChangesetSerializer
     )
 
 
