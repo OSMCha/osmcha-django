@@ -10,12 +10,13 @@ from .serializers import UserSerializer
 
 
 class UserDetailAPIView(RetrieveUpdateAPIView):
-    """Get and update details of the current logged user. It's allowed only to
+    """Get or update details of the current logged user. It's allowed only to
     update the email address.
     """
     permission_classes = IsAuthenticated,
     serializer_class = UserSerializer
     model = get_user_model()
+    queryset = model.objects.all()
 
     def get_object(self, queryset=None):
         return self.request.user
