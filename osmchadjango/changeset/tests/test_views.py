@@ -403,3 +403,15 @@ class TestCheckChangesetViews(TestCase):
         self.assertTrue(changeset_2.checked)
         self.assertEqual(changeset_2.check_user, self.user)
         self.assertIsNotNone(changeset_2.check_date)
+
+    def test_404(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:set_good', args=[4988787832]),
+            )
+        self.assertEqual(response.status_code, 404)
+
+        response = self.client.post(
+            reverse('changeset:set_harmful', args=[4988787832]),
+            )
+        self.assertEqual(response.status_code, 404)

@@ -15,7 +15,7 @@ from djqscsv import render_to_csv_response
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.generics import RetrieveAPIView, ListAPIView, get_object_or_404
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -121,7 +121,7 @@ def set_harmful_changeset(request, pk):
     and harmful_reasons fields. Accepts only POST requests.
     """
     if request.method == 'POST':
-        instance = Changeset.objects.get(pk=pk)
+        instance = get_object_or_404(Changeset.objects.all(), pk=pk)
         if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
             if instance.checked is False:
                 instance.checked = True
@@ -137,17 +137,17 @@ def set_harmful_changeset(request, pk):
                     for reason in harmful_reasons:
                         reason.changesets.add(instance)
                 return Response(
-                    {'message': 'ok'},
+                    {'message': 'Changeset marked as good.'},
                     status=status.HTTP_200_OK
                     )
             else:
                 return Response(
-                    {'message': 'Changeset could not be updated'},
+                    {'message': 'Changeset could not be updated.'},
                     status=status.HTTP_403_FORBIDDEN
                     )
         else:
             return Response(
-                {'message': 'User has not permission to update this changeset'},
+                {'message': 'User does not have permission to update this changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
@@ -160,7 +160,7 @@ def set_good_changeset(request, pk):
     and harmful_reasons fields. Accepts only POST requests.
     """
     if request.method == 'POST':
-        instance = Changeset.objects.get(pk=pk)
+        instance = get_object_or_404(Changeset.objects.all(), pk=pk)
         if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
             if instance.checked is False:
                 instance.checked = True
@@ -169,17 +169,17 @@ def set_good_changeset(request, pk):
                 instance.check_date = timezone.now()
                 instance.save()
                 return Response(
-                    {'message': 'ok'},
+                    {'message': 'Changeset marked as good.'},
                     status=status.HTTP_200_OK
                     )
             else:
                 return Response(
-                    {'message': 'Changeset could not be updated'},
+                    {'message': 'Changeset could not be updated.'},
                     status=status.HTTP_403_FORBIDDEN
                     )
         else:
             return Response(
-                {'message': 'User has not permission to update this changeset'},
+                {'message': 'User does not have permission to update this changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
