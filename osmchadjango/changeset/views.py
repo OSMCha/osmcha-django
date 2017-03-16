@@ -182,6 +182,36 @@ def set_good_changeset(request, pk):
             )
 
 
+@api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def uncheck_changeset(request, pk):
+    """Mark a changeset as unchecked. Accepts only PUT requests."""
+    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
+    if request.user == instance.check_user:
+        if instance.checked is True:
+            instance.checked = False
+            instance.harmful = None
+            instance.check_user = None
+            instance.check_date = None
+            instance.save()
+            instance.harmful_reasons.clear()
+            return Response(
+                {'message': 'Changeset marked as unchecked.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                {'message': 'Changeset is not checked.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+    else:
+        return Response(
+            {'message': 'User does not have permission to uncheck this changeset.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
+
+
 class CheckedChangesetsView(ListView):
     context_object_name = 'changesets'
     paginate_by = 15
@@ -332,20 +362,6 @@ class ChangesetListView(ListView):
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-def undo_changeset_marking(request, pk):
-    changeset_qs = Changeset.objects.filter(id=pk)
-    changeset = changeset_qs[0]
-    if request.user != changeset.check_user:
-        return render(request, 'changeset/not_allowed.html')
-
-    changeset.checked = False
-    changeset.check_user = None
-    changeset.check_date = None
-    changeset.harmful = None
-    changeset.save()
-    return HttpResponseRedirect(reverse('changeset:detail', args=[pk]))
 
 
 @csrf_exempt

@@ -299,6 +299,7 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_harmful', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
+        self.changeset.refresh_from_db()
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -309,6 +310,7 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_good', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
+        self.changeset.refresh_from_db()
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -319,8 +321,8 @@ class TestCheckChangesetViews(TestCase):
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
-
         self.assertEqual(response.status_code, 403)
+        self.changeset.refresh_from_db()
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -331,8 +333,8 @@ class TestCheckChangesetViews(TestCase):
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset])
             )
-
         self.assertEqual(response.status_code, 403)
+        self.changeset.refresh_from_db()
         self.assertIsNone(self.changeset.harmful)
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
@@ -345,6 +347,7 @@ class TestCheckChangesetViews(TestCase):
             )
 
         self.assertEqual(response.status_code, 405)
+        self.changeset_2.refresh_from_db()
         self.assertIsNone(self.changeset_2.harmful)
         self.assertFalse(self.changeset_2.checked)
         self.assertIsNone(self.changeset_2.check_user)
@@ -363,14 +366,20 @@ class TestCheckChangesetViews(TestCase):
             )
 
         self.assertEqual(response.status_code, 200)
-        changeset_2 = Changeset.objects.get(id=31982804)
-        self.assertTrue(changeset_2.harmful)
-        self.assertTrue(changeset_2.checked)
-        self.assertEqual(changeset_2.check_user, self.user)
-        self.assertIsNotNone(changeset_2.check_date)
-        self.assertEqual(changeset_2.harmful_reasons.count(), 2)
-        self.assertIn(self.harmful_reason_1, changeset_2.harmful_reasons.all())
-        self.assertIn(self.harmful_reason_2, changeset_2.harmful_reasons.all())
+        self.changeset_2.refresh_from_db()
+        self.assertTrue(self.changeset_2.harmful)
+        self.assertTrue(self.changeset_2.checked)
+        self.assertEqual(self.changeset_2.check_user, self.user)
+        self.assertIsNotNone(self.changeset_2.check_date)
+        self.assertEqual(self.changeset_2.harmful_reasons.count(), 2)
+        self.assertIn(
+            self.harmful_reason_1,
+            self.changeset_2.harmful_reasons.all()
+            )
+        self.assertIn(
+            self.harmful_reason_2,
+            self.changeset_2.harmful_reasons.all()
+            )
 
     def test_set_harmful_changeset_put_without_data(self):
         self.client.login(username=self.user.username, password='password')
@@ -379,12 +388,12 @@ class TestCheckChangesetViews(TestCase):
             )
 
         self.assertEqual(response.status_code, 200)
-        changeset_2 = Changeset.objects.get(id=31982804)
-        self.assertTrue(changeset_2.harmful)
-        self.assertTrue(changeset_2.checked)
-        self.assertEqual(changeset_2.check_user, self.user)
-        self.assertIsNotNone(changeset_2.check_date)
-        self.assertEqual(changeset_2.harmful_reasons.count(), 0)
+        self.changeset_2.refresh_from_db()
+        self.assertTrue(self.changeset_2.harmful)
+        self.assertTrue(self.changeset_2.checked)
+        self.assertEqual(self.changeset_2.check_user, self.user)
+        self.assertIsNotNone(self.changeset_2.check_date)
+        self.assertEqual(self.changeset_2.harmful_reasons.count(), 0)
 
     def test_set_good_changeset_get(self):
         self.client.login(username=self.user.username, password='password')
@@ -393,6 +402,7 @@ class TestCheckChangesetViews(TestCase):
             )
 
         self.assertEqual(response.status_code, 405)
+        self.changeset_2.refresh_from_db()
         self.assertIsNone(self.changeset_2.harmful)
         self.assertFalse(self.changeset_2.checked)
         self.assertIsNone(self.changeset_2.check_user)
@@ -404,11 +414,11 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_good', args=[self.changeset_2]),
             )
         self.assertEqual(response.status_code, 200)
-        changeset_2 = Changeset.objects.get(id=31982804)
-        self.assertFalse(changeset_2.harmful)
-        self.assertTrue(changeset_2.checked)
-        self.assertEqual(changeset_2.check_user, self.user)
-        self.assertIsNotNone(changeset_2.check_date)
+        self.changeset_2.refresh_from_db()
+        self.assertFalse(self.changeset_2.harmful)
+        self.assertTrue(self.changeset_2.checked)
+        self.assertEqual(self.changeset_2.check_user, self.user)
+        self.assertIsNotNone(self.changeset_2.check_date)
 
     def test_404(self):
         self.client.login(username=self.user.username, password='password')
@@ -421,3 +431,77 @@ class TestCheckChangesetViews(TestCase):
             reverse('changeset:set_harmful', args=[4988787832]),
             )
         self.assertEqual(response.status_code, 404)
+
+
+class TestUncheckChangesetView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.good_changeset = GoodChangesetFactory(check_user=self.user)
+        self.harmful_changeset = HarmfulChangesetFactory(check_user=self.user)
+        self.harmful_changeset_2 = HarmfulChangesetFactory()
+        self.reason = HarmfulReasonFactory(name='Vandalism')
+        self.reason.changesets.add(self.harmful_changeset)
+        self.reason.changesets.add(self.harmful_changeset_2)
+
+    def test_unauthenticated_response(self):
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.harmful_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 401)
+        self.harmful_changeset.refresh_from_db()
+        self.assertTrue(self.harmful_changeset.harmful)
+        self.assertTrue(self.harmful_changeset.checked)
+        self.assertEqual(self.harmful_changeset.check_user, self.user)
+        self.assertIsNotNone(self.harmful_changeset.check_date)
+        self.assertEqual(self.harmful_changeset.harmful_reasons.count(), 1)
+        self.assertIn(self.reason, self.harmful_changeset.harmful_reasons.all())
+
+    def test_uncheck_harmful_changeset(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.harmful_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 200)
+        self.harmful_changeset.refresh_from_db()
+        self.assertIsNone(self.harmful_changeset.harmful)
+        self.assertFalse(self.harmful_changeset.checked)
+        self.assertIsNone(self.harmful_changeset.check_user)
+        self.assertIsNone(self.harmful_changeset.check_date)
+        self.assertEqual(self.harmful_changeset.harmful_reasons.count(), 0)
+        self.assertNotIn(self.harmful_changeset, self.reason.changesets.all())
+
+    def test_uncheck_good_changeset(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.good_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 200)
+        self.good_changeset.refresh_from_db()
+        self.assertIsNone(self.good_changeset.harmful)
+        self.assertFalse(self.good_changeset.checked)
+        self.assertIsNone(self.good_changeset.check_user)
+        self.assertIsNone(self.good_changeset.check_date)
+
+    def test_user_uncheck_permission(self):
+        """User can only uncheck changesets that he checked."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.harmful_changeset_2.pk]),
+            )
+
+        self.assertEqual(response.status_code, 403)
+        self.harmful_changeset.refresh_from_db()
+        self.assertTrue(self.harmful_changeset_2.harmful)
+        self.assertTrue(self.harmful_changeset_2.checked)
+        self.assertIsNotNone(self.harmful_changeset_2.check_user)
+        self.assertIsNotNone(self.harmful_changeset_2.check_date)
+        self.assertIn(self.reason, self.harmful_changeset_2.harmful_reasons.all())

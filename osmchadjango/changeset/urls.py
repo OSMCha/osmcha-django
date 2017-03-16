@@ -57,6 +57,11 @@ urlpatterns = [
         name='set_good'
     ),
     url(
+        regex=r'^uncheck/(?P<pk>\w+)/$',
+        view=views.uncheck_changeset,
+        name='uncheck'
+    ),
+    url(
         regex=r'^whitelist-user$',
         view=views.whitelist_user,
         name='whitelist_user'
@@ -101,9 +106,4 @@ urlpatterns = [
         view=views.HarmfulChangesetsView.as_view(),
         name='harmful_changesets'
     ),
-    url(
-        regex=r'^changesets/undo-changeset-marking/(?P<pk>\w+)/$',
-        view=views.undo_changeset_marking,
-        name='undo_changeset_marking'
-    )
 ]
