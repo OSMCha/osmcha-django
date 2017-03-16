@@ -22,14 +22,14 @@ urlpatterns = [
     # User management
     url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
 
+    # api docs
+    url(r'^api-docs/', include_docs_urls(title='OSMCHA API')),
+
     # Your stuff: custom urls includes go here
     url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
     url(r'^', include("osmchadjango.feature.urls", namespace="feature")),
-    url(r'^api-docs/', include_docs_urls(title='OSMCHA API'))
 
-
-
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
@@ -39,11 +39,11 @@ if settings.DEBUG:
         url(r'^403/$', defaults.permission_denied),
         url(r'^404/$', defaults.page_not_found),
         url(r'^500/$', defaults.server_error),
-    ]
+        ]
 
 
 # If static files are not intercepted by the web-server, serve them with the dev-server:
-if settings.DEBUG is False:   #if DEBUG is True it will be served automatically
+if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
     urlpatterns += [
         url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
-    ]
+        ]
