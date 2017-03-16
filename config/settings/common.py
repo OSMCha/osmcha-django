@@ -131,6 +131,9 @@ DATABASES = {
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
 
+# The default value is 2621440 i.e. 2.5 MB. In order to handle big geometry post requests
+# in feature module, the data upload max memory size is increased to 100 MB.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600
 
 # GENERAL CONFIGURATION
 # ------------------------------------------------------------------------------
