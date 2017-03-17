@@ -3,7 +3,7 @@ from rest_framework_gis.filters import GeometryFilter
 from django_filters import filters
 from django_filters.widgets import BooleanWidget
 
-from .models import Changeset
+from .models import Changeset, UserWhitelist
 
 
 class ChangesetFilter(GeoFilterSet):
@@ -32,6 +32,21 @@ class ChangesetFilter(GeoFilterSet):
     is_suspect = filters.BooleanFilter(widget=BooleanWidget())
     powerfull_editor = filters.BooleanFilter(widget=BooleanWidget())
     order_by = filters.CharFilter(name=None, method='order_queryset')
+    hide_whitelist = filters.BooleanFilter(
+        name=None,
+        method='filter_whitelist',
+        widget=BooleanWidget(),
+        )
+
+    def filter_whitelist(self, queryset, name, value):
+        if self.request.user.is_authenticated() and value:
+            whitelist = self.request.user.whitelists.values_list(
+                'whitelist_user',
+                flat=True
+                )
+            return queryset.exclude(user__in=whitelist)
+        else:
+            return queryset
 
     def filter_checked_by(self, queryset, name, value):
         lookup = '__'.join([name, 'username__in'])

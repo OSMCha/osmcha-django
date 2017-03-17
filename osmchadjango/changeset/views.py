@@ -3,8 +3,7 @@ import datetime
 from django.views.generic import ListView
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
-from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -41,7 +40,10 @@ class ChangesetListAPIView(ListAPIView):
     option is to use the 'bbox_overlaps' filter field, which can receive any
     type of geometry. The other is the 'in_bbox' parameter, which needs to
     receive the min Lat, min Lon, max Lat, max Lon values.
-    Type: GeoJSON FeatureCollection.
+
+    sub-urls:
+    We have some sub-urls to make it easy to access filtered data: They are:
+
     """
     queryset = Changeset.objects.all()
     serializer_class = ChangesetSerializer
@@ -56,7 +58,7 @@ class ChangesetListAPIView(ListAPIView):
 
 
 class ChangesetDetailAPIView(RetrieveAPIView):
-    """Return details of a Changeset. Type: GeoJSON Feature."""
+    """Return details of a Changeset."""
     queryset = Changeset.objects.all()
     serializer_class = ChangesetSerializer
 
@@ -119,8 +121,10 @@ class HarmfulReasonListAPIView(ListAPIView):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_changeset(request, pk):
-    """Mark a changeset as harmful. Accepts only PUT requests. The 'harmful_reasons'
-    field is optional and needs to be a list with the ids of the reasons.
+    """Mark a changeset as harmful. The 'harmful_reasons'
+    field is optional and needs to be a list with the ids of the reasons. If you
+    don't want to set the 'harmful_reasons', you don't need to send data, just
+    make an empty PUT request.
     """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
     if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
@@ -157,7 +161,9 @@ def set_harmful_changeset(request, pk):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_changeset(request, pk):
-    """Mark a changeset as good. Accepts only PUT requests."""
+    """Mark a changeset as good. You don't need to send data, just an empty
+    PUT request.
+    """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
     if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
         if instance.checked is False:
@@ -186,7 +192,8 @@ def set_good_changeset(request, pk):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def uncheck_changeset(request, pk):
-    """Mark a changeset as unchecked. Accepts only PUT requests."""
+    """Mark a changeset as unchecked. You don't need to send data, just an empty
+    PUT request."""
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
     if request.user == instance.check_user:
         if instance.checked is True:

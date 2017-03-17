@@ -9,7 +9,7 @@ from ...users.models import User
 from ..models import SuspicionReasons, HarmfulReason, Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
-    HarmfulChangesetFactory, HarmfulReasonFactory
+    HarmfulChangesetFactory, HarmfulReasonFactory, UserWhitelistFactory
     )
 
 client = APIClient()
@@ -54,6 +54,33 @@ class TestChangesetListView(TestCase):
         response = client.get(self.url, {'is_suspect': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
+
+    def test_hide_whitelist_filter(self):
+        user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        UserWhitelistFactory(user=user, whitelist_user='test')
+
+        # test without login
+        response = client.get(self.url, {'hide_whitelist': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+        response = client.get(self.url, {'hide_whitelist': 'true', 'checked': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+        # test with login. As all changesets in the DB are from a whitelisted
+        # user, the features count will be zero
+        self.client.login(username=user.username, password='password')
+        response = self.client.get(self.url, {'hide_whitelist': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
 
 
 class TestChangesetFilteredViews(TestCase):

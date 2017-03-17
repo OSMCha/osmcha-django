@@ -60,7 +60,7 @@ class HarmfulReason(models.Model):
 
 
 class UserWhitelist(models.Model):
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, related_name='whitelists')
     whitelist_user = models.CharField(max_length=1000, db_index=True)
 
     def __str__(self):
