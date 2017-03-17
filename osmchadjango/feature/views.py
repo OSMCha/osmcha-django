@@ -183,9 +183,9 @@ def suspicion_create(request):
                 # In this case, we can safely ignore this attempted DB Insert,
                 # since what we wanted inserted has already been done through
                 # a separate web request.
-                print("Integrity error with changeset %d" % changeset_id)
+                print("Integrity error with changeset %s" % changeset_id)
             except ValueError as e:
-                print("Value error with changeset %d" % changeset_id)
+                print("Value error with changeset %s" % changeset_id)
             changeset.save()
 
             try:
@@ -219,9 +219,9 @@ def suspicion_create(request):
                 suspicious_feature.reasons.add(*reasons)
             except IntegrityError:
                 # This most often happens due to duplicates in dynamosm stream
-                print("Integrity error with feature %d" % suspicious_feature.osm_id)
+                print("Integrity error with feature %s" % suspicious_feature.osm_id)
             except ValueError as e:
-                print("Value error with feature %d" % suspicious_feature.osm_id)
+                print("Value error with feature %s" % suspicious_feature.osm_id)
 
             suspicious_feature.save()
             return JsonResponse({'success': "Suspicion created."})
