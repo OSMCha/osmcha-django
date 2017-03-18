@@ -46,6 +46,6 @@ redis>=2.10.5
 # Your custom requirements go here
 PyYAML==3.11
 # using the premerge version of osmcha
-osmcha==0.3.1
+osmcha==0.3.2
 git+https://github.com/batpad/django-query-parameters.git@fix-unicode
 django-queryset-csv==1.0.0
