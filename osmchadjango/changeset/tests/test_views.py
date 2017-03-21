@@ -6,7 +6,7 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APIClient
 
 from ...users.models import User
-from ..models import SuspicionReasons, HarmfulReason, Changeset
+from ..models import SuspicionReasons, HarmfulReason, Changeset, UserWhitelist
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
     HarmfulChangesetFactory, HarmfulReasonFactory, UserWhitelistFactory
@@ -532,3 +532,64 @@ class TestUncheckChangesetView(TestCase):
         self.assertIsNotNone(self.harmful_changeset_2.check_user)
         self.assertIsNotNone(self.harmful_changeset_2.check_date)
         self.assertIn(self.reason, self.harmful_changeset_2.harmful_reasons.all())
+
+
+class TestWhitelistUserView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.user_2 = User.objects.create_user(
+            username='test_user',
+            password='password',
+            email='b@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user_2,
+            provider='openstreetmap',
+            uid='444444',
+            )
+        self.url = reverse('changeset:whitelist-user')
+
+    def test_list_whitelist_unauthenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_create_whitelist_unauthenticated(self):
+        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(UserWhitelist.objects.count(), 0)
+
+    def test_create_and_list_whitelist(self):
+        # test whitelisting a user and getting the list of whitelisted users
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
+        self.assertEqual(response.status_code, 201)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.client.logout()
+        # the same with another user
+        self.client.login(username=self.user_2.username, password='password')
+        response = self.client.post(self.url, {'whitelist_user': 'the_user'})
+        self.assertEqual(response.status_code, 201)
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+
+        self.assertEqual(UserWhitelist.objects.count(), 2)
+        self.assertEqual(UserWhitelist.objects.filter(user=self.user).count(), 1)
+        self.assertEqual(UserWhitelist.objects.filter(user=self.user_2).count(), 1)
+        self.assertEqual(
+            UserWhitelist.objects.filter(whitelist_user='good_user').count(), 1
+            )
+        self.assertEqual(
+            UserWhitelist.objects.filter(whitelist_user='the_user').count(), 1
+            )

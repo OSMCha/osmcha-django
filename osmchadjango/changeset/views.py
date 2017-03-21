@@ -14,7 +14,9 @@ from djqscsv import render_to_csv_response
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
-from rest_framework.generics import RetrieveAPIView, ListAPIView, get_object_or_404
+from rest_framework.generics import (
+    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404
+    )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -25,6 +27,7 @@ from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer,
+    UserWhitelistSerializer
     )
 
 
@@ -115,6 +118,18 @@ class HarmfulReasonListAPIView(ListAPIView):
     """List HarmfulReasons."""
     queryset = HarmfulReason.objects.all()
     serializer_class = HarmfulReasonSerializer
+
+
+class UserWhitelistListCreateAPIView(ListCreateAPIView):
+    """List and create UserWhitelist model objects."""
+    serializer_class = UserWhitelistSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return UserWhitelist.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 @api_view(['PUT'])
@@ -369,25 +384,6 @@ class ChangesetListView(ListView):
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-@csrf_exempt
-def whitelist_user(request):
-    '''
-        View to mark a user as whitelisted.
-        Accepts a single post parameter with the 'name' of the user to be white-listed.
-        Whitelists that user for the currently logged in user.
-        TODO: can this be converted to a CBV?
-    '''
-    name = request.POST.get('name', None)
-    user = request.user
-    if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    if not name:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    uw = UserWhitelist(user=user, whitelist_user=name)
-    uw.save()
-    return JsonResponse({'success': 'User %s has been white-listed' % name})
 
 
 @csrf_exempt

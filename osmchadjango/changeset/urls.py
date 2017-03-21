@@ -62,9 +62,9 @@ urlpatterns = [
         name='uncheck'
     ),
     url(
-        regex=r'^whitelist-user$',
-        view=views.whitelist_user,
-        name='whitelist_user'
+        regex=r'^whitelist-user/$',
+        view=views.UserWhitelistListCreateAPIView.as_view(),
+        name='whitelist-user'
     ),
     url(
         regex=r'^remove-from-whitelist$',
