@@ -593,3 +593,59 @@ class TestWhitelistUserView(TestCase):
         self.assertEqual(
             UserWhitelist.objects.filter(whitelist_user='the_user').count(), 1
             )
+
+
+class TestUserWhitelistDestroyAPIView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        UserWhitelist.objects.create(user=self.user, whitelist_user='good_user')
+        self.user_2 = User.objects.create_user(
+            username='test_user',
+            password='password',
+            email='b@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user_2,
+            provider='openstreetmap',
+            uid='444444',
+            )
+        UserWhitelist.objects.create(user=self.user_2, whitelist_user='the_user')
+
+    def test_delete_whitelist_unauthenticated(self):
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['good_user'])
+            )
+        self.assertEqual(response.status_code, 401)
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['the_user'])
+            )
+        self.assertEqual(response.status_code, 401)
+
+    def test_delete_userwhitelist(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['good_user'])
+            )
+        self.assertEqual(response.status_code, 204)
+        # test delete a whitelist of another user
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['the_user'])
+            )
+        self.assertEqual(response.status_code, 404)
+        self.client.logout()
+
+        self.client.login(username=self.user_2.username, password='password')
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['the_user'])
+            )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(UserWhitelist.objects.count(), 0)

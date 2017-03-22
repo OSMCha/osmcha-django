@@ -15,7 +15,8 @@ import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.generics import (
-    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404
+    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
+    DestroyAPIView,
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
@@ -120,18 +121,6 @@ class HarmfulReasonListAPIView(ListAPIView):
     serializer_class = HarmfulReasonSerializer
 
 
-class UserWhitelistListCreateAPIView(ListCreateAPIView):
-    """List and create UserWhitelist model objects."""
-    serializer_class = UserWhitelistSerializer
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        return UserWhitelist.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
 @api_view(['PUT'])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
@@ -232,6 +221,27 @@ def uncheck_changeset(request, pk):
             {'message': 'User does not have permission to uncheck this changeset.'},
             status=status.HTTP_403_FORBIDDEN
             )
+
+
+class UserWhitelistListCreateAPIView(ListCreateAPIView):
+    """List and create UserWhitelist model objects."""
+    serializer_class = UserWhitelistSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        return UserWhitelist.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserWhitelistDestroyAPIView(DestroyAPIView):
+    serializer_class = UserWhitelistSerializer
+    permission_classes = (IsAuthenticated,)
+    lookup_field = 'whitelist_user'
+
+    def get_queryset(self):
+        return UserWhitelist.objects.filter(user=self.request.user)
 
 
 class CheckedChangesetsView(ListView):
@@ -384,19 +394,6 @@ class ChangesetListView(ListView):
             return render_to_csv_response(queryset)
         else:
             return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-@csrf_exempt
-def remove_from_whitelist(request):
-    names = request.POST.get('names', None)
-    user = request.user
-    if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    if not names:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    names_array = names.split(',')
-    UserWhitelist.objects.filter(user=user).filter(whitelist_user__in=names_array).delete()
-    return JsonResponse({'success': 'Users removed from whitelist'})
 
 
 def stats(request):

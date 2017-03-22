@@ -67,9 +67,9 @@ urlpatterns = [
         name='whitelist-user'
     ),
     url(
-        regex=r'^remove-from-whitelist$',
-        view=views.remove_from_whitelist,
-        name='remove_from_whitelist'
+        regex=r'^whitelist-user/(?P<whitelist_user>\w+)/$',
+        view=views.UserWhitelistDestroyAPIView.as_view(),
+        name='delete-whitelist-user'
     ),
     url(
         regex=r'^suspicion-reasons$',
