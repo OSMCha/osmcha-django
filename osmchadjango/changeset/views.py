@@ -244,58 +244,6 @@ class UserWhitelistDestroyAPIView(DestroyAPIView):
         return UserWhitelist.objects.filter(user=self.request.user)
 
 
-class CheckedChangesetsView(ListView):
-    context_object_name = 'changesets'
-    paginate_by = 15
-    template_name = 'changeset/changeset_list.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(CheckedChangesetsView, self).get_context_data(**kwargs)
-        context.update({
-            'hide_filters': True,
-            'search_title': _('Checked Changesets')
-            })
-        return context
-
-    def get_queryset(self):
-        from_date = self.request.GET.get('from', '')
-        to_date = self.request.GET.get('to', datetime.datetime.now())
-        if from_date and from_date != '':
-            qset = Changeset.objects.filter(
-                check_date__gte=from_date,
-                check_date__lte=to_date
-                )
-        else:
-            qset = Changeset.objects.all()
-        return qset.filter(checked=True)
-
-
-class HarmfulChangesetsView(ListView):
-    context_object_name = 'changesets'
-    paginate_by = 15
-    template_name = 'changeset/changeset_list.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(HarmfulChangesetsView, self).get_context_data(**kwargs)
-        context.update({
-            'hide_filters': True,
-            'search_title': _('Harmful Changesets')
-            })
-        return context
-
-    def get_queryset(self):
-        from_date = self.request.GET.get('from', '')
-        to_date = self.request.GET.get('to', datetime.datetime.now())
-        if from_date and from_date != '':
-            qset = Changeset.objects.filter(
-                check_date__gte=from_date,
-                check_date__lte=to_date
-                )
-        else:
-            qset = Changeset.objects.all()
-        return qset.filter(harmful=True)
-
-
 class ChangesetListView(ListView):
     """List Changesets"""
     # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
@@ -433,21 +381,3 @@ def stats(request):
         'get': request.GET.dict()
         }
     return render(request, 'changeset/stats.html', context=context)
-
-
-def all_whitelist_users(request):
-    """View that lists all whitelisted users."""
-    all_users = UserWhitelist.objects.values('whitelist_user').distinct()
-    context = {
-        'users': all_users
-        }
-    return render(request, 'changeset/all_whitelist_users.html', context=context)
-
-
-def all_blacklist_users(request):
-    """View that lists all users that have made a harmful changeset."""
-    blacklist_users = Changeset.objects.filter(harmful=True).values('user').distinct()
-    context = {
-        'users': blacklist_users
-        }
-    return render(request, 'changeset/all_blacklist_users.html', context=context)

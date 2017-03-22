@@ -86,24 +86,4 @@ urlpatterns = [
         view=views.stats,
         name='stats'
     ),
-    url(
-        regex=r'^all-whitelist-users$',
-        view=views.all_whitelist_users,
-        name='all_whitelist_users'
-    ),
-    url(
-        regex=r'^all-blacklist-users$',
-        view=views.all_blacklist_users,
-        name='all_blacklist_users'
-    ),
-    url(
-        regex=r'^changesets/checked-changesets$',
-        view=views.CheckedChangesetsView.as_view(),
-        name='checked_changesets'
-    ),
-    url(
-        regex=r'^changesets/harmful-changesets$',
-        view=views.HarmfulChangesetsView.as_view(),
-        name='harmful_changesets'
-    ),
 ]
