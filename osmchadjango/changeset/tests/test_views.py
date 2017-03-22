@@ -459,6 +459,29 @@ class TestCheckChangesetViews(TestCase):
             )
         self.assertEqual(response.status_code, 404)
 
+    def test_try_to_check_changeset_already_checked(self):
+        changeset = HarmfulChangesetFactory()
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:set_good', args=[changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 403)
+        changeset.refresh_from_db()
+        self.assertNotEqual(changeset.check_user, self.user)
+
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            )
+        response = self.client.put(
+            reverse('changeset:set_harmful', args=[changeset.pk]),
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            )
+        self.assertEqual(response.status_code, 403)
+        changeset.refresh_from_db()
+        self.assertNotEqual(changeset.check_user, self.user)
+
 
 class TestUncheckChangesetView(TestCase):
     def setUp(self):
@@ -472,6 +495,7 @@ class TestUncheckChangesetView(TestCase):
             provider='openstreetmap',
             uid='123123',
             )
+        self.suspect_changeset = SuspectChangesetFactory()
         self.good_changeset = GoodChangesetFactory(check_user=self.user)
         self.harmful_changeset = HarmfulChangesetFactory(check_user=self.user)
         self.harmful_changeset_2 = HarmfulChangesetFactory()
@@ -532,6 +556,14 @@ class TestUncheckChangesetView(TestCase):
         self.assertIsNotNone(self.harmful_changeset_2.check_user)
         self.assertIsNotNone(self.harmful_changeset_2.check_date)
         self.assertIn(self.reason, self.harmful_changeset_2.harmful_reasons.all())
+
+    def test_try_to_uncheck_unchecked_changeset(self):
+        """It's not possible to uncheck an unchecked changeset!"""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.suspect_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 403)
 
 
 class TestWhitelistUserView(TestCase):
