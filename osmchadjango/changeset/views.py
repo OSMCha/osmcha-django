@@ -199,23 +199,22 @@ def uncheck_changeset(request, pk):
     """Mark a changeset as unchecked. You don't need to send data, just an empty
     PUT request."""
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-    if request.user == instance.check_user:
-        if instance.checked is True:
-            instance.checked = False
-            instance.harmful = None
-            instance.check_user = None
-            instance.check_date = None
-            instance.save()
-            instance.harmful_reasons.clear()
-            return Response(
-                {'message': 'Changeset marked as unchecked.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                {'message': 'Changeset is not checked.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+    if instance.checked is False:
+        return Response(
+            {'message': 'Changeset is not checked.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
+    elif request.user == instance.check_user:
+        instance.checked = False
+        instance.harmful = None
+        instance.check_user = None
+        instance.check_date = None
+        instance.save()
+        instance.harmful_reasons.clear()
+        return Response(
+            {'message': 'Changeset marked as unchecked.'},
+            status=status.HTTP_200_OK
+            )
     else:
         return Response(
             {'message': 'User does not have permission to uncheck this changeset.'},

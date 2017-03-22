@@ -460,7 +460,7 @@ class TestCheckChangesetViews(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_try_to_check_changeset_already_checked(self):
-        changeset = HarmfulChangesetFactory()
+        changeset = HarmfulChangesetFactory(uid=333)
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_good', args=[changeset.pk]),
