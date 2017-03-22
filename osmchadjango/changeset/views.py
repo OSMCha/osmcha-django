@@ -1,14 +1,9 @@
 import datetime
 
-from django.views.generic import ListView
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.core.exceptions import ValidationError
-from django.db.models import Q
-from django.contrib.gis.geos import Polygon
 
-from djqscsv import render_to_csv_response
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
@@ -266,106 +261,6 @@ class UserWhitelistDestroyAPIView(DestroyAPIView):
 
     def get_queryset(self):
         return UserWhitelist.objects.filter(user=self.request.user)
-
-
-class ChangesetListView(ListView):
-    """List Changesets"""
-    # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-    context_object_name = 'changesets'
-    paginate_by = 15
-
-    def get_context_data(self, **kwargs):
-        context = super(ChangesetListView, self).get_context_data(**kwargs)
-        suspicion_reasons = SuspicionReasons.objects.all()
-        get = self.request.GET.dict()
-        if 'is_suspect' not in get:
-            get['is_suspect'] = 'True'
-        if 'is_whitelisted' not in get:
-            get['is_whitelisted'] = 'True'
-        if 'harmful' not in get:
-            get['harmful'] = 'False'
-        if 'checked' not in get:
-            get['checked'] = 'All'
-        sorts = {
-            '-date': 'Recent First',
-            '-delete': 'Most Deletions First',
-            '-modify': 'Most Modifications First',
-            '-create': 'Most Creations First'
-            }
-        context.update({
-            'suspicion_reasons': suspicion_reasons,
-            'get': get,
-            'sorts': sorts
-            })
-        return context
-
-    def get_queryset(self):
-        # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-        queryset = Changeset.objects.all()
-        params = {}
-        GET_dict = self.request.GET.dict()
-        for key in GET_dict:
-            if key in GET_dict and GET_dict[key] != '':
-                params[key] = GET_dict[key]
-        self.validate_params(params)
-
-        if 'is_suspect' not in params:
-            params['is_suspect'] = 'True'
-        if 'is_whitelisted' not in params:
-            params['is_whitelisted'] = 'True'
-        if 'harmful' not in params:
-            params['harmful'] = None
-        if 'checked' not in params:
-            params['checked'] = 'All'
-        queryset = ChangesetFilter(params, queryset=queryset).qs
-        if 'reasons' in params:
-            if params['reasons'] == 'None':
-                queryset = queryset.filter(reasons=None)
-            else:
-                queryset = queryset.filter(reasons=int(params['reasons']))
-
-        user = self.request.user
-
-        if params['is_whitelisted'] == 'True' and user.is_authenticated():
-            whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-            queryset = queryset.exclude(Q(user__in=whitelisted_users))
-        elif params['is_whitelisted'] == 'False' and user.is_authenticated():
-            blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
-            queryset = queryset.filter(user__in=blacklisted_users)
-
-        if 'sort' in GET_dict and GET_dict['sort'] != '':
-            queryset = queryset.order_by(GET_dict['sort'])
-        else:
-            queryset = queryset.order_by('-date')
-        return queryset
-
-    def validate_params(self, params):
-        """FIXME: define error in except lines."""
-        if 'reasons' in params.keys() and params['reasons'] != '':
-            try:
-                s = str(int(params['reasons']))
-            except:
-                raise ValidationError('reasons param must be a number')
-        if 'bbox' in params.keys() and params['bbox'] != '':
-            print(params['bbox'])
-            try:
-                bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            except:
-                raise ValidationError('bbox param is invalid')
-
-    def render_to_response(self, context, **response_kwargs):
-        get_params = self.request.GET.dict()
-        if 'render_csv' in get_params.keys() and get_params['render_csv'] == 'True':
-            queryset = self.get_queryset()
-            queryset = queryset.values(
-                'id', 'user', 'editor', 'powerfull_editor', 'comment', 'source',
-                'imagery_used', 'date', 'reasons', 'reasons__name', 'create',
-                'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked',
-                'check_user', 'check_date'
-                )
-            return render_to_csv_response(queryset)
-        else:
-            return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
 
 
 def stats(request):

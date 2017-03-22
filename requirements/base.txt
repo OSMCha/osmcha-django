@@ -50,4 +50,3 @@ PyYAML==3.11
 # using the premerge version of osmcha
 osmcha==0.3.4
 git+https://github.com/batpad/django-query-parameters.git@fix-unicode
-django-queryset-csv==1.0.0
