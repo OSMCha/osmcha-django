@@ -1,3 +1,5 @@
+import csv
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.test.client import encode_multipart
@@ -81,6 +83,21 @@ class TestChangesetListView(TestCase):
         response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
+
+
+class TestChangesetCSVListView(TestCase):
+    def setUp(self):
+        SuspectChangesetFactory.create_batch(26)
+        ChangesetFactory.create_batch(26)
+        self.url = reverse('changeset:csv-list')
+
+    def test_changeset_list_response(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 52)
+        response = client.get(self.url, {'is_suspect': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 26)
 
 
 class TestChangesetFilteredViews(TestCase):

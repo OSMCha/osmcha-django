@@ -1,9 +1,7 @@
 import datetime
 
 from django.views.generic import ListView
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
-from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.core.exceptions import ValidationError
@@ -23,12 +21,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
+from rest_framework_csv.renderers import CSVRenderer
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, SuspicionReasonsSerializer, HarmfulReasonSerializer,
-    UserWhitelistSerializer
+    ChangesetSerializer, ChangesetCSVSerializer, SuspicionReasonsSerializer,
+    HarmfulReasonSerializer, UserWhitelistSerializer
     )
 
 
@@ -52,6 +51,25 @@ class ChangesetListAPIView(ListAPIView):
     queryset = Changeset.objects.all()
     serializer_class = ChangesetSerializer
     pagination_class = StandardResultsSetPagination
+    bbox_filter_field = 'bbox'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = ChangesetFilter
+
+
+class ChangesetCSVListAPIView(ListAPIView):
+    """List changesets and return in the CSV format. The data can be filtered by any field, except 'id' and
+    'uuid'. There are two ways of filtering changesets by geolocation. The first
+    option is to use the 'bbox_overlaps' filter field, which can receive any
+    type of geometry. The other is the 'in_bbox' parameter, which needs to
+    receive the min Lat, min Lon, max Lat, max Lon values.
+    """
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetCSVSerializer
+    renderer_classes = (CSVRenderer,)
     bbox_filter_field = 'bbox'
     filter_backends = (
         InBBoxFilter,
