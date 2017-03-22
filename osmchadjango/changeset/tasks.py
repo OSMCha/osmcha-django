@@ -22,6 +22,10 @@ def create_changeset(changeset_id):
     ch_dict = ch.get_dict()
     ch_dict.pop('suspicion_reasons')
 
+    # remove bbox field if it is not a valid geometry
+    if ch.bbox == 'GEOMETRYCOLLECTION EMPTY':
+        ch_dict.pop('bbox')
+
     # save changeset
     changeset, created = Changeset.objects.update_or_create(
         id=ch_dict['id'],
@@ -34,6 +38,7 @@ def create_changeset(changeset_id):
             reason.changesets.add(changeset)
 
     print('{c[id]} created'.format(c=ch_dict))
+    return changeset
 
 
 @shared_task
