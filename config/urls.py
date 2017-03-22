@@ -9,7 +9,9 @@ from django.views.generic import TemplateView
 from django.views import defaults
 from django.views import static as static_views
 
-from rest_framework.documentation import include_docs_urls
+from rest_framework_swagger.views import get_swagger_view
+
+schema_view = get_swagger_view(title='OSMCHA API')
 
 urlpatterns = [
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name="about"),
@@ -23,7 +25,7 @@ urlpatterns = [
     url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
 
     # api docs
-    url(r'^api-docs/', include_docs_urls(title='OSMCHA API')),
+    url(r'^api-docs/', schema_view),
 
     # Your stuff: custom urls includes go here
     url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),

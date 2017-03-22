@@ -57,6 +57,7 @@ THIRD_PARTY_APPS = (
     'rest_framework.authtoken',
     'social_django',
     'rest_social_auth',
+    'rest_framework_swagger',
 )
 
 # Apps specific for this project go here.
@@ -316,8 +317,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         ),
-    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
-        )
+        ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     }

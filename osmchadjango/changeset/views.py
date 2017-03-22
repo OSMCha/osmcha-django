@@ -241,7 +241,12 @@ def uncheck_changeset(request, pk):
 
 
 class UserWhitelistListCreateAPIView(ListCreateAPIView):
-    """View to add a user to your whitelist or to see all your whitelisted users.
+    """
+    get:
+    List your whitelisted users.
+
+    post:
+    Add a user to your whitelist.
     """
     serializer_class = UserWhitelistSerializer
     permission_classes = (IsAuthenticated,)
