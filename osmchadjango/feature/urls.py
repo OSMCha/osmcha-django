@@ -9,8 +9,8 @@ from . import views
 urlpatterns = [
     url(
         regex=r'^features$',
-        view=views.FeatureListView.as_view(),
-        name='features'
+        view=views.FeatureListAPIView.as_view(),
+        name='list'
     ),
     url(
         regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',

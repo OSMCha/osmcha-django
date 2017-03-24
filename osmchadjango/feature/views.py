@@ -14,10 +14,38 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
+import django_filters.rest_framework
+from rest_framework.generics import (
+    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
+    DestroyAPIView,
+    )
+from rest_framework_gis.filters import InBBoxFilter
+from rest_framework_gis.pagination import GeoJsonPagination
+
 from osmchadjango.changeset import models as changeset_models
 
-from .filters import FeatureFilter
 from .models import Feature
+from .serializers import FeatureSerializer
+from .filters import FeatureFilter
+
+
+class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class FeatureListAPIView(ListAPIView):
+    queryset = Feature.objects.all()
+    serializer_class = FeatureSerializer
+    pagination_class = StandardResultsSetPagination
+    bbox_filter_field = 'geometry'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = FeatureFilter
 
 
 class FeatureListView(ListView):
@@ -92,7 +120,7 @@ class FeatureListView(ListView):
 
 
 class FeatureDetailView(DetailView):
-    """DetailView of Changeset Model"""
+    """DetailView of Feature Model"""
     model = Feature
     context_object_name = 'feature'
     template_name = 'feature/feature_detail.html'

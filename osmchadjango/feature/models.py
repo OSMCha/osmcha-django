@@ -28,6 +28,7 @@ class Feature(models.Model):
 
     class Meta:
         unique_together = ('changeset', 'osm_id', 'osm_type',)
+        ordering = ['-changeset_id']
 
     def __str__(self):
         return '{} {} v{}'.format(self.osm_type, self.osm_id, self.osm_version)
