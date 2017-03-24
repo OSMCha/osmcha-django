@@ -8,7 +8,7 @@ from . import views
 
 urlpatterns = [
     url(
-        regex=r'^features$',
+        regex=r'^features/$',
         view=views.FeatureListAPIView.as_view(),
         name='list'
     ),
