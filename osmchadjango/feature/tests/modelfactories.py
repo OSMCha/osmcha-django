@@ -23,6 +23,7 @@ class FeatureFactory(factory.django.DjangoModelFactory):
 
 class CheckedFeatureFactory(FeatureFactory):
     checked = True
+    harmful = True
     check_user = factory.SubFactory(UserFactory)
     check_date = factory.LazyFunction(datetime.now)
 

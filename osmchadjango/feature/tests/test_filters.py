@@ -29,12 +29,19 @@ class TestFeatureFilter(TestCase):
             FeatureFilter({'osm_type': 'way'}).qs.count(), 1
             )
 
-    def test_checked_filter(self):
+    def test_checked_and_is_harmful_filters(self):
+        CheckedFeatureFactory(harmful=False)
         self.assertEqual(
-            FeatureFilter({'checked': 'true'}).qs.count(), 1
+            FeatureFilter({'checked': 'true'}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter({'checked': 'false'}).qs.count(), 2
+            )
+        self.assertEqual(
+            FeatureFilter({'harmful': 'false'}).qs.count(), 1
+            )
+        self.assertEqual(
+            FeatureFilter({'harmful': 'true'}).qs.count(), 1
             )
 
     def test_date_filters(self):
