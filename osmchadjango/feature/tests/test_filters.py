@@ -3,7 +3,9 @@ from datetime import date, timedelta
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 
-from ...changeset.tests.modelfactories import SuspicionReasonsFactory
+from ...changeset.tests.modelfactories import (
+    SuspicionReasonsFactory, HarmfulReasonFactory
+    )
 from ..filters import FeatureFilter
 from .modelfactories import (
     FeatureFactory, WayFeatureFactory, CheckedFeatureFactory
@@ -119,6 +121,41 @@ class TestFeatureFilter(TestCase):
         self.assertEqual(
             FeatureFilter(
                 {'all_reasons': 'Edited wikidata tag, Deleted all tags'}
+                ).qs.count(),
+            0
+            )
+
+    def test_harmful_reason_filter(self):
+        reason_1 = HarmfulReasonFactory(name='Vandalism')
+        reason_1.features.add(self.feature, self.checked_feature)
+        reason_2 = HarmfulReasonFactory(name='Illegal import')
+        reason_2.features.add(self.feature)
+        HarmfulReasonFactory(name='Small error')
+
+        self.assertEqual(
+            FeatureFilter({'harmful_reasons': 'Vandalism'}).qs.count(), 2
+            )
+        self.assertEqual(
+            FeatureFilter(
+                {'harmful_reasons': 'Vandalism, Illegal import'}
+                ).qs.count(),
+            2
+            )
+        self.assertEqual(
+            FeatureFilter({'harmful_reasons': 'Small error'}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'all_harmful_reasons': 'Vandalism'}).qs.count(), 2
+            )
+        self.assertEqual(
+            FeatureFilter(
+                {'all_harmful_reasons': 'Vandalism, Illegal import'}
+                ).qs.count(),
+            1
+            )
+        self.assertEqual(
+            FeatureFilter(
+                {'all_harmful_reasons': 'Vandalism, Small error'}
                 ).qs.count(),
             0
             )

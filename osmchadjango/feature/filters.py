@@ -7,7 +7,7 @@ from .models import Feature
 
 
 class FeatureFilter(GeoFilterSet):
-
+    """Filter Feature model objects."""
     location = GeometryFilter(name='geometry', lookup_expr='intersects')
     checked = filters.BooleanFilter(widget=BooleanWidget())
     harmful = filters.BooleanFilter(widget=BooleanWidget())
@@ -19,6 +19,14 @@ class FeatureFilter(GeoFilterSet):
         )
     reasons = filters.CharFilter(name='reasons', method='filter_any_reasons')
     all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
+    harmful_reasons = filters.CharFilter(
+        name='harmful_reasons',
+        method='filter_any_reasons'
+        )
+    all_harmful_reasons = filters.CharFilter(
+        name='harmful_reasons',
+        method='filter_all_reasons'
+        )
 
     def filter_changeset_users(self, queryset, name, value):
         lookup = '__'.join([name, 'in'])
