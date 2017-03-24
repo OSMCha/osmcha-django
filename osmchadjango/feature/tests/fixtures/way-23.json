@@ -12,13 +12,28 @@
   "type": "Feature",
   "id": "way!169218447!23",
   "properties": {
+    "name": "\\u0443\\u043b\\u0438\\u0446\\u0430 \\u041f\\u043e\\u0441\\u043a\\u043e\\u043d\\u043a\\u0438\\u043d\\u0430",
+    "osm:id": 169218447,
+    "osm:type": "way",
+    "osm:version": 23,
+    "osm:changeset": 42893048,
+    "osm:timestamp": 1476443255000,
+    "osm:uid": 4173553,
+    "osm:user": "Victor Denisow",
+    "highway": "tertiary",
+    "surface": "asphalt",
     "maxspeed": "40",
+    "result:name_modified": {},
     "result:new_mapper": {
       "cfVersion": 2,
       "newMapper": 1
     },
-    "name": "\\u0443\\u043b\\u0438\\u0446\\u0430 \\u041f\\u043e\\u0441\\u043a\\u043e\\u043d\\u043a\\u0438\\u043d\\u0430",
-    "osm:id": 169218447,
+    "suspicions": [
+      {
+        "reason": "new mapper edits",
+        "reason": "moved an object a significant amount"
+      }
+    ],
     "oldVersion": {
       "geometry": {
         "type": "LineString",
@@ -45,21 +60,6 @@
         "osm:timestamp": 1453065048000,
         "highway": "tertiary"
       }
-    },
-    "osm:changeset": 42893048,
-    "suspicions": [
-      {
-        "reason": "new mapper edits",
-        "reason": "moved an object a significant amount"
-      }
-    ],
-    "osm:type": "way",
-    "osm:uid": 4173553,
-    "osm:version": 23,
-    "osm:user": "Victor Denisow",
-    "result:name_modified": {},
-    "highway": "tertiary",
-    "surface": "asphalt",
-    "osm:timestamp": 1476443255000
+    }
   }
 }
