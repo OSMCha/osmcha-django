@@ -1,9 +1,8 @@
 from rest_framework.fields import ReadOnlyField
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import Changeset, HarmfulReason, SuspicionReasons, UserWhitelist
-from ..users.models import User
 
 
 class SuspicionReasonsSerializer(ModelSerializer):

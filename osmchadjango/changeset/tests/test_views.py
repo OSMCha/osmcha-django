@@ -238,9 +238,11 @@ class TestChangesetDetailView(TestCase):
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
-        self.changeset = ChangesetFactory(id=31982803)
+        self.changeset = HarmfulChangesetFactory(id=31982803)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
+        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
+        harmful_reason.changesets.add(self.changeset)
 
     def test_changeset_detail_response(self):
         response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
@@ -255,6 +257,10 @@ class TestChangesetDetailView(TestCase):
         self.assertIn(
             {'name': 'suspect word', 'is_visible': True},
             response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'name': 'Vandalism', 'is_visible': True},
+            response.data['properties']['harmful_reasons']
             )
 
 
