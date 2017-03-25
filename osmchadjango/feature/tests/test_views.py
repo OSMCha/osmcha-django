@@ -107,10 +107,70 @@ class TestFeatureListAPIView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 15)
 
+
+class TestOrderingOfFeatureListAPIView(TestCase):
+    def setUp(self):
+        CheckedFeatureFactory.create_batch(10)
+        self.url = reverse('feature:list')
+
     def test_ordering(self):
         # default ordering is by descending changeset id
         response = client.get(self.url)
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
-            [i.id for i in Feature.objects.all()[:50]]
+            [i.id for i in Feature.objects.all()]
+            )
+        # ascending changeset id
+        response = client.get(self.url, {'order_by': 'changeset_id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('changeset_id')]
+            )
+        # descending changeset date
+        response = client.get(self.url, {'order_by': '-changeset__date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('-changeset__date')]
+            )
+        # ascending changeset date
+        response = client.get(self.url, {'order_by': 'changeset__date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('changeset__date')]
+            )
+        # ascending id
+        response = client.get(self.url, {'order_by': 'id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('id')]
+            )
+        # descending id
+        response = client.get(self.url, {'order_by': '-id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('-id')]
+            )
+        # ascending osm_id
+        response = client.get(self.url, {'order_by': 'osm_id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('osm_id')]
+            )
+        # descending osm_id
+        response = client.get(self.url, {'order_by': '-osm_id'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('-osm_id')]
+            )
+        # ascending check_date
+        response = client.get(self.url, {'order_by': 'check_date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('check_date')]
+            )
+        # descending check_date
+        response = client.get(self.url, {'order_by': '-check_date'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Feature.objects.order_by('-check_date')]
             )

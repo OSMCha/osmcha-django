@@ -27,6 +27,7 @@ class FeatureFilter(GeoFilterSet):
         name='harmful_reasons',
         method='filter_all_reasons'
         )
+    order_by = filters.CharFilter(name=None, method='order_queryset')
 
     def filter_changeset_users(self, queryset, name, value):
         lookup = '__'.join([name, 'in'])
@@ -49,6 +50,16 @@ class FeatureFilter(GeoFilterSet):
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset
+
+    def order_queryset(self, queryset, name, value):
+        allowed_fields = [
+            '-id', 'id', '-osm_id', 'osm_id', 'changeset__date',
+            '-changeset__date', 'changeset_id', 'check_date', '-check_date',
+            ]
+        if value in allowed_fields:
+            return queryset.order_by(value)
+        else:
+            return queryset
 
     class Meta:
         model = Feature
