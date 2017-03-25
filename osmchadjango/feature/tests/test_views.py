@@ -6,6 +6,7 @@ from django.conf import settings
 
 from rest_framework.test import APIClient
 
+from ...changeset.models import (HarmfulReason, SuspicionReasons)
 from ..models import Feature
 from .modelfactories import (
     FeatureFactory, CheckedFeatureFactory, WayFeatureFactory
@@ -16,7 +17,6 @@ client = APIClient()
 
 class TestFeatureSuspicionCreate(TestCase):
     def setUp(self):
-        client = Client()
         self.fixture = json.load(open(
             settings.APPS_DIR.path('feature/tests/fixtures/way-23.json')(),
             'r'
@@ -173,4 +173,44 @@ class TestOrderingOfFeatureListAPIView(TestCase):
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('-check_date')]
+            )
+
+
+class TestFeatureDetailAPIView(TestCase):
+    def setUp(self):
+        self.feature = FeatureFactory()
+        self.checked_feature = CheckedFeatureFactory()
+        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
+        harmful_reason.features.add(self.feature)
+        self.reason = SuspicionReasons.objects.create(
+            name='new mapper edits'
+            )
+        self.reason.features.add(self.feature)
+
+    def test_feature_detail_view(self):
+        response = client.get(
+            reverse(
+                'feature:detail',
+                args=[self.feature.changeset.id, self.feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('id'), self.feature.id)
+        self.assertEqual(
+            response.data['properties']['osm_id'],
+            self.feature.osm_id
+            )
+        self.assertEqual(
+            response.data['properties']['changeset'],
+            self.feature.changeset.id
+            )
+        self.assertIn('properties', response.data.keys())
+        self.assertIn('geometry', response.data.keys())
+        self.assertIn(
+            {'name': 'new mapper edits', 'is_visible': True},
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'name': 'Vandalism', 'is_visible': True},
+            response.data['properties']['harmful_reasons']
             )

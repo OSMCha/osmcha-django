@@ -119,24 +119,10 @@ class FeatureListView(ListView):
                 raise ValidationError('bbox param is invalid')
 
 
-class FeatureDetailView(DetailView):
+class FeatureDetailAPIView(RetrieveAPIView):
     """DetailView of Feature Model"""
-    model = Feature
-    context_object_name = 'feature'
-    template_name = 'feature/feature_detail.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(FeatureDetailView, self).get_context_data(**kwargs)
-        new_geojson = json.dumps(self.object.geojson)
-        if self.object.old_geojson:
-            old_geojson = json.dumps(self.object.old_geojson)
-        else:
-            old_geojson = None
-        context.update({
-            'new_geojson': new_geojson,
-            'old_geojson': old_geojson
-            })
-        return context
+    queryset = Feature.objects.all()
+    serializer_class = FeatureSerializer
 
     def get_object(self):
         changeset = self.kwargs['changeset']

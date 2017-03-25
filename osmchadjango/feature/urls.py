@@ -14,7 +14,7 @@ urlpatterns = [
     ),
     url(
         regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=views.FeatureDetailView.as_view(),
+        view=views.FeatureDetailAPIView.as_view(),
         name='detail'
     ),
     url(
