@@ -1,6 +1,7 @@
 import json
+from datetime import date, datetime
 
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
@@ -178,8 +179,7 @@ class TestOrderingOfFeatureListAPIView(TestCase):
 
 class TestFeatureDetailAPIView(TestCase):
     def setUp(self):
-        self.feature = FeatureFactory()
-        self.checked_feature = CheckedFeatureFactory()
+        self.feature = CheckedFeatureFactory()
         harmful_reason = HarmfulReason.objects.create(name='Vandalism')
         harmful_reason.features.add(self.feature)
         self.reason = SuspicionReasons.objects.create(
@@ -201,10 +201,53 @@ class TestFeatureDetailAPIView(TestCase):
             self.feature.osm_id
             )
         self.assertEqual(
+            response.data['properties']['osm_link'],
+            self.feature.osm_link()
+            )
+        self.assertIsInstance(
+            response.data['properties']['date'],
+            date
+            )
+        self.assertEqual(
+            response.data['properties']['source'],
+            self.feature.changeset.source
+            )
+        self.assertEqual(
+            response.data['properties']['comment'],
+            self.feature.changeset.comment
+            )
+        self.assertEqual(
+            response.data['properties']['imagery_used'],
+            self.feature.changeset.imagery_used
+            )
+        self.assertEqual(
+            response.data['properties']['editor'],
+            self.feature.changeset.editor
+            )
+        self.assertEqual(
+            response.data['properties']['url'],
+            self.feature.url
+            )
+        self.assertEqual(
+            response.data['properties']['checked'],
+            self.feature.checked
+            )
+        self.assertEqual(
+            response.data['properties']['harmful'],
+            self.feature.harmful
+            )
+        self.assertEqual(
+            response.data['properties']['check_user'],
+            self.feature.check_user.username
+            )
+        self.assertEqual(
             response.data['properties']['changeset'],
             self.feature.changeset.id
             )
         self.assertIn('properties', response.data.keys())
+        self.assertIn('geojson', response.data['properties'].keys())
+        self.assertIn('check_date', response.data['properties'].keys())
+        self.assertIn('old_geojson', response.data['properties'].keys())
         self.assertIn('geometry', response.data.keys())
         self.assertIn(
             {'name': 'new mapper edits', 'is_visible': True},

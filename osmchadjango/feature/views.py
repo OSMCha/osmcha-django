@@ -1,10 +1,10 @@
 import json
 import datetime
 
-from django.views.generic import View, ListView, DetailView
+from django.views.generic import View, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
