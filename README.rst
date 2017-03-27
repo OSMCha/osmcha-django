@@ -121,6 +121,19 @@ Deployment
 
 Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Heroku and Dokku.
 
+How to login using the oauth api
+--------------------------------
+
+* Make a POST request to ``/login/social/token/openstreetmap/``
+* Take the ``oauth_token`` and redirect the user to
+``https://www.openstreetmap.org/oauth/authorize?redirect_uri=<your_base_url>/login/social/token/openstreetmap/&oauth_token=<oauth_token>``
+* You'll be redirected to something like ``https://osmcha-django-api-test.tilestream.net/?oauth_token=<oauth_token>&oauth_verifier=<oauth_verifier>``
+* Make another POST request to ``https://osmcha-django-api-test.tilestream.net/login/social/token/openstreetmap/``
+and send the ``oauth_token`` and ``oauth_verifier`` as the data. You'll receive
+a token that you can use in authenticated requests
+* For clients to authenticate, the token key should be included in the
+Authorization HTTP header. The key should be prefixed by the string literal "Token",
+with whitespace separating the two strings. For example:  ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``
 
 Management Commands
 --------------------
