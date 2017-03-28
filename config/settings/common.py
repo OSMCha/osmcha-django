@@ -58,6 +58,7 @@ THIRD_PARTY_APPS = (
     'social_django',
     'rest_social_auth',
     'rest_framework_swagger',
+    'corsheaders',
 )
 
 # Apps specific for this project go here.
@@ -76,6 +77,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -313,7 +315,7 @@ FEATURE_CREATION_KEYS = env('DJANGO_FEATURE_CREATION_KEYS', default=[])
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.BasicAuthentication',
+        #'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         ),
@@ -322,3 +324,6 @@ REST_FRAMEWORK = {
         ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     }
+
+# Allow cross domain requests
+CORS_ORIGIN_ALLOW_ALL = True
