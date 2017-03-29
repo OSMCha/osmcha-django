@@ -79,11 +79,10 @@ class TestFeatureSuspicionCreate(TestCase):
                     )
                 )
             )
-        self.assertEqual(
-            feature.old_geojson,
-            self.fixture['properties'].get('oldVersion')
-            )
-        self.assertIsNotNone(feature.geojson)
+        self.assertIn('properties', feature.old_geojson.keys())
+        self.assertIn('geometry', feature.old_geojson.keys())
+        self.assertIn('properties', feature.geojson.keys())
+        self.assertIn('geometry', feature.geojson.keys())
 
     def test_unathenticated_request(self):
         response = client.post(
