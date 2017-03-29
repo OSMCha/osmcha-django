@@ -1,13 +1,16 @@
 import json
-from datetime import date, datetime
+from datetime import date
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
+from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
+from social_django.models import UserSocialAuth
 
 from ...changeset.models import (HarmfulReason, SuspicionReasons)
+from ...users.models import User
 from ..models import Feature
 from .modelfactories import (
     FeatureFactory, CheckedFeatureFactory, WayFeatureFactory
@@ -26,39 +29,66 @@ class TestFeatureSuspicionCreate(TestCase):
             settings.APPS_DIR.path('feature/tests/fixtures/way-24.json')(),
             'r'
             ))
-        settings.FEATURE_CREATION_KEYS = ['secret']
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True,
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.token = Token.objects.create(user=self.user)
 
-    def test_suspicion_create(self):
+    def test_create_feature(self):
         response = client.post(
-            reverse('feature:create_suspicion') + '?key=secret',
+            reverse('feature:create'),
             data=json.dumps(self.fixture),
-            content_type="application/json"
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
             )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
 
         response = client.post(
-            reverse('feature:create_suspicion') + '?key=secret',
+            reverse('feature:create'),
             data=json.dumps(self.new_fixture),
-            content_type="application/json"
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
             )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         self.assertEqual(Feature.objects.count(), 2)
+        self.assertEqual(SuspicionReasons.objects.count(), 2)
 
-    def test_duplicate_suspicion_create(self):
+    def test_unathenticated_request(self):
         response = client.post(
-            reverse('feature:create_suspicion') + '?key=secret',
-            data=self.fixture,
-            content_type="application/json"
-            )
-        self.assertEqual(response.status_code, 400)
-
-    def test_unathenticated_suspicion_create(self):
-        response = client.post(
-            reverse('feature:create_suspicion'),
-            data=self.fixture,
-            content_type="application/json"
+            reverse('feature:create'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
             )
         self.assertEqual(response.status_code, 401)
+
+    def test_is_not_staff_user_request(self):
+        user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='b@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='444444',
+            )
+        token = Token.objects.create(user=user)
+        response = client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.new_fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(token.key)
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Feature.objects.count(), 0)
 
 
 class TestFeatureListAPIView(TestCase):

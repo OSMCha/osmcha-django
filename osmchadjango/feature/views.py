@@ -5,20 +5,24 @@ from django.views.generic import View, ListView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.core.urlresolvers import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db import IntegrityError
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.core.exceptions import ValidationError
-from django.conf import settings
+from django.contrib.gis.gdal.error import GDALException
 
 import django_filters.rest_framework
 from rest_framework.generics import (
-    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
-    DestroyAPIView,
+    ListAPIView, RetrieveAPIView, get_object_or_404
     )
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 
@@ -66,12 +70,12 @@ class FeatureListView(ListView):
             '-delete': 'Most Deletions First',
             '-modify': 'Most Modifications First',
             '-create': 'Most Creations First'
-        }
+            }
         context.update({
             'suspicion_reasons': suspicion_reasons,
             'get': get,
             'sorts': sorts
-        })
+            })
         return context
 
     def get_queryset(self):
@@ -106,7 +110,7 @@ class FeatureListView(ListView):
         return queryset
 
     def validate_params(self, params):
-        """FIXME: define error in except lines."""
+        '''FIXME: define error in except lines.'''
         if 'reasons' in params.keys() and params['reasons'] != '':
             try:
                 s = str(int(params['reasons']))
@@ -120,7 +124,7 @@ class FeatureListView(ListView):
 
 
 class FeatureDetailAPIView(RetrieveAPIView):
-    """DetailView of Feature Model"""
+    '''DetailView of Feature Model'''
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
 
@@ -135,114 +139,113 @@ def get_geojson(request, changeset, slug):
     return JsonResponse(feature.geojson)
 
 
-@csrf_exempt
-def suspicion_create(request):
-    """Create Suspicion Features. It nees to receive a key as get parameter in
-    the url.
-    """
-    if request.method == 'POST':
-        if ('key' in request.GET.dict().keys() and
-                request.GET.dict()['key'] in settings.FEATURE_CREATION_KEYS):
-            try:
-                feature = json.loads(request.body)
-            except:
-                return HttpResponse("Improperly formatted JSON body", status=400)
-            if 'properties' not in feature:
-                return HttpResponse("Expecting a single GeoJSON feature", status=400)
-            properties = feature.get('properties', {})
-            changeset_id = properties.get('osm:changeset')
+@api_view(['POST'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def create_feature(request):
+    '''Create Suspicion Features. It was designed to receive vandalism-dynamosm
+    json output.
+    '''
+    feature = request.data
 
-            if not changeset_id:
-                return HttpResponse(
-                    "Expecting 'osm:changeset' key in the GeoJSON properties",
-                    status=400
-                    )
+    if 'properties' not in feature.keys():
+        return Response(
+            {'message': 'Expecting a single GeoJSON feature.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
+    properties = feature.get('properties', {})
+    changeset_id = properties.get('osm:changeset')
 
-            # Each changed feature should have a "suspicions" array of objects in its properties
-            suspicions = properties.get('suspicions')
-            reasons_texts = set()
-            if suspicions:
-                # Each "suspicion" object should two attributes: a "reason" describing
-                # the suspicion and a "score" roughly describing the badness.
-                # For now, I'm ignoring the score, but in the future it could be used
-                # by osmcha to compute an overall changeset badness score
-                for suspicion in suspicions:
-                    reasons_texts.add(suspicion['reason'])
+    if not changeset_id:
+        return Response(
+            {'message': 'osm:changeset field is missing.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
 
-            reasons = set()
-            for reason_text in reasons_texts:
-                reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
-                    name=reason_text
-                    )
-                reasons.add(reason)
+    # Each changed feature should have a 'suspicions' array of objects in its properties
+    suspicions = properties.get('suspicions')
+    reasons_texts = set()
+    if suspicions:
+        [reasons_texts.add(suspicion['reason']) for suspicion in suspicions]
 
-            feature['properties'].pop("suspicions")
+    reasons = set()
+    for reason_text in reasons_texts:
+        reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
+            name=reason_text
+            )
+        reasons.add(reason)
 
-            defaults = {
-                "date": datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-                "uid": properties.get('osm:uid'),
-                "is_suspect": True,
-                }
+    feature['properties'].pop('suspicions')
 
-            changeset, created = changeset_models.Changeset.objects.get_or_create(
-                id=changeset_id,
-                defaults=defaults
+    defaults = {
+        'date': datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+        'uid': properties.get('osm:uid'),
+        'is_suspect': True
+        }
+
+    changeset, created = changeset_models.Changeset.objects.get_or_create(
+        id=changeset_id,
+        defaults=defaults
+        )
+    if not changeset.is_suspect:
+        changeset.is_suspect = True
+        changeset.save()
+    try:
+        changeset.reasons.add(*reasons)
+    except IntegrityError:
+        # This most often happens due to a race condition,
+        # where two processes are saving to the same changeset
+        # In this case, we can safely ignore this attempted DB Insert,
+        # since what we wanted inserted has already been done through
+        # a separate web request.
+        print('IntegrityError with changeset %s' % changeset_id)
+    except ValueError as e:
+        print('ValueError with changeset %s' % changeset_id)
+
+    defaults = {
+        'osm_id': properties['osm:id'],
+        'osm_type': properties['osm:type'],
+        'url': '{}-{}'.format(properties['osm:type'], properties['osm:id']),
+        'osm_version': properties['osm:version'],
+        'comparator_version': feature.get('comparator_version'),
+        }
+
+    try:
+        defaults['geometry'] = GEOSGeometry(json.dumps(feature['geometry']))
+    except (GDALException, ValueError, TypeError) as e:
+        print('{} in geometry field of feature {}'.format(e, properties['osm:id']))
+
+    if 'oldVersion' in properties.keys():
+        try:
+            defaults['old_geometry'] = GEOSGeometry(
+                json.dumps(properties['oldVersion']['geometry'])
                 )
-            changeset.is_suspect = True
-            try:
-                changeset.reasons.add(*reasons)
-            except IntegrityError:
-                # This most often happens due to a race condition,
-                # where two processes are saving to the same changeset
-                # In this case, we can safely ignore this attempted DB Insert,
-                # since what we wanted inserted has already been done through
-                # a separate web request.
-                print("Integrity error with changeset %s" % changeset_id)
-            except ValueError as e:
-                print("Value error with changeset %s" % changeset_id)
-            changeset.save()
-
-            try:
-                geometry = GEOSGeometry(json.dumps(feature['geometry']))
-            except:
-                geometry = None
-            defaults = {
-                "geometry": geometry,
-                "geojson": feature,
-                "osm_id": properties['osm:id'],
-                "osm_type": properties['osm:type'],
-                "osm_version": properties['osm:version'],
-                }
-            suspicious_feature, created = Feature.objects.get_or_create(
-                osm_id=properties['osm:id'],
-                changeset=changeset,
-                defaults=defaults
+        except (GDALException, ValueError, TypeError) as e:
+            print(
+                '{} in oldVersion.geometry field of feature {}'.format(
+                    e, properties['osm:id'])
                 )
-            if 'oldVersion' in properties.keys():
-                try:
-                    suspicious_feature.old_geometry = GEOSGeometry(
-                        json.dumps(properties['oldVersion']['geometry'])
-                        )
-                except:
-                    suspicious_feature.old_geometry = None
-                suspicious_feature.old_geojson = feature['properties'].pop("oldVersion")
-            suspicious_feature.geojson = feature
-            suspicious_feature.comparator_version = feature.get('comparator_version')
-            suspicious_feature.url = suspicious_feature.osm_type + '-' + str(suspicious_feature.osm_id)
-            try:
-                suspicious_feature.reasons.add(*reasons)
-            except IntegrityError:
-                # This most often happens due to duplicates in dynamosm stream
-                print("Integrity error with feature %s" % suspicious_feature.osm_id)
-            except ValueError as e:
-                print("Value error with feature %s" % suspicious_feature.osm_id)
+        defaults['old_geojson'] = feature['properties'].pop('oldVersion')
 
-            suspicious_feature.save()
-            return JsonResponse({'success': "Suspicion created."})
-        else:
-            return HttpResponse(status=401)
-    else:
-        return HttpResponse(status=400)
+    defaults['geojson'] = feature
+    suspicious_feature, created = Feature.objects.get_or_create(
+        osm_id=properties['osm:id'],
+        changeset=changeset,
+        defaults=defaults
+        )
+
+    try:
+        suspicious_feature.reasons.add(*reasons)
+    except IntegrityError:
+        # This most often happens due to duplicates in dynamosm stream
+        print('Integrity error with feature %s' % suspicious_feature.osm_id)
+    except ValueError as e:
+        print('Value error with feature %s' % suspicious_feature.osm_id)
+
+    return Response(
+        {'message': 'Feature created.'},
+        status=status.HTTP_201_CREATED
+        )
 
 
 class SetHarmfulFeature(SingleObjectMixin, View):

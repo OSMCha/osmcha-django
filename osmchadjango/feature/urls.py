@@ -18,9 +18,9 @@ urlpatterns = [
         name='detail'
     ),
     url(
-        regex=r'^features/api/suspicion/$',
-        view=views.suspicion_create,
-        name='create_suspicion'
+        regex=r'^features/create/$',
+        view=views.create_feature,
+        name='create'
     ),
     url(
         regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/geojson$',
