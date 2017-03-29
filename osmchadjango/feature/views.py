@@ -151,7 +151,7 @@ def create_feature(request):
     if 'properties' not in feature.keys():
         return Response(
             {'message': 'Expecting a single GeoJSON feature.'},
-            status=status.HTTP_403_FORBIDDEN
+            status=status.HTTP_400_BAD_REQUEST
             )
     properties = feature.get('properties', {})
     changeset_id = properties.get('osm:changeset')
@@ -188,6 +188,10 @@ def create_feature(request):
         defaults=defaults
         )
 
+    if not changeset.is_suspect:
+        changeset.is_suspect = True
+        changeset.save()
+
     try:
         changeset.reasons.add(*reasons)
     except IntegrityError:
@@ -221,7 +225,8 @@ def create_feature(request):
         except (GDALException, ValueError, TypeError) as e:
             print(
                 '{} in oldVersion.geometry field of feature {}'.format(
-                    e, properties['osm:id'])
+                    e, properties['osm:id']
+                    )
                 )
         defaults['old_geojson'] = feature['properties'].pop('oldVersion')
 

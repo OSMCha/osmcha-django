@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 
 from django.test import TestCase
 from django.core.urlresolvers import reverse
@@ -112,6 +112,26 @@ class TestFeatureSuspicionCreate(TestCase):
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Feature.objects.count(), 0)
+
+    def test_update_changeset(self):
+        Changeset.objects.create(
+            id=self.fixture['properties'].get('osm:changeset'),
+            uid=self.fixture['properties'].get('osm:uid'),
+            user=self.fixture['properties'].get('osm:user'),
+            date=datetime.utcfromtimestamp(
+                self.fixture['properties'].get('osm:timestamp') / 1000
+                ),
+            is_suspect=False
+            )
+        response = client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Changeset.objects.count(), 1)
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 1)
 
 
 class TestFeatureListAPIView(TestCase):
