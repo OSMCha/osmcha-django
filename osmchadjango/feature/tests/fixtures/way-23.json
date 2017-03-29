@@ -29,10 +29,8 @@
       "newMapper": 1
     },
     "suspicions": [
-      {
-        "reason": "new mapper edits",
-        "reason": "moved an object a significant amount"
-      }
+      {"reason": "new mapper edits"},
+      {"reason": "moved an object a significant amount"}
     ],
     "oldVersion": {
       "geometry": {

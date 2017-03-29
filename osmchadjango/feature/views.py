@@ -1,5 +1,5 @@
 import json
-import datetime
+from datetime import datetime
 
 from django.views.generic import View, ListView
 from django.views.generic.detail import SingleObjectMixin
@@ -178,7 +178,7 @@ def create_feature(request):
     feature['properties'].pop('suspicions')
 
     defaults = {
-        'date': datetime.datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+        'date': datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
         'uid': properties.get('osm:uid'),
         'is_suspect': True
         }
@@ -187,9 +187,7 @@ def create_feature(request):
         id=changeset_id,
         defaults=defaults
         )
-    if not changeset.is_suspect:
-        changeset.is_suspect = True
-        changeset.save()
+
     try:
         changeset.reasons.add(*reasons)
     except IntegrityError:

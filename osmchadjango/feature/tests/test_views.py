@@ -4,12 +4,13 @@ from datetime import date
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from social_django.models import UserSocialAuth
 
-from ...changeset.models import (HarmfulReason, SuspicionReasons)
+from ...changeset.models import (HarmfulReason, SuspicionReasons, Changeset)
 from ...users.models import User
 from ..models import Feature
 from .modelfactories import (
@@ -60,6 +61,29 @@ class TestFeatureSuspicionCreate(TestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Feature.objects.count(), 2)
         self.assertEqual(SuspicionReasons.objects.count(), 2)
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 2)
+        feature = Feature.objects.get(
+            osm_id=169218447, changeset__id=42893048
+            )
+        self.assertEqual(feature.url, 'way-169218447')
+        self.assertEqual(feature.reasons.count(), 2)
+        self.assertTrue(
+            feature.geometry.equals(
+                GEOSGeometry(json.dumps(self.fixture.get('geometry')))
+                )
+            )
+        self.assertTrue(
+            feature.old_geometry.equals(
+                GEOSGeometry(
+                    json.dumps(self.fixture['properties']['oldVersion'].get('geometry'))
+                    )
+                )
+            )
+        self.assertEqual(
+            feature.old_geojson,
+            self.fixture['properties'].get('oldVersion')
+            )
+        self.assertIsNotNone(feature.geojson)
 
     def test_unathenticated_request(self):
         response = client.post(
