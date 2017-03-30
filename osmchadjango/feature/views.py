@@ -162,48 +162,6 @@ def create_feature(request):
             status=status.HTTP_400_BAD_REQUEST
             )
 
-    # Each changed feature should have a 'suspicions' array of objects in its properties
-    suspicions = properties.get('suspicions')
-    reasons_texts = set()
-    if suspicions:
-        [reasons_texts.add(suspicion['reason']) for suspicion in suspicions]
-
-    reasons = set()
-    for reason_text in reasons_texts:
-        reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
-            name=reason_text
-            )
-        reasons.add(reason)
-
-    feature['properties'].pop('suspicions')
-
-    defaults = {
-        'date': datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-        'uid': properties.get('osm:uid'),
-        'is_suspect': True
-        }
-
-    changeset, created = changeset_models.Changeset.objects.get_or_create(
-        id=changeset_id,
-        defaults=defaults
-        )
-
-    if not changeset.is_suspect:
-        changeset.is_suspect = True
-        changeset.save()
-
-    try:
-        changeset.reasons.add(*reasons)
-    except IntegrityError:
-        # This most often happens due to a race condition,
-        # where two processes are saving to the same changeset
-        # In this case, we can safely ignore this attempted DB Insert,
-        # since what we wanted inserted has already been done through
-        # a separate web request.
-        print('IntegrityError with changeset %s' % changeset_id)
-    except ValueError as e:
-        print('ValueError with changeset %s' % changeset_id)
-
     defaults = {
         'osm_id': properties['osm:id'],
         'osm_type': properties['osm:type'],
@@ -232,6 +190,46 @@ def create_feature(request):
                     )
                 )
         defaults['old_geojson'] = feature['properties'].pop('oldVersion')
+
+    # Each changed feature should have a 'suspicions' array of objects in its properties
+    suspicions = feature['properties'].pop('suspicions')
+    reasons_texts = set()
+    if suspicions:
+        [reasons_texts.add(suspicion['reason']) for suspicion in suspicions]
+
+    reasons = set()
+    for reason_text in reasons_texts:
+        reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
+            name=reason_text
+            )
+        reasons.add(reason)
+
+    changeset_defaults = {
+        'date': datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
+        'uid': properties.get('osm:uid'),
+        'is_suspect': True
+        }
+
+    changeset, created = changeset_models.Changeset.objects.get_or_create(
+        id=changeset_id,
+        defaults=changeset_defaults
+        )
+
+    if not changeset.is_suspect:
+        changeset.is_suspect = True
+        changeset.save()
+
+    try:
+        changeset.reasons.add(*reasons)
+    except IntegrityError:
+        # This most often happens due to a race condition,
+        # where two processes are saving to the same changeset
+        # In this case, we can safely ignore this attempted DB Insert,
+        # since what we wanted inserted has already been done through
+        # a separate web request.
+        print('IntegrityError with changeset %s' % changeset_id)
+    except ValueError as e:
+        print('ValueError with changeset %s' % changeset_id)
 
     defaults['geojson'] = feature
     suspicious_feature, created = Feature.objects.get_or_create(

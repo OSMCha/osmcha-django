@@ -82,6 +82,7 @@ class TestFeatureSuspicionCreate(TestCase):
         self.assertIn('properties', feature.old_geojson.keys())
         self.assertIn('geometry', feature.old_geojson.keys())
         self.assertIn('properties', feature.geojson.keys())
+        self.assertNotIn('suspicions', feature.geojson['properties'].keys())
         self.assertIn('geometry', feature.geojson.keys())
 
     def test_unathenticated_request(self):
@@ -143,6 +144,8 @@ class TestFeatureSuspicionCreate(TestCase):
             )
         self.assertEqual(response.status_code, 400)
         self.assertEqual(Feature.objects.count(), 0)
+        self.assertEqual(Changeset.objects.count(), 0)
+        self.assertEqual(SuspicionReasons.objects.count(), 0)
 
 
 class TestFeatureListAPIView(TestCase):
