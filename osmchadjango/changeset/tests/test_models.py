@@ -4,8 +4,9 @@ from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
-from ..models import (Changeset, SuspicionReasons, Import, UserWhitelist,
-    HarmfulReason)
+from ..models import (
+    Changeset, SuspicionReasons, Import, UserWhitelist, HarmfulReason
+    )
 from .modelfactories import ChangesetFactory, UserFactory
 
 
@@ -32,16 +33,9 @@ class TestSuspicionReasonsModel(TestCase):
         self.assertFalse(self.reason_2.for_changeset)
         self.assertTrue(self.reason_2.for_feature)
 
-    def test_merge(self):
-        self.reason_2 = SuspicionReasons.objects.create(name='possible import')
-        self.assertEqual(SuspicionReasons.objects.count(), 2)
-        self.changeset = ChangesetFactory()
-        self.reason.changesets.add(self.changeset)
-        self.reason_2.changesets.add(self.changeset)
-        self.assertEqual(self.changeset.reasons.count(), 2)
-        SuspicionReasons.merge()
-        self.assertEqual(SuspicionReasons.objects.count(), 1)
-        self.assertEqual(self.changeset.reasons.count(), 1)
+    def test_unique(self):
+        with self.assertRaises(ValidationError):
+            SuspicionReasons.objects.create(name='possible import')
 
 
 class TestHarmfulReasonModel(TestCase):
