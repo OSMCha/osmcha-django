@@ -215,7 +215,10 @@ def create_feature(request):
     try:
         defaults['geometry'] = GEOSGeometry(json.dumps(feature['geometry']))
     except (GDALException, ValueError, TypeError) as e:
-        print('{} in geometry field of feature {}'.format(e, properties['osm:id']))
+        return Response(
+            {'message': '{} in geometry field of feature {}'.format(e, properties['osm:id'])},
+            status=status.HTTP_400_BAD_REQUEST
+            )
 
     if 'oldVersion' in properties.keys():
         try:

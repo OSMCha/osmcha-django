@@ -133,6 +133,17 @@ class TestFeatureSuspicionCreate(TestCase):
         self.assertEqual(Changeset.objects.count(), 1)
         self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 1)
 
+    def test_invalid_geometry(self):
+        self.fixture['geometry'] = {}
+        response = client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Feature.objects.count(), 0)
+
 
 class TestFeatureListAPIView(TestCase):
     def setUp(self):
