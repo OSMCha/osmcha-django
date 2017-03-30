@@ -124,8 +124,13 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
 
 class SuspicionReasonsListAPIView(ListAPIView):
     """List SuspicionReasons."""
-    queryset = SuspicionReasons.objects.all()
     serializer_class = SuspicionReasonsSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return SuspicionReasons.objects.all()
+        else:
+            return SuspicionReasons.objects.filter(is_visible=True)
 
 
 class HarmfulReasonListAPIView(ListAPIView):
