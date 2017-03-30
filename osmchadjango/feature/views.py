@@ -144,7 +144,7 @@ def get_geojson(request, changeset, slug):
 @permission_classes((IsAuthenticated, IsAdminUser))
 def create_feature(request):
     '''Create Suspicion Features. It was designed to receive vandalism-dynamosm
-    json output.
+    json output. Only is_staff users can use this endpoint.
     '''
     feature = request.data
 

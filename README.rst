@@ -48,7 +48,6 @@ PGHOST                                  PGHOST                            localh
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
-DJANGO_FEATURE_CREATION_KEYS            CREATION_KEYS                     []                                        None
 ======================================= ================================= ========================================= ===========================================
 
 
@@ -116,19 +115,26 @@ To create an **superuser account**, use this command::
 
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
 
-Deployment
-------------
-
-Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Heroku and Dokku.
-
 How to login using the oauth api
---------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Make a POST request to ``/login/social/token/openstreetmap/``
 * Take the ``oauth_token`` and redirect the user to ``https://www.openstreetmap.org/oauth/authorize?redirect_uri=<your_base_url>/login/social/token/openstreetmap/&oauth_token=<oauth_token>``
 * You'll be redirected to something like ``https://osmcha-django-api-test.tilestream.net/?oauth_token=<oauth_token>&oauth_verifier=<oauth_verifier>``
 * Make another POST request to ``https://osmcha-django-api-test.tilestream.net/login/social/token/openstreetmap/`` and send the ``oauth_token`` and ``oauth_verifier`` as the data. You'll receive a token that you can use in authenticated requests.
 * For clients to authenticate, the token key should be included in the Authorization HTTP header. The key should be prefixed by the string literal "Token", with whitespace separating the two strings. For example: ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``.
+
+Feature creation endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The feature creation endpoint allows only admin users to create features. You can
+use the admin site to create a token to the user.
+
+Deployment
+------------
+
+Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Heroku and Dokku.
+
 
 Management Commands
 --------------------
