@@ -6,7 +6,7 @@ from ..users.models import User
 
 
 class SuspicionReasons(models.Model):
-    name = models.CharField(max_length=255, db_index=True)
+    name = models.CharField(max_length=255, db_index=True, unique=True)
     description = models.CharField(max_length=1000, blank=True)
     is_visible = models.BooleanField(default=True)
     for_changeset = models.BooleanField(default=True)
