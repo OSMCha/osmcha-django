@@ -19,26 +19,6 @@ class SuspicionReasons(models.Model):
         self.full_clean()
         super(SuspicionReasons, self).save(*args, **kwargs)
 
-    @classmethod
-    def merge(kls):
-        '''
-            Utility method to clean-up duplicate suspicious reasons
-            For each distinct suspicious reason name, finds other reasons
-            named the same, merges into the distinct reason, and then
-            deletes the duplicated suspicious reason.
-        '''
-        distinct_reasons = kls.objects.all().distinct('name')
-        for reason in distinct_reasons:
-            same_reasons = kls.objects.filter(name=reason.name).exclude(pk=reason.pk)
-            if same_reasons.count() > 0:
-                for same_reason in same_reasons:
-                    changesets = Changeset.objects.filter(reasons=same_reason)
-                    for c in changesets:
-                        c.reasons.remove(same_reason)
-                        c.reasons.add(reason)
-                    print("deleting %s" % same_reason.name)
-                    same_reason.delete()
-
     class Meta:
         verbose_name = 'Suspicion reason'
         verbose_name_plural = 'Suspicion reasons'
