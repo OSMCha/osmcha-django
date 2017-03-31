@@ -238,9 +238,14 @@ class TestChangesetDetailView(TestCase):
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
+        self.reason_3 = SuspicionReasons.objects.create(
+            name='Big edit in my city',
+            is_visible=False
+            )
         self.changeset = HarmfulChangesetFactory(id=31982803)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
+        self.reason_3.changesets.add(self.changeset)
         harmful_reason = HarmfulReason.objects.create(name='Vandalism')
         harmful_reason.changesets.add(self.changeset)
 
@@ -251,17 +256,67 @@ class TestChangesetDetailView(TestCase):
         self.assertIn('properties', response.data.keys())
         self.assertIn('geometry', response.data.keys())
         self.assertIn(
-            {'name': 'possible import', 'is_visible': True},
-            response.data['properties']['reasons']
-            )
-        self.assertIn(
-            {'name': 'suspect word', 'is_visible': True},
-            response.data['properties']['reasons']
-            )
-        self.assertIn(
             {'name': 'Vandalism', 'is_visible': True},
             response.data['properties']['harmful_reasons']
             )
+
+
+class TestReasonFieldInChangesetViews(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
+        self.reason_3 = SuspicionReasons.objects.create(
+            name='Big edit in my city',
+            is_visible=False
+            )
+        self.changeset = HarmfulChangesetFactory(id=31982803)
+        self.reason_1.changesets.add(self.changeset)
+        self.reason_2.changesets.add(self.changeset)
+        self.reason_3.changesets.add(self.changeset)
+
+    def test_detail_view_by_normal_user(self):
+        response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['properties']['reasons']), 2)
+        self.assertIn('possible import', response.data['properties']['reasons'])
+        self.assertIn('suspect word', response.data['properties']['reasons'])
+
+    def test_detail_view_by_admin(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            'Big edit in my city',
+            response.data['properties']['reasons']
+            )
+        self.assertEqual(len(response.data['properties']['reasons']), 3)
+
+    def test_list_view_by_normal_user(self):
+        response = client.get(reverse('changeset:list'))
+        self.assertEqual(response.status_code, 200)
+        reasons = response.data['features'][0]['properties']['reasons']
+        self.assertEqual(len(reasons), 2)
+        self.assertIn('possible import', reasons)
+        self.assertIn('suspect word', reasons)
+
+    def test_list_view_by_admin(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(reverse('changeset:list'))
+        self.assertEqual(response.status_code, 200)
+        reasons = response.data['features'][0]['properties']['reasons']
+        self.assertIn('Big edit in my city', reasons)
+        self.assertEqual(len(reasons), 3)
 
 
 class TestSuspicionReasonsAPIListView(TestCase):
