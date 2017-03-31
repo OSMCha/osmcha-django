@@ -49,7 +49,6 @@ class ChangesetListAPIView(ListAPIView):
     type of geometry. The other is the 'in_bbox' parameter, which needs to
     receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
     accepted formats.
-
     """
     queryset = Changeset.objects.all()
     pagination_class = StandardResultsSetPagination

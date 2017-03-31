@@ -31,8 +31,8 @@ class BasicHarmfulReasonSerializer(ModelSerializer):
 
 class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
-    harmful_reasons = BasicHarmfulReasonSerializer(many=True)
     reasons = StringRelatedField(many=True, read_only=True)
+    harmful_reasons = StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Changeset
@@ -42,9 +42,15 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
 
 class ChangesetSerializer(ChangesetSerializerToStaff):
     reasons = SerializerMethodField()
+    harmful_reasons = SerializerMethodField()
 
     def get_reasons(self, obj):
         return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
+
+    def get_harmful_reasons(self, obj):
+        return obj.harmful_reasons.filter(
+            is_visible=True
+            ).values_list('name', flat=True)
 
 
 class UserWhitelistSerializer(ModelSerializer):

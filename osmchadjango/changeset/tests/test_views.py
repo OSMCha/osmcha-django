@@ -248,13 +248,9 @@ class TestChangesetDetailView(TestCase):
         self.assertEqual(response.data.get('id'), 31982803)
         self.assertIn('properties', response.data.keys())
         self.assertIn('geometry', response.data.keys())
-        self.assertIn(
-            {'name': 'Vandalism', 'is_visible': True},
-            response.data['properties']['harmful_reasons']
-            )
 
 
-class TestReasonFieldInChangesetViews(TestCase):
+class TestReasonsAndHarmfulReasonFieldsInChangesetViews(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test',
@@ -277,13 +273,25 @@ class TestReasonFieldInChangesetViews(TestCase):
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
         self.reason_3.changesets.add(self.changeset)
+        self.harmful_reason_1 = HarmfulReason.objects.create(name='Vandalism')
+        self.harmful_reason_2 = HarmfulReason.objects.create(
+            name='Vandalism in my city',
+            is_visible=False
+            )
+        self.harmful_reason_1.changesets.add(self.changeset)
+        self.harmful_reason_2.changesets.add(self.changeset)
 
     def test_detail_view_by_normal_user(self):
         response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
+        self.assertEqual(len(response.data['properties']['harmful_reasons']), 1)
         self.assertIn('possible import', response.data['properties']['reasons'])
         self.assertIn('suspect word', response.data['properties']['reasons'])
+        self.assertIn(
+            'Vandalism',
+            response.data['properties']['harmful_reasons']
+            )
 
     def test_detail_view_by_admin(self):
         client.login(username=self.user.username, password='password')
@@ -294,22 +302,33 @@ class TestReasonFieldInChangesetViews(TestCase):
             response.data['properties']['reasons']
             )
         self.assertEqual(len(response.data['properties']['reasons']), 3)
+        self.assertEqual(len(response.data['properties']['harmful_reasons']), 2)
+        self.assertIn(
+            'Vandalism in my city',
+            response.data['properties']['harmful_reasons']
+            )
 
     def test_list_view_by_normal_user(self):
         response = client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
+        harmful_reasons = response.data['features'][0]['properties']['harmful_reasons']
         self.assertEqual(len(reasons), 2)
+        self.assertEqual(len(harmful_reasons), 1)
         self.assertIn('possible import', reasons)
         self.assertIn('suspect word', reasons)
+        self.assertIn('Vandalism', harmful_reasons)
 
     def test_list_view_by_admin(self):
         client.login(username=self.user.username, password='password')
         response = client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
-        self.assertIn('Big edit in my city', reasons)
+        harmful_reasons = response.data['features'][0]['properties']['harmful_reasons']
         self.assertEqual(len(reasons), 3)
+        self.assertEqual(len(harmful_reasons), 2)
+        self.assertIn('Big edit in my city', reasons)
+        self.assertIn('Vandalism in my city', harmful_reasons)
 
 
 class TestSuspicionReasonsAPIListView(TestCase):
