@@ -12,11 +12,6 @@ urlpatterns = [
         name='list'
     ),
     url(
-        regex=r'^changesets/csv/$',
-        view=views.ChangesetCSVListAPIView.as_view(),
-        name='csv-list'
-    ),
-    url(
         regex=r'^changesets/suspect$',
         view=views.SuspectChangesetListAPIView.as_view(),
         name='suspect-list'

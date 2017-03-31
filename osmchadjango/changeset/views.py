@@ -14,6 +14,7 @@ from rest_framework.generics import (
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
@@ -21,8 +22,8 @@ from rest_framework_csv.renderers import CSVRenderer
 from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetCSVSerializer,
-    SuspicionReasonsSerializer, HarmfulReasonSerializer, UserWhitelistSerializer
+    ChangesetSerializer, ChangesetSerializerToStaff, UserWhitelistSerializer,
+    SuspicionReasonsSerializer, HarmfulReasonSerializer
     )
 
 
@@ -32,19 +33,27 @@ class StandardResultsSetPagination(GeoJsonPagination):
     max_page_size = 500
 
 
+class PaginatedCSVRenderer (CSVRenderer):
+    results_field = 'features'
+
+    def render(self, data, *args, **kwargs):
+        if not isinstance(data, list):
+            data = data.get(self.results_field, [])
+        return super(PaginatedCSVRenderer, self).render(data, *args, **kwargs)
+
+
 class ChangesetListAPIView(ListAPIView):
     """List changesets. The data can be filtered by any field, except 'id' and
     'uuid'. There are two ways of filtering changesets by geolocation. The first
     option is to use the 'bbox_overlaps' filter field, which can receive any
     type of geometry. The other is the 'in_bbox' parameter, which needs to
-    receive the min Lat, min Lon, max Lat, max Lon values.
-
-    sub-urls:
-    We have some sub-urls to make it easy to access filtered data: They are:
+    receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
+    accepted formats.
 
     """
     queryset = Changeset.objects.all()
     pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
     filter_backends = (
         InBBoxFilter,
@@ -58,25 +67,6 @@ class ChangesetListAPIView(ListAPIView):
             return ChangesetSerializerToStaff
         else:
             return ChangesetSerializer
-
-
-class ChangesetCSVListAPIView(ListAPIView):
-    """List changesets and return in the CSV format. The data can be filtered by
-    any field, except 'id' and 'uuid'. There are two ways of filtering
-    changesets by geolocation. The first option is to use the 'bbox_overlaps'
-    filter field, which can receive any type of geometry. The other is the 'in_bbox'
-    parameter, which needs to receive the min Lat, min Lon, max Lat, max Lon values.
-    """
-    queryset = Changeset.objects.all()
-    serializer_class = ChangesetCSVSerializer
-    renderer_classes = (CSVRenderer,)
-    bbox_filter_field = 'bbox'
-    filter_backends = (
-        InBBoxFilter,
-        django_filters.rest_framework.DjangoFilterBackend,
-        )
-    bbox_filter_include_overlapping = True
-    filter_class = ChangesetFilter
 
 
 class ChangesetDetailAPIView(RetrieveAPIView):

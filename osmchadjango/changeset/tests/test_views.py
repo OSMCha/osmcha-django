@@ -82,20 +82,13 @@ class TestChangesetListView(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
-
-class TestChangesetCSVListView(TestCase):
-    def setUp(self):
-        SuspectChangesetFactory.create_batch(26)
-        ChangesetFactory.create_batch(26)
-        self.url = reverse('changeset:csv-list')
-
-    def test_changeset_list_response(self):
-        response = client.get(self.url)
+    def test_csv_renderer(self):
+        response = client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 52)
-        response = client.get(self.url, {'is_suspect': 'true'})
+        self.assertEqual(len(response.data['features']), 52)
+        response = client.get(self.url, {'is_suspect': 'true', 'format': 'csv'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 26)
+        self.assertEqual(len(response.data['features']), 26)
 
 
 class TestChangesetFilteredViews(TestCase):

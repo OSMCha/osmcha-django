@@ -47,16 +47,6 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
         return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
 
 
-class ChangesetCSVSerializer(ModelSerializer):
-    check_user = ReadOnlyField(source='check_user.username')
-    reasons = BasicSuspicionReasonsSerializer(many=True)
-    harmful_reasons = BasicHarmfulReasonSerializer(many=True)
-
-    class Meta:
-        model = Changeset
-        exclude = ('powerfull_editor', 'uid', 'bbox')
-
-
 class UserWhitelistSerializer(ModelSerializer):
     class Meta:
         model = UserWhitelist
