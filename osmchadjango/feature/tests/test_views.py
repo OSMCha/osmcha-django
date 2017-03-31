@@ -30,6 +30,10 @@ class TestFeatureSuspicionCreate(TestCase):
             settings.APPS_DIR.path('feature/tests/fixtures/way-24.json')(),
             'r'
             ))
+        self.unvisible_fixture = json.load(open(
+            settings.APPS_DIR.path('feature/tests/fixtures/way-23-with-unvisible-reason.json')(),
+            'r'
+            ))
         self.user = User.objects.create_user(
             username='test',
             password='password',
@@ -146,6 +150,45 @@ class TestFeatureSuspicionCreate(TestCase):
         self.assertEqual(Feature.objects.count(), 0)
         self.assertEqual(Changeset.objects.count(), 0)
         self.assertEqual(SuspicionReasons.objects.count(), 0)
+
+    def test_create_feature_with_is_visible_false(self):
+        response = client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.unvisible_fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Feature.objects.count(), 1)
+        self.assertEqual(SuspicionReasons.objects.count(), 1)
+        self.assertEqual(
+            SuspicionReasons.objects.filter(is_visible=False).count(), 1
+            )
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 0)
+
+    def test_create_feature_with_is_visible_false_and_suspect_changeset(self):
+        Changeset.objects.create(
+            id=self.unvisible_fixture['properties'].get('osm:changeset'),
+            uid=self.unvisible_fixture['properties'].get('osm:uid'),
+            user=self.unvisible_fixture['properties'].get('osm:user'),
+            date=datetime.utcfromtimestamp(
+                self.unvisible_fixture['properties'].get('osm:timestamp') / 1000
+                ),
+            is_suspect=True
+            )
+        response = client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.unvisible_fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Feature.objects.count(), 1)
+        self.assertEqual(SuspicionReasons.objects.count(), 1)
+        self.assertEqual(
+            SuspicionReasons.objects.filter(is_visible=False).count(), 1
+            )
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 1)
 
 
 class TestFeatureListAPIView(TestCase):

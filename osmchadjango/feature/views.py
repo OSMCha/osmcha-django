@@ -193,21 +193,25 @@ def create_feature(request):
 
     # Each changed feature should have a 'suspicions' array of objects in its properties
     suspicions = feature['properties'].pop('suspicions')
-    reasons_texts = set()
+    has_visible_features = False
     if suspicions:
-        [reasons_texts.add(suspicion['reason']) for suspicion in suspicions]
-
-    reasons = set()
-    for reason_text in reasons_texts:
-        reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
-            name=reason_text
-            )
-        reasons.add(reason)
+        reasons = set()
+        for suspicion in suspicions:
+            if suspicion.get('is_visible') is False:
+                is_visible = False
+            else:
+                has_visible_features = True
+                is_visible = True
+            reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
+                name=suspicion['reason'],
+                defaults={'is_visible': is_visible}
+                )
+            reasons.add(reason)
 
     changeset_defaults = {
         'date': datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
         'uid': properties.get('osm:uid'),
-        'is_suspect': True
+        'is_suspect': has_visible_features
         }
 
     changeset, created = changeset_models.Changeset.objects.get_or_create(
@@ -215,7 +219,7 @@ def create_feature(request):
         defaults=changeset_defaults
         )
 
-    if not changeset.is_suspect:
+    if not changeset.is_suspect and has_visible_features:
         changeset.is_suspect = True
         changeset.save()
 
