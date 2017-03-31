@@ -134,8 +134,13 @@ class SuspicionReasonsListAPIView(ListAPIView):
 
 class HarmfulReasonListAPIView(ListAPIView):
     """List HarmfulReasons."""
-    queryset = HarmfulReason.objects.all()
     serializer_class = HarmfulReasonSerializer
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return HarmfulReason.objects.all()
+        else:
+            return HarmfulReason.objects.filter(is_visible=True)
 
 
 @api_view(['PUT'])

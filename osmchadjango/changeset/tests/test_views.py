@@ -380,12 +380,26 @@ class TestHarmfulReasonAPIListView(TestCase):
             name='Illegal import',
             description='A changeset that imported illegal data.'
             )
-        self.reason_2 = HarmfulReason.objects.create(name='Vandalism')
+        self.reason_2 = HarmfulReason.objects.create(
+            name='Vandalism in my city',
+            is_visible=False
+            )
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
 
     def test_view(self):
         response = client.get(reverse('changeset:harmful-reasons-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 1)
         reason_dict = {
             'id': self.reason_1.id,
             'name': 'Illegal import',
@@ -398,6 +412,12 @@ class TestHarmfulReasonAPIListView(TestCase):
             reason_dict,
             response.data
             )
+
+    def test_admin_user_request(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(reverse('changeset:harmful-reasons-list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
 
 
 class TestCheckChangesetViews(TestCase):
