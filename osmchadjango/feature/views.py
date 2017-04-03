@@ -256,44 +256,6 @@ def create_feature(request):
         )
 
 
-class SetHarmfulFeature(SingleObjectMixin, View):
-    model = Feature
-
-    def get_object(self):
-        changeset = self.kwargs['changeset']
-        url = self.kwargs['slug']
-
-        return get_object_or_404(Feature, changeset=changeset, url=url)
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'feature/confirm_modify.html',
-                {'feature': self.object, 'modification': _('harmful')}
-                )
-        else:
-            return render(request, 'feature/not_allowed.html')
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = True
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(
-                reverse(
-                    'feature:detail',
-                    args=[self.object.changeset, self.object.url]
-                    )
-                )
-        else:
-            return render(request, 'feature/not_allowed.html')
-
-
 @csrf_exempt
 def whitelist_user(request):
     '''View to mark a user as whitelisted.
@@ -312,35 +274,70 @@ def whitelist_user(request):
     return JsonResponse({'success': 'User %s has been white-listed' % name})
 
 
-class SetGoodFeature(SingleObjectMixin, View):
-    model = Feature
-
-    def get_object(self):
-        changeset = self.kwargs['changeset']
-        url = self.kwargs['slug']
-
-        return get_object_or_404(Feature, changeset=changeset, url=url)
-
-    def get(self, request, *args, **kwargs):
-        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
-            return render(
-                request,
-                'feature/confirm_modify.html',
-                {'feature': self.object, 'modification': _('good')}
+@api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def set_harmful_feature(request, changeset, slug):
+    """Mark a feature as harmful. The 'harmful_reasons'
+    field is optional and needs to be a list with the ids of the reasons. If you
+    don't want to set the 'harmful_reasons', you don't need to send data, just
+    make an empty PUT request.
+    """
+    instance = get_object_or_404(Feature, changeset=changeset, url=slug)
+    if instance.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+        if instance.checked is False:
+            instance.checked = True
+            instance.harmful = True
+            instance.check_user = request.user
+            instance.check_date = timezone.now()
+            instance.save()
+            if 'harmful_reasons' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('harmful_reasons')]
+                harmful_reasons = changeset_models.HarmfulReason.objects.filter(
+                    id__in=ids
+                    )
+                for reason in harmful_reasons:
+                    reason.features.add(instance)
+            return Response(
+                {'message': 'Feature marked as harmful.'},
+                status=status.HTTP_200_OK
                 )
         else:
-            return render(request, 'feature/not_allowed.html')
+            return Response(
+                {'message': 'Feature could not be updated.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+    else:
+        return Response(
+            {'message': 'User does not have permission to update this feature.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = False
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(
-                reverse('feature:detail', args=[self.object.changeset, self.object.url])
+
+@api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def set_good_feature(request, changeset, slug):
+    """Mark a feature as good."""
+    instance = get_object_or_404(Feature, changeset=changeset, url=slug)
+    if instance.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+        if instance.checked is False:
+            instance.checked = True
+            instance.harmful = False
+            instance.check_user = request.user
+            instance.check_date = timezone.now()
+            instance.save()
+            return Response(
+                {'message': 'Feature marked as good.'},
+                status=status.HTTP_200_OK
                 )
         else:
-            return render(request, 'feature/not_allowed.html')
+            return Response(
+                {'message': 'Feature could not be updated.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+    else:
+        return Response(
+            {'message': 'User does not have permission to update this feature.'},
+            status=status.HTTP_403_FORBIDDEN
+            )

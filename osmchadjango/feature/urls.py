@@ -29,13 +29,13 @@ urlpatterns = [
     ),
     url(
         regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=login_required(views.SetHarmfulFeature.as_view()),
-        name='set_harmful'
+        view=views.set_harmful_feature,
+        name='set-harmful'
     ),
     url(
         regex=r'^set-good/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=login_required(views.SetGoodFeature.as_view()),
-        name='set_good'
+        view=views.set_good_feature,
+        name='set-good'
     ),
     url(
         regex=r'^features/whitelist-user$',

@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
+from django.test.client import encode_multipart
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -387,3 +388,155 @@ class TestFeatureDetailAPIView(TestCase):
             {'name': 'Vandalism', 'is_visible': True},
             response.data['properties']['harmful_reasons']
             )
+
+
+class TestCheckFeatureViews(TestCase):
+    def setUp(self):
+        self.feature = FeatureFactory()
+        self.user = User.objects.create_user(
+            username='test_user',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='44444',
+            )
+        self.changeset_user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='b@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.changeset_user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.harmful_reason_1 = HarmfulReason.objects.create(name='Illegal import')
+        self.harmful_reason_2 = HarmfulReason.objects.create(name='Vandalism')
+        self.set_harmful_url = reverse(
+            'feature:set-harmful',
+            args=[self.feature.changeset, self.feature.url]
+            )
+        self.set_good_url = reverse(
+            'feature:set-good',
+            args=[self.feature.changeset.id, self.feature.url]
+            )
+
+    def test_check_feature_unauthenticated(self):
+        response = client.put(self.set_harmful_url)
+        self.assertEqual(response.status_code, 401)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+
+        response = client.put(self.set_good_url)
+        self.assertEqual(response.status_code, 401)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+
+    def test_set_harmful_feature_not_allowed(self):
+        """User can't mark the feature as harmful because he is the author of
+        the changeset that modified the feature.
+        """
+        client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(self.set_harmful_url)
+        self.assertEqual(response.status_code, 401)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+        self.assertIsNone(self.feature.check_user)
+        self.assertIsNone(self.feature.check_date)
+
+    def test_set_good_feature_not_allowed(self):
+        """User can't mark the feature as good because he is the author of
+        the changeset that modified the feature.
+        """
+        client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(self.set_good_url)
+        self.assertEqual(response.status_code, 401)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+        self.assertIsNone(self.feature.check_user)
+        self.assertIsNone(self.feature.check_date)
+
+    def test_set_harmful_feature_with_harmful_reasons(self):
+        client.login(username=self.user.username, password='password')
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            )
+        response = client.put(
+            self.set_harmful_url,
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            )
+        self.assertEqual(response.status_code, 200)
+        self.feature.refresh_from_db()
+        self.assertTrue(self.feature.harmful)
+        self.assertTrue(self.feature.checked)
+        self.assertEqual(self.feature.harmful_reasons.count(), 2)
+        self.assertIn(
+            self.harmful_reason_1,
+            self.feature.harmful_reasons.all()
+            )
+        self.assertIn(
+            self.harmful_reason_2,
+            self.feature.harmful_reasons.all()
+            )
+
+    def test_set_harmful_feature(self):
+        client.login(username=self.user.username, password='password')
+        response = client.put(self.set_harmful_url)
+        self.assertEqual(response.status_code, 200)
+        self.feature.refresh_from_db()
+        self.assertTrue(self.feature.harmful)
+        self.assertTrue(self.feature.checked)
+
+    def test_set_good_feature(self):
+        client.login(username=self.user.username, password='password')
+        response = client.put(self.set_good_url)
+        self.assertEqual(response.status_code, 200)
+        self.feature.refresh_from_db()
+        self.assertFalse(self.feature.harmful)
+        self.assertTrue(self.feature.checked)
+
+    def test_try_to_check_feature_already_checked(self):
+        feature = CheckedFeatureFactory()
+        client.login(username=self.user.username, password='password')
+        # first try to mark a checked feature as good
+        response = client.put(
+            reverse('feature:set-good', args=[feature.changeset, feature.url])
+            )
+        self.assertEqual(response.status_code, 403)
+        feature.refresh_from_db()
+        self.assertNotEqual(feature.check_user, self.user)
+
+        # now try to mark a checked feature as harmful
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            )
+        response = client.put(
+            reverse('feature:set-harmful', args=[feature.changeset, feature.url]),
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            )
+        self.assertEqual(response.status_code, 403)
+        feature.refresh_from_db()
+        self.assertNotEqual(feature.check_user, self.user)
+
+    def test_404(self):
+        client.login(username=self.user.username, password='password')
+        response = client.put(
+            reverse('feature:set-good', args=[4988787832, 'way-16183212']),
+            )
+        self.assertEqual(response.status_code, 404)
+
+        response = client.put(
+            reverse('feature:set-harmful', args=[4988787832, 'way-16183212']),
+            )
+        self.assertEqual(response.status_code, 404)
