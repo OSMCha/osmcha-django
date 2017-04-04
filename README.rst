@@ -118,10 +118,10 @@ For convenience, you can keep your normal user logged in on Chrome and your supe
 How to login using the oauth api
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Make a POST request to ``<your_base_url>/login/social/token/openstreetmap/``
-* Take the ``oauth_token`` and redirect the user to ``https://www.openstreetmap.org/oauth/authorize?redirect_uri=<your_base_url>/login/social/token/openstreetmap/&oauth_token=<oauth_token>``
-* You'll be redirected to something like ``<your_base_url>/?oauth_token=<oauth_token>&oauth_verifier=<oauth_verifier>``
-* Make another POST request to ``<your_base_url>/login/social/token/openstreetmap/`` and send the ``oauth_token`` and ``oauth_verifier`` as the data. You'll receive a token that you can use in authenticated requests.
+* Make a POST request to ``<your_base_url>/api/v1/login/social/token/openstreetmap/``
+* Take the ``oauth_token`` and redirect the user to ``https://www.openstreetmap.org/oauth/authorize?redirect_uri=<your_base_url>/api/v1/login/social/token/openstreetmap/&oauth_token=<oauth_token>``
+* You'll be redirected to something like ``<your_base_url>/api/v1/?oauth_token=<oauth_token>&oauth_verifier=<oauth_verifier>``
+* Make another POST request to ``<your_base_url>/api/v1/login/social/token/openstreetmap/`` and send the ``oauth_token`` and ``oauth_verifier`` as the data. You'll receive a token that you can use in authenticated requests.
 * For clients to authenticate, the token key should be included in the Authorization HTTP header. The key should be prefixed by the string literal "Token", with whitespace separating the two strings. For example: ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``.
 
 We have an instance running in https://osmcha-django-api-test.tilestream.net

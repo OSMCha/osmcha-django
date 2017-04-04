@@ -20,16 +20,16 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     # django-rest-social-auth token urls
-    url(r'^login/', include('rest_social_auth.urls_token')),
+    url(r'^api/v1/login/', include('rest_social_auth.urls_token')),
     # User management
-    url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
+    url(r'^api/v1/users/', include("osmchadjango.users.urls", namespace="users")),
 
     # api docs
     url(r'^api-docs/', schema_view),
 
     # Your stuff: custom urls includes go here
-    url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
-    url(r'^', include("osmchadjango.feature.urls", namespace="feature")),
+    url(r'^api/v1/', include("osmchadjango.changeset.urls", namespace="changeset")),
+    url(r'^api/v1/', include("osmchadjango.feature.urls", namespace="feature")),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
