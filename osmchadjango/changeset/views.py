@@ -48,7 +48,7 @@ class ChangesetListAPIView(ListAPIView):
     option is to use the 'bbox_overlaps' filter field, which can receive any
     type of geometry. The other is the 'in_bbox' parameter, which needs to
     receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
-    accepted formats.
+    accepted formats. The default pagination return 50 objects by page.
     """
     queryset = Changeset.objects.all()
     pagination_class = StandardResultsSetPagination

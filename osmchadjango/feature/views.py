@@ -40,6 +40,11 @@ class StandardResultsSetPagination(GeoJsonPagination):
 
 
 class FeatureListAPIView(ListAPIView):
+    """List Features. It can be filtered using the 'location' parameter, which can
+    receive any valid geometry, or using the 'in_bbox' field, which must receive
+    the min Lat, min Lon, max Lat, max Lon values. It's also possible to filter
+    using other fields. The default pagination return 50 objects by page.
+    """
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
     pagination_class = StandardResultsSetPagination
@@ -52,79 +57,8 @@ class FeatureListAPIView(ListAPIView):
     filter_class = FeatureFilter
 
 
-class FeatureListView(ListView):
-    context_object_name = 'features'
-    template_name = 'feature/feature_list.html'
-    paginate_by = 15
-
-    def get_context_data(self, **kwargs):
-        context = super(FeatureListView, self).get_context_data(**kwargs)
-        suspicion_reasons = changeset_models.SuspicionReasons.objects.all()
-        get = self.request.GET.dict()
-        if 'harmful' not in get:
-            get['harmful'] = 'False'
-        if 'checked' not in get:
-            get['checked'] = 'All'
-        sorts = {
-            '-date': 'Recent First',
-            '-delete': 'Most Deletions First',
-            '-modify': 'Most Modifications First',
-            '-create': 'Most Creations First'
-            }
-        context.update({
-            'suspicion_reasons': suspicion_reasons,
-            'get': get,
-            'sorts': sorts
-            })
-        return context
-
-    def get_queryset(self):
-        queryset = Feature.objects.all().select_related('changeset')
-        params = {}
-        GET_dict = self.request.GET.dict()
-        for key in GET_dict:
-            if key in GET_dict and GET_dict[key] != '':
-                params[key] = GET_dict[key]
-
-        self.validate_params(params)
-
-        if 'harmful' not in params:
-            params['harmful'] = 'False'
-        if 'checked' not in params:
-            params['checked'] = 'All'
-        if 'reasons' in params:
-            if params['reasons'] == 'None':
-                queryset = queryset.filter(reasons=None)
-            else:
-                queryset = queryset.filter(reasons=int(params['reasons']))
-        if 'bbox' in params:
-            bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            queryset = queryset.filter(changeset__bbox__bboverlaps=bbox)
-
-        queryset = FeatureFilter(params, queryset=queryset).qs
-
-        if 'sort' in GET_dict and GET_dict['sort'] != '':
-            queryset = queryset.order_by(GET_dict['sort'])
-        else:
-            queryset = queryset.order_by('-changeset__date')
-        return queryset
-
-    def validate_params(self, params):
-        '''FIXME: define error in except lines.'''
-        if 'reasons' in params.keys() and params['reasons'] != '':
-            try:
-                s = str(int(params['reasons']))
-            except:
-                raise ValidationError('reasons param must be a number')
-        if 'bbox' in params.keys() and params['bbox'] != '':
-            try:
-                bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            except:
-                raise ValidationError('bbox param is invalid')
-
-
 class FeatureDetailAPIView(RetrieveAPIView):
-    '''DetailView of Feature Model'''
+    '''Get details of a Feature object. Type: GeoJSON'''
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
 
@@ -132,11 +66,6 @@ class FeatureDetailAPIView(RetrieveAPIView):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
         return get_object_or_404(Feature, changeset=changeset, url=url)
-
-
-def get_geojson(request, changeset, slug):
-    feature = get_object_or_404(Feature, url=slug)
-    return JsonResponse(feature.geojson)
 
 
 @api_view(['POST'])
@@ -254,24 +183,6 @@ def create_feature(request):
         {'message': 'Feature created.'},
         status=status.HTTP_201_CREATED
         )
-
-
-@csrf_exempt
-def whitelist_user(request):
-    '''View to mark a user as whitelisted.
-    Accepts a single post parameter with the 'name' of the user to be white-listed.
-    Whitelists that user for the currently logged in user.
-    TODO: can this be converted to a CBV?
-    '''
-    name = request.POST.get('name', None)
-    user = request.user
-    if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    if not name:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    uw = changeset_models.UserWhitelist(user=user, whitelist_user=name)
-    uw.save()
-    return JsonResponse({'success': 'User %s has been white-listed' % name})
 
 
 @api_view(['PUT'])

@@ -23,11 +23,6 @@ urlpatterns = [
         name='create'
     ),
     url(
-        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/geojson$',
-        view=views.get_geojson,
-        name='get_geojson'
-    ),
-    url(
         regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=views.set_harmful_feature,
         name='set-harmful'
@@ -36,10 +31,5 @@ urlpatterns = [
         regex=r'^set-good/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
         view=views.set_good_feature,
         name='set-good'
-    ),
-    url(
-        regex=r'^features/whitelist-user$',
-        view=views.whitelist_user,
-        name='whitelist_user'
     ),
 ]
