@@ -442,8 +442,8 @@ class TestCheckFeatureViews(TestCase):
         the changeset that modified the feature.
         """
         client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(self.set_harmful_url)
-        self.assertEqual(response.status_code, 401)
+        response = client.put(self.set_harmful_url)
+        self.assertEqual(response.status_code, 403)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
         self.assertFalse(self.feature.checked)
@@ -455,8 +455,8 @@ class TestCheckFeatureViews(TestCase):
         the changeset that modified the feature.
         """
         client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(self.set_good_url)
-        self.assertEqual(response.status_code, 401)
+        response = client.put(self.set_good_url)
+        self.assertEqual(response.status_code, 403)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
         self.assertFalse(self.feature.checked)
