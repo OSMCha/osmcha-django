@@ -1,17 +1,9 @@
 import json
 from datetime import datetime
 
-from django.views.generic import View, ListView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import JsonResponse
-from django.core.urlresolvers import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db import IntegrityError
-from django.contrib.gis.geos import GEOSGeometry, Polygon
-from django.core.exceptions import ValidationError
+from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.gdal.error import GDALException
 
 import django_filters.rest_framework
