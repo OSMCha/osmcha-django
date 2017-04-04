@@ -165,10 +165,9 @@ def set_harmful_changeset(request, pk):
                 harmful_reasons = HarmfulReason.objects.filter(
                     id__in=ids
                     )
-                for reason in harmful_reasons:
-                    reason.changesets.add(instance)
+                instance.harmful_reasons.set(harmful_reasons)
             return Response(
-                {'message': 'Changeset marked as good.'},
+                {'message': 'Changeset marked as harmful.'},
                 status=status.HTTP_200_OK
                 )
         else:

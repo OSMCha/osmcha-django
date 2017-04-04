@@ -296,8 +296,7 @@ def set_harmful_feature(request, changeset, slug):
                 harmful_reasons = changeset_models.HarmfulReason.objects.filter(
                     id__in=ids
                     )
-                for reason in harmful_reasons:
-                    reason.features.add(instance)
+                instance.harmful_reasons.set(harmful_reasons)
             return Response(
                 {'message': 'Feature marked as harmful.'},
                 status=status.HTTP_200_OK
