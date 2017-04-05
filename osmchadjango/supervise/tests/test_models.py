@@ -37,7 +37,7 @@ class TestAreaOfInterestModel(TestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 3)
         self.assertEqual(
             self.area.__str__(),
-            '{} - {}'.format(self.area.id, self.area.name)
+            '{} by {}'.format(self.area.name, self.area.user.username)
             )
 
     def test_unique_name_for_user(self):

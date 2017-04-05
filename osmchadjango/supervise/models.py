@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 
@@ -5,6 +7,7 @@ from osmchadjango.changeset.filters import ChangesetFilter
 
 
 class AreaOfInterest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey('users.User')
     filters = JSONField(blank=True, null=True)
@@ -12,7 +15,7 @@ class AreaOfInterest(models.Model):
     objects = models.GeoManager()
 
     def __str__(self):
-        return '{} - {}'.format(self.id, self.name)
+        return '{} by {}'.format(self.name, self.user.username)
 
     def changesets(self):
         """Returns the changesets whose bbox intersects with the AreaOfInterest
