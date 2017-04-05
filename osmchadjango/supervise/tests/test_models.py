@@ -21,11 +21,11 @@ class TestAreaOfInterestModel(TestCase):
             name='Best place in the world',
             user=self.user,
             filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
-            place=self.m_polygon
+            geometry=self.m_polygon
             )
         self.area_2 = AreaOfInterest.objects.create(
             user=self.user,
-            place=self.m_polygon_2
+            geometry=self.m_polygon_2
             )
         self.area_3 = AreaOfInterest.objects.create(
             user=self.user,
@@ -45,13 +45,13 @@ class TestAreaOfInterestModel(TestCase):
             AreaOfInterest.objects.create(
                 user=self.user,
                 name='Best place in the world',
-                place=self.m_polygon
+                geometry=self.m_polygon
                 )
 
     def test_required_user_field(self):
         with self.assertRaises(IntegrityError):
             AreaOfInterest.objects.create(
-                place=self.m_polygon
+                geometry=self.m_polygon
                 )
 
     def test_changesets_method(self):

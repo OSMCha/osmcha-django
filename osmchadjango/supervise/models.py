@@ -8,7 +8,7 @@ class AreaOfInterest(models.Model):
     name = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey('users.User')
     filters = JSONField(blank=True, null=True)
-    place = models.MultiPolygonField(blank=True, null=True)
+    geometry = models.MultiPolygonField(blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):
@@ -19,9 +19,9 @@ class AreaOfInterest(models.Model):
         and that matches the filters.
         """
         qs = ChangesetFilter(self.filters).qs
-        if self.place is not None:
+        if self.geometry is not None:
             return qs.filter(
-                bbox__intersects=self.place
+                bbox__intersects=self.geometry
                 )
         else:
             return qs
