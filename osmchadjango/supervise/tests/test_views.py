@@ -145,7 +145,7 @@ class TestAOICreateView(TestCase):
         self.assertEqual(aoi.user, self.user)
 
 
-class TestAOIRetrieveUpdateDestroyAPIViews(TestCase):
+class TestAOIDetailAPIViews(TestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -167,20 +167,16 @@ class TestAOIRetrieveUpdateDestroyAPIViews(TestCase):
             filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
             geometry=self.m_polygon
             )
-        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
-        # changeset created by the same user of the AreaOfInterest
-        ChangesetFactory(
-            editor='JOSM 1.5',
-            harmful=False,
-            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
-            )
-        ChangesetFactory.create_batch(
-            51,
-            harmful=False,
-            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
-            )
+        self.data = {
+            'filters': {'is_suspect': 'True'},
+            'geometry': {
+                "type": "MultiPolygon",
+                "coordinates": [[[[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]]]]
+                },
+            'name': u'Golfo da Guiné'
+            }
 
-    def test_retrieve(self):
+    def test_retrieve_detail(self):
         response = client.get(reverse('supervise:aoi-detail', args=[self.aoi.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
@@ -204,7 +200,86 @@ class TestAOIRetrieveUpdateDestroyAPIViews(TestCase):
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
 
-    def test_aoi_changesets_view(self):
+    def test_update_aoi_unauthenticated(self):
+        response = client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 401)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Best place in the world')
+
+    def test_delete_aoi_unauthenticated(self):
+        response = client.delete(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(AreaOfInterest.objects.count(), 1)
+
+    def test_update_aoi_of_another_user(self):
+        user = User.objects.create_user(
+            username='test_2',
+            email='c@a.com',
+            password='password'
+            )
+        client.login(username=user.username, password='password')
+        response = client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 403)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Best place in the world')
+
+    def test_delete_aoi_of_another_user(self):
+        user = User.objects.create_user(
+            username='test_2',
+            email='c@a.com',
+            password='password'
+            )
+        client.login(username=user.username, password='password')
+        response = client.delete(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(AreaOfInterest.objects.count(), 1)
+
+    def test_update_with_aoi_owner_user(self):
+        client.login(username=self.user.username, password='password')
+        response = client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, u'Golfo da Guiné')
+        self.assertEqual(self.aoi.filters, {'is_suspect': 'True'})
+        self.assertTrue(
+            self.aoi.geometry.intersects(
+                Polygon(((4, 0), (5, 0), (5, 1), (4, 0)))
+                )
+            )
+
+    def test_delete_with_aoi_owner_user(self):
+        client.login(username=self.user.username, password='password')
+        response = client.delete(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(AreaOfInterest.objects.count(), 0)
+
+    def test_aoi_list_changesets_view(self):
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        ChangesetFactory.create_batch(
+            51,
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
         response = client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
@@ -215,6 +290,7 @@ class TestAOIRetrieveUpdateDestroyAPIViews(TestCase):
         self.assertIn('geometry', response.data['features'][0].keys())
         self.assertIn('properties', response.data['features'][0].keys())
 
+        # test pagination
         response = client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
             {'page': 2}

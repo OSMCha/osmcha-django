@@ -13,7 +13,7 @@ urlpatterns = [
         ),
     url(
         regex=r'^aoi/(?P<pk>[0-9a-f-]+)/$',
-        view=views.AOIRetrieveAPIView.as_view(),
+        view=views.AOIRetrieveUpdateDestroyAPIView.as_view(),
         name='aoi-detail'
         ),
     url(

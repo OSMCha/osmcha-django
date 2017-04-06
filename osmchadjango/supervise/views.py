@@ -1,13 +1,29 @@
 from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, RetrieveAPIView
+    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
     )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 from ..changeset.serializers import ChangesetSerializer, ChangesetSerializerToStaff
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest
 from .serializers import AreaOfInterestSerializer
+
+
+class IsOwnerOrReadOnly(BasePermission):
+    """
+    Object-level permission to only allow owners of an object to edit it.
+    Assumes the model instance has an `owner` attribute.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in SAFE_METHODS:
+            return True
+        else:
+            return obj.user == request.user
 
 
 class AOIListCreateAPIView(ListCreateAPIView):
@@ -28,9 +44,10 @@ class AOIListCreateAPIView(ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class AOIRetrieveAPIView(RetrieveAPIView):
+class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = AreaOfInterest.objects.all()
     serializer_class = AreaOfInterestSerializer
+    permission_classes = (IsOwnerOrReadOnly,)
 
 
 class AOIListChangesetsAPIView(ListAPIView):
