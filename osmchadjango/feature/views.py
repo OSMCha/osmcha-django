@@ -16,19 +16,13 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
-from rest_framework_gis.pagination import GeoJsonPagination
 
 from osmchadjango.changeset import models as changeset_models
 
+from ..changeset.views import StandardResultsSetPagination
 from .models import Feature
 from .serializers import FeatureSerializer
 from .filters import FeatureFilter
-
-
-class StandardResultsSetPagination(GeoJsonPagination):
-    page_size = 50
-    page_size_query_param = 'page_size'
-    max_page_size = 500
 
 
 class FeatureListAPIView(ListAPIView):
