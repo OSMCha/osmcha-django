@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
@@ -57,7 +58,7 @@ class TestAoIListView(TestCase):
             name='Harmful edits',
             filters={'harmful': 'False'},
             )
-        self.url = reverse('supervise:list-create')
+        self.url = reverse('supervise:aoi-list-create')
 
     def test_list_view_unauthenticated(self):
         response = client.get(self.url)
@@ -96,7 +97,7 @@ class TestAOICreateView(TestCase):
             provider='openstreetmap',
             uid='123123',
             )
-        self.url = reverse('supervise:list-create')
+        self.url = reverse('supervise:aoi-list-create')
         self.data = {
             'filters': {'is_suspect': 'True'},
             'geometry': {
@@ -142,3 +143,82 @@ class TestAOICreateView(TestCase):
         self.assertEqual(response.status_code, 201)
         aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
+
+
+class TestAOIDetailAPIViews(TestCase):
+    def setUp(self):
+        self.m_polygon = MultiPolygon(
+            Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
+            Polygon(((1, 1), (1, 2), (2, 2), (1, 1)))
+            )
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.aoi = AreaOfInterest.objects.create(
+            name='Best place in the world',
+            user=self.user,
+            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            geometry=self.m_polygon
+            )
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        # changeset created by the same user of the AreaOfInterest
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        ChangesetFactory.create_batch(
+            51,
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+
+    def test_detail_view(self):
+        response = client.get(reverse('supervise:aoi-detail', args=[self.aoi.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data['properties']['name'],
+            'Best place in the world'
+            )
+        self.assertEqual(
+            response.data['properties']['filters'],
+            {'editor__icontains': 'Potlatch 2', 'harmful': 'False'}
+            )
+        self.assertEqual(
+            response.data['geometry']['type'],
+            'MultiPolygon'
+            )
+        self.assertIn(
+            'id',
+            response.data.keys()
+            )
+        self.assertEqual(
+            response.data['properties']['changesets_url'],
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
+            )
+
+    def test_aoi_changesets_view(self):
+        response = client.get(
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 50)
+        self.assertIn('features', response.data.keys())
+        self.assertIn('geometry', response.data['features'][0].keys())
+        self.assertIn('properties', response.data['features'][0].keys())
+
+        response = client.get(
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
+            {'page': 2}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 1)
