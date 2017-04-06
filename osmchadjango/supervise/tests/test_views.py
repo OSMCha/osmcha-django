@@ -104,7 +104,7 @@ class TestAOICreateView(TestCase):
                 "type": "MultiPolygon",
                 "coordinates": [[[[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]]]]
                 },
-            'name': 'Golfo da Guiné'
+            'name': u'Golfo da Guiné'
             }
 
     def test_create_AOI_unauthenticated(self):
@@ -117,7 +117,7 @@ class TestAOICreateView(TestCase):
         response = client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
-        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, {'is_suspect': 'True'})
         self.assertTrue(
@@ -141,11 +141,11 @@ class TestAOICreateView(TestCase):
         self.data['user'] = user_2.username
         response = client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
-        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
 
 
-class TestAOIDetailAPIViews(TestCase):
+class TestAOIRetrieveUpdateDestroyAPIViews(TestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -180,7 +180,7 @@ class TestAOIDetailAPIViews(TestCase):
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
-    def test_detail_view(self):
+    def test_retrieve(self):
         response = client.get(reverse('supervise:aoi-detail', args=[self.aoi.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
