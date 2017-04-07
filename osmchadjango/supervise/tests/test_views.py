@@ -126,6 +126,18 @@ class TestAOICreateView(TestCase):
                 )
             )
 
+    def test_validation(self):
+        client.login(username=self.user.username, password='password')
+        response = client.post(self.url, {'name': 'Empty AoI'})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(AreaOfInterest.objects.count(), 0)
+
+        # test validation of unique name of AoI for each user
+        response = client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 201)
+        response = client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 400)
+
     def test_auto_user_field(self):
         user_2 = User.objects.create_user(
             username='test',
@@ -195,6 +207,10 @@ class TestAOIDetailAPIViews(TestCase):
             'id',
             response.data.keys()
             )
+        self.assertNotIn(
+            'user',
+            response.data.keys()
+            )
         self.assertEqual(
             response.data['properties']['changesets_url'],
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
@@ -259,6 +275,24 @@ class TestAOIDetailAPIViews(TestCase):
                 Polygon(((4, 0), (5, 0), (5, 1), (4, 0)))
                 )
             )
+
+    def test_validation(self):
+        client.login(username=self.user.username, password='password')
+        response = client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 200)
+
+        # validate if the user are not allowed to let the filters and geometry fields empty
+        response = client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            {'name': u'Golfo da Guiné'}
+            )
+        self.assertEqual(response.status_code, 400)
+        self.aoi.refresh_from_db()
+        self.assertIsNotNone(self.aoi.filters)
+        self.assertIsNotNone(self.aoi.geometry)
 
     def test_delete_with_aoi_owner_user(self):
         client.login(username=self.user.username, password='password')

@@ -12,9 +12,7 @@ from .serializers import AreaOfInterestSerializer
 
 
 class IsOwnerOrReadOnly(BasePermission):
-    """
-    Object-level permission to only allow owners of an object to edit it.
-    Assumes the model instance has an `owner` attribute.
+    """Object-level permission to only allow owners of an object to edit it.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -45,6 +43,19 @@ class AOIListCreateAPIView(ListCreateAPIView):
 
 
 class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    """
+    get:
+    Get details about an Area of Interest.
+    put:
+    Update an Area of Interest. Only the user that created an Area of Interest
+    has permissions to update it.
+    patch:
+    Update an Area of Interest. Only the user that created an Area of Interest
+    has permissions to update it.
+    delete:
+    Delete an Area of Interest. Only the user that created an Area of Interest
+    has permissions to delete it.
+    """
     queryset = AreaOfInterest.objects.all()
     serializer_class = AreaOfInterestSerializer
     permission_classes = (IsOwnerOrReadOnly,)
