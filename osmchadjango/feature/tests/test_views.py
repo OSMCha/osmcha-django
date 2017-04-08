@@ -21,7 +21,7 @@ from .modelfactories import (
 client = APIClient()
 
 
-class TestFeatureSuspicionCreate(TestCase):
+class TestCreateFeature(TestCase):
     def setUp(self):
         self.fixture = json.load(open(
             settings.APPS_DIR.path('feature/tests/fixtures/way-23.json')(),
@@ -540,3 +540,103 @@ class TestCheckFeatureViews(TestCase):
             reverse('feature:set-harmful', args=[4988787832, 'way-16183212']),
             )
         self.assertEqual(response.status_code, 404)
+
+
+class TestUncheckFeatureView(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.feature = FeatureFactory()
+        self.good_feature = CheckedFeatureFactory(
+            check_user=self.user, harmful=False
+            )
+        self.harmful_feature = CheckedFeatureFactory(check_user=self.user)
+        self.harmful_feature_2 = CheckedFeatureFactory()
+        self.reason = HarmfulReason.objects.create(name='Vandalism')
+        self.reason.features.add(self.harmful_feature)
+        self.reason.features.add(self.harmful_feature_2)
+
+    def test_unauthenticated_response(self):
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.harmful_feature.changeset, self.harmful_feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 401)
+        self.harmful_feature.refresh_from_db()
+        self.assertTrue(self.harmful_feature.harmful)
+        self.assertTrue(self.harmful_feature.checked)
+        self.assertEqual(self.harmful_feature.check_user, self.user)
+        self.assertIsNotNone(self.harmful_feature.check_date)
+        self.assertEqual(self.harmful_feature.harmful_reasons.count(), 1)
+        self.assertIn(self.reason, self.harmful_feature.harmful_reasons.all())
+
+    def test_uncheck_harmful_feature(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.harmful_feature.changeset, self.harmful_feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.harmful_feature.refresh_from_db()
+        self.assertIsNone(self.harmful_feature.harmful)
+        self.assertFalse(self.harmful_feature.checked)
+        self.assertIsNone(self.harmful_feature.check_user)
+        self.assertIsNone(self.harmful_feature.check_date)
+        self.assertEqual(self.harmful_feature.harmful_reasons.count(), 0)
+        self.assertNotIn(self.harmful_feature, self.reason.changesets.all())
+
+    def test_uncheck_good_feature(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.good_feature.changeset, self.good_feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.good_feature.refresh_from_db()
+        self.assertIsNone(self.good_feature.harmful)
+        self.assertFalse(self.good_feature.checked)
+        self.assertIsNone(self.good_feature.check_user)
+        self.assertIsNone(self.good_feature.check_date)
+
+    def test_user_uncheck_permission(self):
+        """User can only uncheck features that he checked."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.harmful_feature_2.changeset, self.harmful_feature_2.url]
+                )
+            )
+
+        self.assertEqual(response.status_code, 403)
+        self.harmful_feature.refresh_from_db()
+        self.assertTrue(self.harmful_feature_2.harmful)
+        self.assertTrue(self.harmful_feature_2.checked)
+        self.assertIsNotNone(self.harmful_feature_2.check_user)
+        self.assertIsNotNone(self.harmful_feature_2.check_date)
+        self.assertIn(self.reason, self.harmful_feature_2.harmful_reasons.all())
+
+    def test_try_to_uncheck_unchecked_feature(self):
+        """It's not possible to uncheck an unchecked feature!"""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.feature.changeset, self.feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 403)

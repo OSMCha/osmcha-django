@@ -237,3 +237,34 @@ def set_good_feature(request, changeset, slug):
             {'message': 'User does not have permission to update this feature.'},
             status=status.HTTP_403_FORBIDDEN
             )
+
+
+@api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def uncheck_feature(request, changeset, slug):
+    """Mark a feature as unchecked. You don't need to send data, just an empty
+    PUT request.
+    """
+    instance = get_object_or_404(Feature, changeset=changeset, url=slug)
+    if instance.checked is False:
+        return Response(
+            {'message': 'Feature is not checked.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
+    elif request.user == instance.check_user:
+        instance.checked = False
+        instance.harmful = None
+        instance.check_user = None
+        instance.check_date = None
+        instance.save()
+        instance.harmful_reasons.clear()
+        return Response(
+            {'message': 'Feature marked as unchecked.'},
+            status=status.HTTP_200_OK
+            )
+    else:
+        return Response(
+            {'message': 'User does not have permission to uncheck this feature.'},
+            status=status.HTTP_403_FORBIDDEN
+            )

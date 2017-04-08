@@ -32,4 +32,9 @@ urlpatterns = [
         view=views.set_good_feature,
         name='set-good'
     ),
+    url(
+        regex=r'^uncheck/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
+        view=views.uncheck_feature,
+        name='uncheck'
+    ),
 ]
