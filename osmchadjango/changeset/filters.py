@@ -13,7 +13,7 @@ class ChangesetFilter(GeoFilterSet):
     the search reasons) or by contains match (filter changesets that have any of
     the reasons).
     """
-    bbox_overlaps = GeometryFilter(name='bbox', lookup_expr='overlaps')
+    geometry = GeometryFilter(name='bbox', lookup_expr='intersects')
     checked_by = filters.CharFilter(name='check_user', method='filter_checked_by')
     users = filters.CharFilter(name='user', method='filter_users')
     ids = filters.CharFilter(name='id', method='filter_ids')

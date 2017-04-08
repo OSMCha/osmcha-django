@@ -61,14 +61,22 @@ class TestChangesetFilter(TestCase):
               [2.172, 50.56], [-2.143, 50.56]]
             ]}"""
         self.assertEqual(
-            ChangesetFilter({'bbox_overlaps': geojson_1}).qs.count(), 0
+            ChangesetFilter({'geometry': geojson_1}).qs.count(), 0
             )
         geojson_2 = """{'type': 'Polygon','coordinates': [
             [[-71.06,44.237], [-71.004,44.237], [-71.004,44.243],
             [-71.06,44.243],[-71.06,44.237]]
             ]}"""
         self.assertEqual(
-            ChangesetFilter({'bbox_overlaps': geojson_2}).qs.count(), 4
+            ChangesetFilter({'geometry': geojson_2}).qs.count(), 4
+            )
+        geojson_3 = """{'type': 'Polygon','coordinates': [
+            [[-71.05399131, 44.23874266], [-71.04206085, 44.23874266],
+            [-71.04206085, 44.24169422],[-71.05399131, 44.24169422],
+            [-71.05399131, 44.23874266]]
+            ]}"""
+        self.assertEqual(
+            ChangesetFilter({'geometry': geojson_3}).qs.count(), 4
             )
 
     def test_users_related_filters(self):
