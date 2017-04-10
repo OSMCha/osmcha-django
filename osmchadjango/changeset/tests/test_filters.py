@@ -7,7 +7,7 @@ from ..filters import Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, UserFactory,
     HarmfulChangesetFactory, GoodChangesetFactory, SuspicionReasonsFactory,
-    HarmfulReasonFactory
+    TagFactory
     )
 
 
@@ -209,40 +209,40 @@ class TestChangesetFilter(TestCase):
             )
 
     def test_harmful_reason_filter(self):
-        reason_1 = HarmfulReasonFactory(name='Vandalism')
+        reason_1 = TagFactory(name='Vandalism')
         reason_1.changesets.add(self.changeset, self.harmful_changeset)
-        reason_2 = HarmfulReasonFactory(name='Illegal import')
+        reason_2 = TagFactory(name='Illegal import')
         reason_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
-        HarmfulReasonFactory(name='Small error')
+        TagFactory(name='Small error')
 
         self.assertEqual(
-            ChangesetFilter({'harmful_reasons': 'Vandalism'}).qs.count(), 2
+            ChangesetFilter({'tags': 'Vandalism'}).qs.count(), 2
             )
         self.assertEqual(
-            ChangesetFilter({'harmful_reasons': 'Illegal import'}).qs.count(), 2
+            ChangesetFilter({'tags': 'Illegal import'}).qs.count(), 2
             )
         self.assertEqual(
-            ChangesetFilter({'harmful_reasons': 'Small error'}).qs.count(), 0
+            ChangesetFilter({'tags': 'Small error'}).qs.count(), 0
             )
         self.assertEqual(
             ChangesetFilter(
-                {'harmful_reasons': 'Illegal import, Vandalism'}
+                {'tags': 'Illegal import, Vandalism'}
                 ).qs.count(),
             3
             )
         self.assertEqual(
             ChangesetFilter(
-                {'all_harmful_reasons': 'Illegal import, Vandalism'}
+                {'all_tags': 'Illegal import, Vandalism'}
                 ).qs.count(),
             1
             )
         self.assertIn(
             self.harmful_changeset,
-            ChangesetFilter({'all_harmful_reasons': 'Illegal import, Vandalism'}).qs
+            ChangesetFilter({'all_tags': 'Illegal import, Vandalism'}).qs
             )
         self.assertEqual(
             ChangesetFilter(
-                {'all_harmful_reasons': 'Illegal import, Small error'}
+                {'all_tags': 'Illegal import, Small error'}
                 ).qs.count(),
             0
             )

@@ -175,9 +175,9 @@ def create_feature(request):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_feature(request, changeset, slug):
-    """Mark a feature as harmful. The 'harmful_reasons'
+    """Mark a feature as harmful. The 'tags'
     field is optional and needs to be a list with the ids of the reasons. If you
-    don't want to set the 'harmful_reasons', you don't need to send data, just
+    don't want to set the 'tags', you don't need to send data, just
     make an empty PUT request.
     """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
@@ -188,12 +188,12 @@ def set_harmful_feature(request, changeset, slug):
             instance.check_user = request.user
             instance.check_date = timezone.now()
             instance.save()
-            if 'harmful_reasons' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('harmful_reasons')]
-                harmful_reasons = changeset_models.HarmfulReason.objects.filter(
+            if 'tags' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('tags')]
+                tags = changeset_models.Tag.objects.filter(
                     id__in=ids
                     )
-                instance.harmful_reasons.set(harmful_reasons)
+                instance.tags.set(tags)
             return Response(
                 {'message': 'Feature marked as harmful.'},
                 status=status.HTTP_200_OK
@@ -258,7 +258,7 @@ def uncheck_feature(request, changeset, slug):
         instance.check_user = None
         instance.check_date = None
         instance.save()
-        instance.harmful_reasons.clear()
+        instance.tags.clear()
         return Response(
             {'message': 'Feature marked as unchecked.'},
             status=status.HTTP_200_OK

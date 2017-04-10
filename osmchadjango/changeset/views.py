@@ -19,11 +19,11 @@ from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
 
-from .models import Changeset, UserWhitelist, SuspicionReasons, HarmfulReason
+from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, UserWhitelistSerializer,
-    SuspicionReasonsSerializer, HarmfulReasonSerializer
+    SuspicionReasonsSerializer, TagSerializer
     )
 
 
@@ -132,24 +132,24 @@ class SuspicionReasonsListAPIView(ListAPIView):
             return SuspicionReasons.objects.filter(is_visible=True)
 
 
-class HarmfulReasonListAPIView(ListAPIView):
-    """List HarmfulReasons."""
-    serializer_class = HarmfulReasonSerializer
+class TagListAPIView(ListAPIView):
+    """List Tags."""
+    serializer_class = TagSerializer
 
     def get_queryset(self):
         if self.request.user.is_staff:
-            return HarmfulReason.objects.all()
+            return Tag.objects.all()
         else:
-            return HarmfulReason.objects.filter(is_visible=True)
+            return Tag.objects.filter(is_visible=True)
 
 
 @api_view(['PUT'])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_changeset(request, pk):
-    """Mark a changeset as harmful. The 'harmful_reasons'
+    """Mark a changeset as harmful. The 'tags'
     field is optional and needs to be a list with the ids of the reasons. If you
-    don't want to set the 'harmful_reasons', you don't need to send data, just
+    don't want to set the 'tags', you don't need to send data, just
     make an empty PUT request.
     """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
@@ -160,12 +160,12 @@ def set_harmful_changeset(request, pk):
             instance.check_user = request.user
             instance.check_date = timezone.now()
             instance.save()
-            if 'harmful_reasons' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('harmful_reasons')]
-                harmful_reasons = HarmfulReason.objects.filter(
+            if 'tags' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('tags')]
+                tags = Tag.objects.filter(
                     id__in=ids
                     )
-                instance.harmful_reasons.set(harmful_reasons)
+                instance.tags.set(tags)
             return Response(
                 {'message': 'Changeset marked as harmful.'},
                 status=status.HTTP_200_OK
@@ -231,7 +231,7 @@ def uncheck_changeset(request, pk):
         instance.check_user = None
         instance.check_date = None
         instance.save()
-        instance.harmful_reasons.clear()
+        instance.tags.clear()
         return Response(
             {'message': 'Changeset marked as unchecked.'},
             status=status.HTTP_200_OK

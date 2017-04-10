@@ -17,8 +17,8 @@ class Feature(models.Model):
     old_geojson = JSONField(null=True, blank=True)
     reasons = models.ManyToManyField(
         'changeset.SuspicionReasons', related_name='features')
-    harmful_reasons = models.ManyToManyField(
-        'changeset.HarmfulReason', related_name='features')
+    tags = models.ManyToManyField(
+        'changeset.Tag', related_name='features')
     harmful = models.NullBooleanField()
     checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(User, null=True, blank=True)

@@ -2,7 +2,7 @@ from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import ModelSerializer, StringRelatedField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from .models import Changeset, HarmfulReason, SuspicionReasons, UserWhitelist
+from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 
 class SuspicionReasonsSerializer(ModelSerializer):
@@ -17,22 +17,22 @@ class BasicSuspicionReasonsSerializer(ModelSerializer):
         fields = ('name', 'is_visible')
 
 
-class HarmfulReasonSerializer(ModelSerializer):
+class TagSerializer(ModelSerializer):
     class Meta:
-        model = HarmfulReason
+        model = Tag
         fields = '__all__'
 
 
-class BasicHarmfulReasonSerializer(ModelSerializer):
+class BasicTagSerializer(ModelSerializer):
     class Meta:
-        model = HarmfulReason
+        model = Tag
         fields = ('name', 'is_visible')
 
 
 class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
     reasons = StringRelatedField(many=True, read_only=True)
-    harmful_reasons = StringRelatedField(many=True, read_only=True)
+    tags = StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Changeset
@@ -42,13 +42,13 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
 
 class ChangesetSerializer(ChangesetSerializerToStaff):
     reasons = SerializerMethodField()
-    harmful_reasons = SerializerMethodField()
+    tags = SerializerMethodField()
 
     def get_reasons(self, obj):
         return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
 
-    def get_harmful_reasons(self, obj):
-        return obj.harmful_reasons.filter(
+    def get_tags(self, obj):
+        return obj.tags.filter(
             is_visible=True
             ).values_list('name', flat=True)
 

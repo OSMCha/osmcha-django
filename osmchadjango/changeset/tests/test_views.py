@@ -6,10 +6,10 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APIClient
 
 from ...users.models import User
-from ..models import SuspicionReasons, HarmfulReason, Changeset, UserWhitelist
+from ..models import SuspicionReasons, Tag, Changeset, UserWhitelist
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
-    HarmfulChangesetFactory, HarmfulReasonFactory, UserWhitelistFactory
+    HarmfulChangesetFactory, TagFactory, UserWhitelistFactory
     )
 
 client = APIClient()
@@ -239,8 +239,8 @@ class TestChangesetDetailView(TestCase):
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
         self.reason_3.changesets.add(self.changeset)
-        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
-        harmful_reason.changesets.add(self.changeset)
+        tag = Tag.objects.create(name='Vandalism')
+        tag.changesets.add(self.changeset)
 
     def test_changeset_detail_response(self):
         response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
@@ -250,7 +250,7 @@ class TestChangesetDetailView(TestCase):
         self.assertIn('geometry', response.data.keys())
 
 
-class TestReasonsAndHarmfulReasonFieldsInChangesetViews(TestCase):
+class TestReasonsAndTagFieldsInChangesetViews(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test',
@@ -273,24 +273,24 @@ class TestReasonsAndHarmfulReasonFieldsInChangesetViews(TestCase):
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
         self.reason_3.changesets.add(self.changeset)
-        self.harmful_reason_1 = HarmfulReason.objects.create(name='Vandalism')
-        self.harmful_reason_2 = HarmfulReason.objects.create(
+        self.tag_1 = Tag.objects.create(name='Vandalism')
+        self.tag_2 = Tag.objects.create(
             name='Vandalism in my city',
             is_visible=False
             )
-        self.harmful_reason_1.changesets.add(self.changeset)
-        self.harmful_reason_2.changesets.add(self.changeset)
+        self.tag_1.changesets.add(self.changeset)
+        self.tag_2.changesets.add(self.changeset)
 
     def test_detail_view_by_normal_user(self):
         response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
-        self.assertEqual(len(response.data['properties']['harmful_reasons']), 1)
+        self.assertEqual(len(response.data['properties']['tags']), 1)
         self.assertIn('possible import', response.data['properties']['reasons'])
         self.assertIn('suspect word', response.data['properties']['reasons'])
         self.assertIn(
             'Vandalism',
-            response.data['properties']['harmful_reasons']
+            response.data['properties']['tags']
             )
 
     def test_detail_view_by_admin(self):
@@ -302,33 +302,33 @@ class TestReasonsAndHarmfulReasonFieldsInChangesetViews(TestCase):
             response.data['properties']['reasons']
             )
         self.assertEqual(len(response.data['properties']['reasons']), 3)
-        self.assertEqual(len(response.data['properties']['harmful_reasons']), 2)
+        self.assertEqual(len(response.data['properties']['tags']), 2)
         self.assertIn(
             'Vandalism in my city',
-            response.data['properties']['harmful_reasons']
+            response.data['properties']['tags']
             )
 
     def test_list_view_by_normal_user(self):
         response = client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
-        harmful_reasons = response.data['features'][0]['properties']['harmful_reasons']
+        tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 2)
-        self.assertEqual(len(harmful_reasons), 1)
+        self.assertEqual(len(tags), 1)
         self.assertIn('possible import', reasons)
         self.assertIn('suspect word', reasons)
-        self.assertIn('Vandalism', harmful_reasons)
+        self.assertIn('Vandalism', tags)
 
     def test_list_view_by_admin(self):
         client.login(username=self.user.username, password='password')
         response = client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
-        harmful_reasons = response.data['features'][0]['properties']['harmful_reasons']
+        tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 3)
-        self.assertEqual(len(harmful_reasons), 2)
+        self.assertEqual(len(tags), 2)
         self.assertIn('Big edit in my city', reasons)
-        self.assertIn('Vandalism in my city', harmful_reasons)
+        self.assertIn('Vandalism in my city', tags)
 
 
 class TestSuspicionReasonsAPIListView(TestCase):
@@ -374,13 +374,13 @@ class TestSuspicionReasonsAPIListView(TestCase):
         self.assertEqual(len(response.data), 2)
 
 
-class TestHarmfulReasonAPIListView(TestCase):
+class TestTagListAPIView(TestCase):
     def setUp(self):
-        self.reason_1 = HarmfulReason.objects.create(
+        self.tag_1 = Tag.objects.create(
             name='Illegal import',
             description='A changeset that imported illegal data.'
             )
-        self.reason_2 = HarmfulReason.objects.create(
+        self.tag_2 = Tag.objects.create(
             name='Vandalism in my city',
             is_visible=False
             )
@@ -397,25 +397,25 @@ class TestHarmfulReasonAPIListView(TestCase):
             )
 
     def test_view(self):
-        response = client.get(reverse('changeset:harmful-reasons-list'))
+        response = client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
-        reason_dict = {
-            'id': self.reason_1.id,
+        tag_dict = {
+            'id': self.tag_1.id,
             'name': 'Illegal import',
-            'description': self.reason_1.description,
+            'description': self.tag_1.description,
             'is_visible': True,
             'for_changeset': True,
             'for_feature': True
             }
         self.assertIn(
-            reason_dict,
+            tag_dict,
             response.data
             )
 
     def test_admin_user_request(self):
         client.login(username=self.user.username, password='password')
-        response = client.get(reverse('changeset:harmful-reasons-list'))
+        response = client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
 
@@ -443,8 +443,8 @@ class TestCheckChangesetViews(TestCase):
             provider='openstreetmap',
             uid='123123',
             )
-        self.harmful_reason_1 = HarmfulReasonFactory(name='Illegal import')
-        self.harmful_reason_2 = HarmfulReasonFactory(name='Vandalism')
+        self.tag_1 = TagFactory(name='Illegal import')
+        self.tag_2 = TagFactory(name='Vandalism')
 
     def test_set_harmful_changeset_unlogged(self):
         response = client.put(
@@ -509,7 +509,7 @@ class TestCheckChangesetViews(TestCase):
         self.client.login(username=self.user.username, password='password')
         content = encode_multipart(
             'BoUnDaRyStRiNg',
-            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            {'tags': [self.tag_1.id, self.tag_2.id]}
             )
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
@@ -523,14 +523,14 @@ class TestCheckChangesetViews(TestCase):
         self.assertTrue(self.changeset_2.checked)
         self.assertEqual(self.changeset_2.check_user, self.user)
         self.assertIsNotNone(self.changeset_2.check_date)
-        self.assertEqual(self.changeset_2.harmful_reasons.count(), 2)
+        self.assertEqual(self.changeset_2.tags.count(), 2)
         self.assertIn(
-            self.harmful_reason_1,
-            self.changeset_2.harmful_reasons.all()
+            self.tag_1,
+            self.changeset_2.tags.all()
             )
         self.assertIn(
-            self.harmful_reason_2,
-            self.changeset_2.harmful_reasons.all()
+            self.tag_2,
+            self.changeset_2.tags.all()
             )
 
     def test_set_harmful_changeset_put_without_data(self):
@@ -545,7 +545,7 @@ class TestCheckChangesetViews(TestCase):
         self.assertTrue(self.changeset_2.checked)
         self.assertEqual(self.changeset_2.check_user, self.user)
         self.assertIsNotNone(self.changeset_2.check_date)
-        self.assertEqual(self.changeset_2.harmful_reasons.count(), 0)
+        self.assertEqual(self.changeset_2.tags.count(), 0)
 
     def test_set_good_changeset_get(self):
         self.client.login(username=self.user.username, password='password')
@@ -596,7 +596,7 @@ class TestCheckChangesetViews(TestCase):
 
         content = encode_multipart(
             'BoUnDaRyStRiNg',
-            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            {'tags': [self.tag_1.id, self.tag_2.id]}
             )
         response = self.client.put(
             reverse('changeset:set_harmful', args=[changeset.pk]),
@@ -624,7 +624,7 @@ class TestUncheckChangesetView(TestCase):
         self.good_changeset = GoodChangesetFactory(check_user=self.user)
         self.harmful_changeset = HarmfulChangesetFactory(check_user=self.user)
         self.harmful_changeset_2 = HarmfulChangesetFactory()
-        self.reason = HarmfulReasonFactory(name='Vandalism')
+        self.reason = TagFactory(name='Vandalism')
         self.reason.changesets.add(self.harmful_changeset)
         self.reason.changesets.add(self.harmful_changeset_2)
 
@@ -638,8 +638,8 @@ class TestUncheckChangesetView(TestCase):
         self.assertTrue(self.harmful_changeset.checked)
         self.assertEqual(self.harmful_changeset.check_user, self.user)
         self.assertIsNotNone(self.harmful_changeset.check_date)
-        self.assertEqual(self.harmful_changeset.harmful_reasons.count(), 1)
-        self.assertIn(self.reason, self.harmful_changeset.harmful_reasons.all())
+        self.assertEqual(self.harmful_changeset.tags.count(), 1)
+        self.assertIn(self.reason, self.harmful_changeset.tags.all())
 
     def test_uncheck_harmful_changeset(self):
         self.client.login(username=self.user.username, password='password')
@@ -652,7 +652,7 @@ class TestUncheckChangesetView(TestCase):
         self.assertFalse(self.harmful_changeset.checked)
         self.assertIsNone(self.harmful_changeset.check_user)
         self.assertIsNone(self.harmful_changeset.check_date)
-        self.assertEqual(self.harmful_changeset.harmful_reasons.count(), 0)
+        self.assertEqual(self.harmful_changeset.tags.count(), 0)
         self.assertNotIn(self.harmful_changeset, self.reason.changesets.all())
 
     def test_uncheck_good_changeset(self):
@@ -680,7 +680,7 @@ class TestUncheckChangesetView(TestCase):
         self.assertTrue(self.harmful_changeset_2.checked)
         self.assertIsNotNone(self.harmful_changeset_2.check_user)
         self.assertIsNotNone(self.harmful_changeset_2.check_date)
-        self.assertIn(self.reason, self.harmful_changeset_2.harmful_reasons.all())
+        self.assertIn(self.reason, self.harmful_changeset_2.tags.all())
 
     def test_try_to_uncheck_unchecked_changeset(self):
         """It's not possible to uncheck an unchecked changeset!"""

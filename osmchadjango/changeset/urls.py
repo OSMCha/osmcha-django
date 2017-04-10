@@ -77,9 +77,9 @@ urlpatterns = [
         name='suspicion-reasons-list'
     ),
     url(
-        regex=r'^harmful-reasons$',
-        view=views.HarmfulReasonListAPIView.as_view(),
-        name='harmful-reasons-list'
+        regex=r'^tags$',
+        view=views.TagListAPIView.as_view(),
+        name='tags-list'
     ),
     url(
         regex=r'^stats$',

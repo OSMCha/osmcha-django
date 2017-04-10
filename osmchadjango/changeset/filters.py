@@ -19,12 +19,12 @@ class ChangesetFilter(GeoFilterSet):
     ids = filters.CharFilter(name='id', method='filter_ids')
     reasons = filters.CharFilter(name='reasons', method='filter_any_reasons')
     all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
-    harmful_reasons = filters.CharFilter(
-        name='harmful_reasons',
+    tags = filters.CharFilter(
+        name='tags',
         method='filter_any_reasons'
         )
-    all_harmful_reasons = filters.CharFilter(
-        name='harmful_reasons',
+    all_tags = filters.CharFilter(
+        name='tags',
         method='filter_all_reasons'
         )
     checked = filters.BooleanFilter(widget=BooleanWidget())

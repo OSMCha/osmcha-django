@@ -1,6 +1,6 @@
 from django.contrib.gis import admin
 
-from .models import Changeset, SuspicionReasons, HarmfulReason
+from .models import Changeset, SuspicionReasons, Tag
 
 
 class ChangesetAdmin(admin.OSMGeoAdmin):
@@ -19,4 +19,4 @@ class ReasonsAdmin(admin.ModelAdmin):
 
 admin.site.register(Changeset, ChangesetAdmin)
 admin.site.register(SuspicionReasons, ReasonsAdmin)
-admin.site.register(HarmfulReason, ReasonsAdmin)
+admin.site.register(Tag, ReasonsAdmin)

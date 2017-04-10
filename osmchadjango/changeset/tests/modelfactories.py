@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 
 import factory
 
-from ..models import Changeset, SuspicionReasons, UserWhitelist, HarmfulReason
+from ..models import Changeset, SuspicionReasons, UserWhitelist, Tag
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -66,9 +66,9 @@ class SuspicionReasonsFactory(factory.django.DjangoModelFactory):
         model = SuspicionReasons
 
 
-class HarmfulReasonFactory(factory.django.DjangoModelFactory):
+class TagFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = HarmfulReason
+        model = Tag
 
 
 class UserWhitelistFactory(factory.django.DjangoModelFactory):

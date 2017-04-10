@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
 from social_django.models import UserSocialAuth
 
-from ...changeset.models import (HarmfulReason, SuspicionReasons, Changeset)
+from ...changeset.models import (Tag, SuspicionReasons, Changeset)
 from ...users.models import User
 from ..models import Feature
 from .modelfactories import (
@@ -311,8 +311,8 @@ class TestOrderingOfFeatureListAPIView(TestCase):
 class TestFeatureDetailAPIView(TestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
-        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
-        harmful_reason.features.add(self.feature)
+        tag = Tag.objects.create(name='Vandalism')
+        tag.features.add(self.feature)
         self.reason = SuspicionReasons.objects.create(
             name='new mapper edits'
             )
@@ -381,12 +381,12 @@ class TestFeatureDetailAPIView(TestCase):
         self.assertIn('old_geojson', response.data['properties'].keys())
         self.assertIn('geometry', response.data.keys())
         self.assertIn(
-            {'name': 'new mapper edits', 'is_visible': True},
+            'new mapper edits',
             response.data['properties']['reasons']
             )
         self.assertIn(
-            {'name': 'Vandalism', 'is_visible': True},
-            response.data['properties']['harmful_reasons']
+            'Vandalism',
+            response.data['properties']['tags']
             )
 
 
@@ -413,8 +413,8 @@ class TestCheckFeatureViews(TestCase):
             provider='openstreetmap',
             uid='123123',
             )
-        self.harmful_reason_1 = HarmfulReason.objects.create(name='Illegal import')
-        self.harmful_reason_2 = HarmfulReason.objects.create(name='Vandalism')
+        self.tag_1 = Tag.objects.create(name='Illegal import')
+        self.tag_2 = Tag.objects.create(name='Vandalism')
         self.set_harmful_url = reverse(
             'feature:set-harmful',
             args=[self.feature.changeset, self.feature.url]
@@ -463,11 +463,11 @@ class TestCheckFeatureViews(TestCase):
         self.assertIsNone(self.feature.check_user)
         self.assertIsNone(self.feature.check_date)
 
-    def test_set_harmful_feature_with_harmful_reasons(self):
+    def test_set_harmful_feature_with_tags(self):
         client.login(username=self.user.username, password='password')
         content = encode_multipart(
             'BoUnDaRyStRiNg',
-            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            {'tags': [self.tag_1.id, self.tag_2.id]}
             )
         response = client.put(
             self.set_harmful_url,
@@ -478,14 +478,14 @@ class TestCheckFeatureViews(TestCase):
         self.feature.refresh_from_db()
         self.assertTrue(self.feature.harmful)
         self.assertTrue(self.feature.checked)
-        self.assertEqual(self.feature.harmful_reasons.count(), 2)
+        self.assertEqual(self.feature.tags.count(), 2)
         self.assertIn(
-            self.harmful_reason_1,
-            self.feature.harmful_reasons.all()
+            self.tag_1,
+            self.feature.tags.all()
             )
         self.assertIn(
-            self.harmful_reason_2,
-            self.feature.harmful_reasons.all()
+            self.tag_2,
+            self.feature.tags.all()
             )
 
     def test_set_harmful_feature(self):
@@ -518,7 +518,7 @@ class TestCheckFeatureViews(TestCase):
         # now try to mark a checked feature as harmful
         content = encode_multipart(
             'BoUnDaRyStRiNg',
-            {'harmful_reasons': [self.harmful_reason_1.id, self.harmful_reason_2.id]}
+            {'tags': [self.tag_1.id, self.tag_2.id]}
             )
         response = client.put(
             reverse('feature:set-harmful', args=[feature.changeset, feature.url]),
@@ -560,9 +560,9 @@ class TestUncheckFeatureView(TestCase):
             )
         self.harmful_feature = CheckedFeatureFactory(check_user=self.user)
         self.harmful_feature_2 = CheckedFeatureFactory()
-        self.reason = HarmfulReason.objects.create(name='Vandalism')
-        self.reason.features.add(self.harmful_feature)
-        self.reason.features.add(self.harmful_feature_2)
+        self.tag = Tag.objects.create(name='Vandalism')
+        self.tag.features.add(self.harmful_feature)
+        self.tag.features.add(self.harmful_feature_2)
 
     def test_unauthenticated_response(self):
         response = self.client.put(
@@ -577,8 +577,8 @@ class TestUncheckFeatureView(TestCase):
         self.assertTrue(self.harmful_feature.checked)
         self.assertEqual(self.harmful_feature.check_user, self.user)
         self.assertIsNotNone(self.harmful_feature.check_date)
-        self.assertEqual(self.harmful_feature.harmful_reasons.count(), 1)
-        self.assertIn(self.reason, self.harmful_feature.harmful_reasons.all())
+        self.assertEqual(self.harmful_feature.tags.count(), 1)
+        self.assertIn(self.tag, self.harmful_feature.tags.all())
 
     def test_uncheck_harmful_feature(self):
         self.client.login(username=self.user.username, password='password')
@@ -594,8 +594,8 @@ class TestUncheckFeatureView(TestCase):
         self.assertFalse(self.harmful_feature.checked)
         self.assertIsNone(self.harmful_feature.check_user)
         self.assertIsNone(self.harmful_feature.check_date)
-        self.assertEqual(self.harmful_feature.harmful_reasons.count(), 0)
-        self.assertNotIn(self.harmful_feature, self.reason.changesets.all())
+        self.assertEqual(self.harmful_feature.tags.count(), 0)
+        self.assertNotIn(self.harmful_feature, self.tag.changesets.all())
 
     def test_uncheck_good_feature(self):
         self.client.login(username=self.user.username, password='password')
@@ -628,7 +628,7 @@ class TestUncheckFeatureView(TestCase):
         self.assertTrue(self.harmful_feature_2.checked)
         self.assertIsNotNone(self.harmful_feature_2.check_user)
         self.assertIsNotNone(self.harmful_feature_2.check_date)
-        self.assertIn(self.reason, self.harmful_feature_2.harmful_reasons.all())
+        self.assertIn(self.tag, self.harmful_feature_2.tags.all())
 
     def test_try_to_uncheck_unchecked_feature(self):
         """It's not possible to uncheck an unchecked feature!"""

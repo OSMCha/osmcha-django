@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 
 from ...changeset.tests.modelfactories import (
-    SuspicionReasonsFactory, HarmfulReasonFactory
+    SuspicionReasonsFactory, TagFactory
     )
 from ..filters import FeatureFilter
 from .modelfactories import (
@@ -132,37 +132,37 @@ class TestFeatureFilter(TestCase):
             0
             )
 
-    def test_harmful_reason_filter(self):
-        reason_1 = HarmfulReasonFactory(name='Vandalism')
-        reason_1.features.add(self.feature, self.checked_feature)
-        reason_2 = HarmfulReasonFactory(name='Illegal import')
-        reason_2.features.add(self.feature)
-        HarmfulReasonFactory(name='Small error')
+    def test_tag_filter(self):
+        tag_1 = TagFactory(name='Vandalism')
+        tag_1.features.add(self.feature, self.checked_feature)
+        tag_2 = TagFactory(name='Illegal import')
+        tag_2.features.add(self.feature)
+        TagFactory(name='Small error')
 
         self.assertEqual(
-            FeatureFilter({'harmful_reasons': 'Vandalism'}).qs.count(), 2
+            FeatureFilter({'tags': 'Vandalism'}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter(
-                {'harmful_reasons': 'Vandalism, Illegal import'}
+                {'tags': 'Vandalism, Illegal import'}
                 ).qs.count(),
             2
             )
         self.assertEqual(
-            FeatureFilter({'harmful_reasons': 'Small error'}).qs.count(), 0
+            FeatureFilter({'tags': 'Small error'}).qs.count(), 0
             )
         self.assertEqual(
-            FeatureFilter({'all_harmful_reasons': 'Vandalism'}).qs.count(), 2
+            FeatureFilter({'all_tags': 'Vandalism'}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_harmful_reasons': 'Vandalism, Illegal import'}
+                {'all_tags': 'Vandalism, Illegal import'}
                 ).qs.count(),
             1
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_harmful_reasons': 'Vandalism, Small error'}
+                {'all_tags': 'Vandalism, Small error'}
                 ).qs.count(),
             0
             )

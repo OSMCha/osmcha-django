@@ -1,8 +1,9 @@
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
+from rest_framework.serializers import StringRelatedField
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from ..changeset.serializers import (
-    BasicSuspicionReasonsSerializer, BasicHarmfulReasonSerializer
+    BasicSuspicionReasonsSerializer, BasicTagSerializer
     )
 from .models import Feature
 
@@ -15,8 +16,8 @@ class FeatureSerializer(GeoFeatureModelSerializer):
     imagery_used = ReadOnlyField(source='changeset.imagery_used')
     editor = ReadOnlyField(source='changeset.editor')
     comment = ReadOnlyField(source='changeset.comment')
-    reasons = BasicSuspicionReasonsSerializer(many=True)
-    harmful_reasons = BasicHarmfulReasonSerializer(many=True)
+    reasons = StringRelatedField(many=True, read_only=True)
+    tags = StringRelatedField(many=True, read_only=True)
     osm_link = SerializerMethodField()
 
     class Meta:
