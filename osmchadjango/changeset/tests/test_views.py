@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 
 from ...users.models import User
 from ..models import SuspicionReasons, Tag, Changeset, UserWhitelist
+from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
     HarmfulChangesetFactory, TagFactory, UserWhitelistFactory
@@ -83,6 +84,7 @@ class TestChangesetListView(TestCase):
         self.assertEqual(response.data['count'], 0)
 
     def test_csv_renderer(self):
+        self.assertIn(PaginatedCSVRenderer, ChangesetListAPIView().renderer_classes)
         response = client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
