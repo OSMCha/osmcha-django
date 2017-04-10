@@ -13,13 +13,14 @@ from rest_framework.generics import (
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
 
 from osmchadjango.changeset import models as changeset_models
 
-from ..changeset.views import StandardResultsSetPagination
+from ..changeset.views import StandardResultsSetPagination, PaginatedCSVRenderer
 from .models import Feature
 from .serializers import FeatureSerializer, FeatureSerializerToStaff
 from .filters import FeatureFilter
@@ -34,6 +35,7 @@ class FeatureListAPIView(ListAPIView):
     queryset = Feature.objects.all()
     serializer_class = FeatureSerializer
     pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'geometry'
     filter_backends = (
         InBBoxFilter,

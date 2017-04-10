@@ -12,8 +12,10 @@ from rest_framework.test import APIClient
 from social_django.models import UserSocialAuth
 
 from ...changeset.models import (Tag, SuspicionReasons, Changeset)
+from ...changeset.views import PaginatedCSVRenderer
 from ...users.models import User
 from ..models import Feature
+from ..views import FeatureListAPIView
 from .modelfactories import (
     FeatureFactory, CheckedFeatureFactory, WayFeatureFactory
     )
@@ -238,6 +240,15 @@ class TestFeatureListAPIView(TestCase):
         response = client.get(self.url, {'harmful': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 15)
+
+    def test_csv_renderer(self):
+        self.assertIn(PaginatedCSVRenderer, FeatureListAPIView().renderer_classes)
+        response = client.get(self.url, {'format': 'csv', 'page_size': 70})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['features']), 60)
+        response = client.get(self.url, {'format': 'csv', 'checked': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data['features']), 30)
 
 
 class TestOrderingOfFeatureListAPIView(TestCase):
