@@ -311,12 +311,6 @@ class TestOrderingOfFeatureListAPIView(TestCase):
 class TestFeatureDetailAPIView(TestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
-        tag = Tag.objects.create(name='Vandalism')
-        tag.features.add(self.feature)
-        self.reason = SuspicionReasons.objects.create(
-            name='new mapper edits'
-            )
-        self.reason.features.add(self.feature)
 
     def test_feature_detail_view(self):
         response = client.get(
@@ -380,6 +374,46 @@ class TestFeatureDetailAPIView(TestCase):
         self.assertIn('check_date', response.data['properties'].keys())
         self.assertIn('old_geojson', response.data['properties'].keys())
         self.assertIn('geometry', response.data.keys())
+
+
+class TestReasonsAndTagsFields(TestCase):
+    def setUp(self):
+        self.feature = CheckedFeatureFactory()
+        tag = Tag.objects.create(name='Vandalism')
+        tag.features.add(self.feature)
+        private_tag = Tag.objects.create(
+            name='Bad feature in my city',
+            is_visible=False
+            )
+        private_tag.features.add(self.feature)
+        self.reason = SuspicionReasons.objects.create(
+            name='new mapper edits'
+            )
+        self.reason.features.add(self.feature)
+        private_reason = SuspicionReasons.objects.create(
+            name='Suspicious Feature in my city',
+            is_visible=False
+            )
+        private_reason.features.add(self.feature)
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+
+    def test_detail_view_with_normal_user(self):
+        response = client.get(
+            reverse(
+                'feature:detail',
+                args=[self.feature.changeset.id, self.feature.url]
+                )
+            )
         self.assertIn(
             'new mapper edits',
             response.data['properties']['reasons']
@@ -387,6 +421,78 @@ class TestFeatureDetailAPIView(TestCase):
         self.assertIn(
             'Vandalism',
             response.data['properties']['tags']
+            )
+        self.assertNotIn(
+            'Suspicious Feature in my city',
+            response.data['properties']['reasons']
+            )
+        self.assertNotIn(
+            'Bad feature in my city',
+            response.data['properties']['tags']
+            )
+
+    def test_list_view_with_normal_user(self):
+        response = client.get(reverse('feature:list'))
+        self.assertIn(
+            'new mapper edits',
+            response.data['features'][0]['properties']['reasons']
+            )
+        self.assertIn(
+            'Vandalism',
+            response.data['features'][0]['properties']['tags']
+            )
+        self.assertNotIn(
+            'Suspicious Feature in my city',
+            response.data['features'][0]['properties']['reasons']
+            )
+        self.assertNotIn(
+            'Bad feature in my city',
+            response.data['features'][0]['properties']['tags']
+            )
+
+    def test_detail_view_with_admin(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(
+            reverse(
+                'feature:detail',
+                args=[self.feature.changeset.id, self.feature.url]
+                )
+            )
+        self.assertIn(
+            'Suspicious Feature in my city',
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            'new mapper edits',
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            'Bad feature in my city',
+            response.data['properties']['tags']
+            )
+        self.assertIn(
+            'Vandalism',
+            response.data['properties']['tags']
+            )
+
+    def test_list_view_with_admin(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(reverse('feature:list'))
+        self.assertIn(
+            'Suspicious Feature in my city',
+            response.data['features'][0]['properties']['reasons']
+            )
+        self.assertIn(
+            'new mapper edits',
+            response.data['features'][0]['properties']['reasons']
+            )
+        self.assertIn(
+            'Bad feature in my city',
+            response.data['features'][0]['properties']['tags']
+            )
+        self.assertIn(
+            'Vandalism',
+            response.data['features'][0]['properties']['tags']
             )
 
 

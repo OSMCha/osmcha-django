@@ -21,7 +21,7 @@ from osmchadjango.changeset import models as changeset_models
 
 from ..changeset.views import StandardResultsSetPagination
 from .models import Feature
-from .serializers import FeatureSerializer
+from .serializers import FeatureSerializer, FeatureSerializerToStaff
 from .filters import FeatureFilter
 
 
@@ -42,16 +42,27 @@ class FeatureListAPIView(ListAPIView):
     bbox_filter_include_overlapping = True
     filter_class = FeatureFilter
 
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return FeatureSerializerToStaff
+        else:
+            return FeatureSerializer
+
 
 class FeatureDetailAPIView(RetrieveAPIView):
     '''Get details of a Feature object. Type: GeoJSON'''
     queryset = Feature.objects.all()
-    serializer_class = FeatureSerializer
 
     def get_object(self):
         changeset = self.kwargs['changeset']
         url = self.kwargs['slug']
         return get_object_or_404(Feature, changeset=changeset, url=url)
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return FeatureSerializerToStaff
+        else:
+            return FeatureSerializer
 
 
 @api_view(['POST'])

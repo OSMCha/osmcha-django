@@ -8,7 +8,7 @@ from ..changeset.serializers import (
 from .models import Feature
 
 
-class FeatureSerializer(GeoFeatureModelSerializer):
+class FeatureSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
     changeset = ReadOnlyField(source='changeset.id')
     date = ReadOnlyField(source='changeset.date')
@@ -27,3 +27,16 @@ class FeatureSerializer(GeoFeatureModelSerializer):
 
     def get_osm_link(self, obj):
         return obj.osm_link()
+
+
+class FeatureSerializer(FeatureSerializerToStaff):
+    reasons = SerializerMethodField()
+    tags = SerializerMethodField()
+
+    def get_reasons(self, obj):
+        return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
+
+    def get_tags(self, obj):
+        return obj.tags.filter(
+            is_visible=True
+            ).values_list('name', flat=True)
