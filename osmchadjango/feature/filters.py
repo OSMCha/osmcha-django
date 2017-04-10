@@ -19,14 +19,8 @@ class FeatureFilter(GeoFilterSet):
         )
     reasons = filters.CharFilter(name='reasons', method='filter_any_reasons')
     all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
-    tags = filters.CharFilter(
-        name='tags',
-        method='filter_any_reasons'
-        )
-    all_tags = filters.CharFilter(
-        name='tags',
-        method='filter_all_reasons'
-        )
+    tags = filters.CharFilter(name='tags', method='filter_any_reasons')
+    all_tags = filters.CharFilter(name='tags', method='filter_all_reasons')
     order_by = filters.CharFilter(name=None, method='order_queryset')
 
     def filter_changeset_users(self, queryset, name, value):
@@ -40,13 +34,13 @@ class FeatureFilter(GeoFilterSet):
         return queryset.filter(**{lookup: users_array})
 
     def filter_any_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'name', 'in'])
-        values = [t.strip() for t in value.split(',')]
+        lookup = '__'.join([name, 'id', 'in'])
+        values = [int(t) for t in value.split(',')]
         return queryset.filter(**{lookup: values}).distinct()
 
     def filter_all_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'name'])
-        values = [t.strip() for t in value.split(',')]
+        lookup = '__'.join([name, 'id'])
+        values = [int(t) for t in value.split(',')]
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset

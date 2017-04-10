@@ -64,13 +64,13 @@ class ChangesetFilter(GeoFilterSet):
         return queryset.filter(**{lookup: values})
 
     def filter_any_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'name', 'in'])
-        values = [t.strip() for t in value.split(',')]
+        lookup = '__'.join([name, 'id', 'in'])
+        values = [int(t) for t in value.split(',')]
         return queryset.filter(**{lookup: values}).distinct()
 
     def filter_all_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'name'])
-        values = [t.strip() for t in value.split(',')]
+        lookup = '__'.join([name, 'id'])
+        values = [int(t) for t in value.split(',')]
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset

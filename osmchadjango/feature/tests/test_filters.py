@@ -103,31 +103,31 @@ class TestFeatureFilter(TestCase):
         reason_1.features.add(self.feature)
         reason_2 = SuspicionReasonsFactory(name='Changed name tag')
         reason_2.features.add(self.checked_feature, self.feature)
-        SuspicionReasonsFactory(name='Deleted all tags')
+        reason_3 = SuspicionReasonsFactory(name='Deleted all tags')
         self.assertEqual(
-            FeatureFilter({'reasons': 'Edited wikidata tag'}).qs.count(), 1
+            FeatureFilter({'reasons': '{}'.format(reason_1.id)}).qs.count(), 1
             )
         self.assertEqual(
-            FeatureFilter({'reasons': 'Changed name tag'}).qs.count(), 2
+            FeatureFilter({'reasons': '{}'.format(reason_2.id)}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter(
-                {'reasons': 'Edited wikidata tag, Changed name tag'}
+                {'reasons': '{},{}'.format(reason_1.id, reason_2.id)}
                 ).qs.count(),
             2
             )
         self.assertEqual(
-            FeatureFilter({'reasons': 'Deleted all tags'}).qs.count(), 0
+            FeatureFilter({'reasons': '{}'.format(reason_3.id)}).qs.count(), 0
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_reasons': 'Edited wikidata tag, Changed name tag'}
+                {'all_reasons': '{},{}'.format(reason_1.id, reason_2.id)}
                 ).qs.count(),
             1
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_reasons': 'Edited wikidata tag, Deleted all tags'}
+                {'all_reasons': '{},{}'.format(reason_1.id, reason_3.id)}
                 ).qs.count(),
             0
             )
@@ -137,32 +137,32 @@ class TestFeatureFilter(TestCase):
         tag_1.features.add(self.feature, self.checked_feature)
         tag_2 = TagFactory(name='Illegal import')
         tag_2.features.add(self.feature)
-        TagFactory(name='Small error')
+        tag_3 = TagFactory(name='Small error')
 
         self.assertEqual(
-            FeatureFilter({'tags': 'Vandalism'}).qs.count(), 2
+            FeatureFilter({'tags': '{}'.format(tag_1.id)}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter(
-                {'tags': 'Vandalism, Illegal import'}
+                {'tags': '{},{}'.format(tag_1.id, tag_2.id)}
                 ).qs.count(),
             2
             )
         self.assertEqual(
-            FeatureFilter({'tags': 'Small error'}).qs.count(), 0
+            FeatureFilter({'tags': '{}'.format(tag_3.id)}).qs.count(), 0
             )
         self.assertEqual(
-            FeatureFilter({'all_tags': 'Vandalism'}).qs.count(), 2
+            FeatureFilter({'all_tags': '{}'.format(tag_1.id)}).qs.count(), 2
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_tags': 'Vandalism, Illegal import'}
+                {'all_tags': '{},{}'.format(tag_1.id, tag_2.id)}
                 ).qs.count(),
             1
             )
         self.assertEqual(
             FeatureFilter(
-                {'all_tags': 'Vandalism, Small error'}
+                {'all_tags': '{},{}'.format(tag_1.id, tag_3.id)}
                 ).qs.count(),
             0
             )

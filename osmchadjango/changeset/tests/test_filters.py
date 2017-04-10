@@ -36,11 +36,11 @@ class TestChangesetFilter(TestCase):
             check_user=self.user_2,
             source='Mapbox'
             )
-        reason_1 = SuspicionReasonsFactory(name='possible import')
-        reason_1.changesets.add(self.suspect_changeset)
-        reason_2 = SuspicionReasonsFactory(name='suspect word')
-        reason_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
-        SuspicionReasonsFactory(name='mass deletion')
+        self.reason_1 = SuspicionReasonsFactory(name='possible import')
+        self.reason_1.changesets.add(self.suspect_changeset)
+        self.reason_2 = SuspicionReasonsFactory(name='suspect word')
+        self.reason_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
+        self.reason_3 = SuspicionReasonsFactory(name='mass deletion')
 
     def test_boolean_filters(self):
         self.assertEqual(Changeset.objects.count(), 4)
@@ -178,71 +178,75 @@ class TestChangesetFilter(TestCase):
 
     def test_suspicion_reasons_filter(self):
         self.assertEqual(
-            ChangesetFilter({'reasons': 'possible import'}).qs.count(),
+            ChangesetFilter({'reasons': '{}'.format(self.reason_1.id)}).qs.count(),
             1
             )
         self.assertEqual(
-            ChangesetFilter({'reasons': 'suspect word'}).qs.count(),
+            ChangesetFilter({'reasons': '{}'.format(self.reason_2.id)}).qs.count(),
             2
             )
         self.assertEqual(
-            ChangesetFilter({'reasons': 'possible import, suspect word'}).qs.count(),
+            ChangesetFilter(
+                {'reasons': '{},{}'.format(self.reason_1.id, self.reason_2.id)}
+                ).qs.count(),
             2
             )
         self.assertEqual(
-            ChangesetFilter({'reasons': 'mass deletion'}).qs.count(),
+            ChangesetFilter({'reasons': '{}'.format(self.reason_3.id)}).qs.count(),
             0
             )
         self.assertEqual(
-            ChangesetFilter({'reasons': 'mass modification'}).qs.count(),
+            ChangesetFilter({'reasons': '123'}).qs.count(),
             0
             )
         self.assertEqual(
             ChangesetFilter(
-                {'all_reasons': 'possible import, suspect word'}
+                {'all_reasons': '{},{}'.format(self.reason_1.id, self.reason_2.id)}
                 ).qs.count(),
             1
             )
         self.assertIn(
             self.suspect_changeset,
-            ChangesetFilter({'all_reasons': 'possible import, suspect word'}).qs,
+            ChangesetFilter(
+                {'all_reasons': '{},{}'.format(self.reason_1.id, self.reason_2.id)}
+                ).qs,
             )
 
-    def test_harmful_reason_filter(self):
-        reason_1 = TagFactory(name='Vandalism')
-        reason_1.changesets.add(self.changeset, self.harmful_changeset)
-        reason_2 = TagFactory(name='Illegal import')
-        reason_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
-        TagFactory(name='Small error')
+    def test_tags_filter(self):
+        tag_1 = TagFactory(name='Vandalism')
+        tag_1.changesets.add(self.changeset, self.harmful_changeset)
+        tag_2 = TagFactory(name='Illegal import')
+        tag_2.changesets.add(self.suspect_changeset, self.harmful_changeset)
+        tag_3 = TagFactory(name='Small error')
 
         self.assertEqual(
-            ChangesetFilter({'tags': 'Vandalism'}).qs.count(), 2
+            ChangesetFilter({'tags': '{}'.format(tag_1.id)}).qs.count(), 2
             )
         self.assertEqual(
-            ChangesetFilter({'tags': 'Illegal import'}).qs.count(), 2
+            ChangesetFilter({'tags': '{}'.format(tag_2.id)}).qs.count(), 2
             )
         self.assertEqual(
-            ChangesetFilter({'tags': 'Small error'}).qs.count(), 0
+            ChangesetFilter({'tags': '{}'.format(tag_3.id)}).qs.count(), 0
             )
         self.assertEqual(
             ChangesetFilter(
-                {'tags': 'Illegal import, Vandalism'}
+                {'tags': '{},{}'.format(tag_1.id, tag_2.id)}
                 ).qs.count(),
             3
             )
         self.assertEqual(
             ChangesetFilter(
-                {'all_tags': 'Illegal import, Vandalism'}
+                {'all_tags': '{},{}'.format(tag_1.id, tag_2.id)}
                 ).qs.count(),
             1
             )
         self.assertIn(
             self.harmful_changeset,
-            ChangesetFilter({'all_tags': 'Illegal import, Vandalism'}).qs
+            ChangesetFilter({'all_tags': '{},{}'.format(tag_1.id, tag_2.id)}).qs
             )
         self.assertEqual(
             ChangesetFilter(
-                {'all_tags': 'Illegal import, Small error'}
+                {'all_tags': '{},{}'.format(tag_1.id, tag_3.id)}
                 ).qs.count(),
             0
             )
