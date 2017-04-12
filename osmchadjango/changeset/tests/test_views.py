@@ -808,3 +808,26 @@ class TestUserWhitelistDestroyAPIView(TestCase):
             )
         self.assertEqual(response.status_code, 204)
         self.assertEqual(UserWhitelist.objects.count(), 0)
+
+
+class TestStatsView(TestCase):
+    def setUp(self):
+        self.changeset = ChangesetFactory()
+        self.suspect_changeset = SuspectChangesetFactory()
+        self.harmful_changeset = HarmfulChangesetFactory()
+        self.harmful_changeset_2 = HarmfulChangesetFactory()
+        self.good_changeset = GoodChangesetFactory()
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
+        self.reason_1.changesets.add(self.suspect_changeset)
+        self.reason_1.changesets.add(self.harmful_changeset)
+        self.reason_2.changesets.add(self.harmful_changeset_2)
+        self.reason_2.changesets.add(self.good_changeset)
+        self.url = reverse('changeset:stats')
+
+    def test_stats_view(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('checked_changesets'), 3)
+        self.assertEqual(response.data.get('harmful_changesets'), 2)
+        self.assertEqual(response.data.get('users_with_harmful_changesets'), 1)

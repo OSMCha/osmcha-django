@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
-    DestroyAPIView,
+    DestroyAPIView, GenericAPIView
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
@@ -23,8 +23,8 @@ from rest_framework_csv.renderers import CSVRenderer
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, UserWhitelistSerializer,
-    SuspicionReasonsSerializer, TagSerializer
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
+    SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer
     )
 
 
@@ -314,3 +314,16 @@ def stats(request):
         'get': request.GET.dict()
         }
     return render(request, 'changeset/stats.html', context=context)
+
+
+class ChangesetStatsAPIView(ListAPIView):
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetStatsSerializer
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    bbox_filter_field = 'bbox'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = ChangesetFilter

@@ -1,5 +1,7 @@
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
-from rest_framework.serializers import ModelSerializer, StringRelatedField
+from rest_framework.serializers import (
+    ModelSerializer, StringRelatedField, ListSerializer, BaseSerializer
+    )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
@@ -57,3 +59,26 @@ class UserWhitelistSerializer(ModelSerializer):
     class Meta:
         model = UserWhitelist
         fields = ('whitelist_user',)
+
+
+class ChangesetListStatsSerializer(ListSerializer):
+    read_only = True
+
+    def to_representation(self, data):
+        harmful_changesets = data.filter(harmful=True)
+        return {
+            'checked_changesets': data.filter(checked=True).count(),
+            'harmful_changesets': harmful_changesets.count(),
+            'users_with_harmful_changesets': harmful_changesets.values_list(
+                'user', flat=True
+                ).distinct().count(),
+            }
+
+    @property
+    def data(self):
+        return super(ListSerializer, self).data
+
+
+class ChangesetStatsSerializer(BaseSerializer):
+    class Meta:
+        list_serializer_class = ChangesetListStatsSerializer

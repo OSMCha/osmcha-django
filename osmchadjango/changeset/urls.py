@@ -82,8 +82,8 @@ urlpatterns = [
         name='tags-list'
     ),
     url(
-        regex=r'^stats$',
-        view=views.stats,
+        regex=r'^stats/$',
+        view=views.ChangesetStatsAPIView.as_view(),
         name='stats'
     ),
 ]
