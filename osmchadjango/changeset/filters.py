@@ -17,7 +17,7 @@ class ChangesetFilter(FilterSet):
     def filter_checked_by(self, queryset, value):
         if value:
             users = map(lambda x: x.strip(), value.split(','))
-            return queryset.filter(check_user__username__in=users)
+            return queryset.filter(check_user__name__in=users)
         return queryset
 
     def filter_bbox(self, queryset, value):
