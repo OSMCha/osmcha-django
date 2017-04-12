@@ -3,6 +3,7 @@ import datetime
 from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.http import HttpResponse
 
 import django_filters.rest_framework
 from rest_framework import status
@@ -276,7 +277,12 @@ def stats(request):
     to_date = request.GET.get('to', datetime.datetime.now())
     reviewer = request.GET.get('reviewer', '')
     if from_date:
-        changesets_qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+        try:
+            changesets_qset = Changeset.objects.filter(
+                check_date__gte=from_date, check_date__lte=to_date
+                )
+        except:
+            return HttpResponse('Bad query parameters', status=400)
     else:
         changesets_qset = Changeset.objects.all()
 
