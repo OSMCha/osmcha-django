@@ -54,12 +54,12 @@
         {% endif %}
         {% if changeset.harmful %}
         <span class="glyphicon glyphicon-thumbs-down"></span>
-        {% blocktrans with check_user=changeset.check_user%}
+        {% blocktrans with check_user=changeset.check_user.name%}
         Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as harmful
         {% endblocktrans %}
         {% else %}
         <span class="glyphicon glyphicon-thumbs-up"></span>
-        {% blocktrans with check_user=changeset.check_user%}
+        {% blocktrans with check_user=changeset.check_user.name%}
         Verified by <strong><a href="https://openstreetmap.org/user/{{ check_user }}" target="_blank">{{ check_user }}</a></strong> and marked as good
         {% endblocktrans %}
         {% endif %}
