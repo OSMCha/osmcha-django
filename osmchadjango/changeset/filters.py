@@ -3,7 +3,7 @@ from rest_framework_gis.filters import GeometryFilter
 from django_filters import filters
 from django_filters.widgets import BooleanWidget
 
-from .models import Changeset, UserWhitelist
+from .models import Changeset
 
 
 class ChangesetFilter(GeoFilterSet):
@@ -49,7 +49,7 @@ class ChangesetFilter(GeoFilterSet):
             return queryset
 
     def filter_checked_by(self, queryset, name, value):
-        lookup = '__'.join([name, 'username__in'])
+        lookup = '__'.join([name, 'name__in'])
         users = [t.strip() for t in value.split(',')]
         return queryset.filter(**{lookup: users})
 
