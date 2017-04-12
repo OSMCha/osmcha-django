@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.test import TestCase
 from django.core.management import call_command
 
@@ -35,4 +37,4 @@ class TestUpdateUserNameCommand(TestCase):
         self.user.refresh_from_db()
         self.user_2.refresh_from_db()
         self.assertEqual(self.user.name, 'Wille Marcel')
-        self.assertEqual(self.user_2.name, u'Narcélio de Sá')
+        self.assertEqual(self.user_2.name, 'Narcélio de Sá')
