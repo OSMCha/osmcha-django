@@ -4,12 +4,12 @@ from django.views.generic import View, ListView, DetailView
 from django.views.generic.detail import SingleObjectMixin
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.core.exceptions import ValidationError
-from django.db.models import Q, Count
+from django.db.models import Q
 from django.contrib.gis.geos import Polygon
 
 from djqscsv import render_to_csv_response
@@ -267,7 +267,12 @@ def stats(request):
     to_date = request.GET.get('to', datetime.datetime.now())
     reviewer = request.GET.get('reviewer', '')
     if from_date:
-        changesets_qset = Changeset.objects.filter(check_date__gte=from_date, check_date__lte=to_date)
+        try:
+            changesets_qset = Changeset.objects.filter(
+                check_date__gte=from_date, check_date__lte=to_date
+                )
+        except:
+            return HttpResponse('Bad query parameters', status=400)
     else:
         changesets_qset = Changeset.objects.all()
 
