@@ -51,7 +51,9 @@ class ChangesetListAPIView(ListAPIView):
     receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
     accepted formats. The default pagination return 50 objects by page.
     """
-    queryset = Changeset.objects.all()
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related('tags', 'reasons')
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
@@ -71,7 +73,9 @@ class ChangesetListAPIView(ListAPIView):
 
 class ChangesetDetailAPIView(RetrieveAPIView):
     """Return details of a Changeset."""
-    queryset = Changeset.objects.all()
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related('tags', 'reasons')
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -84,42 +88,48 @@ class SuspectChangesetListAPIView(ChangesetListAPIView):
     """Return the suspect changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(is_suspect=True)
+    def get_queryset(self):
+        return self.queryset.filter(is_suspect=True)
 
 
 class NoSuspectChangesetListAPIView(ChangesetListAPIView):
     """Return the not suspect changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(is_suspect=False)
+    def get_queryset(self):
+        return self.queryset.filter(is_suspect=False)
 
 
 class HarmfulChangesetListAPIView(ChangesetListAPIView):
     """Return the harmful changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(harmful=True)
+    def get_queryset(self):
+        return self.queryset.filter(harmful=True)
 
 
 class NoHarmfulChangesetListAPIView(ChangesetListAPIView):
     """Return the not harmful changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(harmful=False)
+    def get_queryset(self):
+        return self.queryset.filter(harmful=False)
 
 
 class CheckedChangesetListAPIView(ChangesetListAPIView):
     """Return the checked changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(checked=True)
+    def get_queryset(self):
+        return self.queryset.filter(checked=True)
 
 
 class UncheckedChangesetListAPIView(ChangesetListAPIView):
     """Return the unchecked changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
-    queryset = Changeset.objects.filter(checked=False)
+    def get_queryset(self):
+        return self.queryset.filter(checked=False)
 
 
 class SuspicionReasonsListAPIView(ListAPIView):
@@ -154,7 +164,7 @@ def set_harmful_changeset(request, pk):
     make an empty PUT request.
     """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-    if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+    if instance.uid not in request.user.social_auth.values_list('uid', flat=True):
         if instance.checked is False:
             instance.checked = True
             instance.harmful = True
@@ -191,7 +201,7 @@ def set_good_changeset(request, pk):
     PUT request.
     """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-    if instance.uid not in [i.uid for i in request.user.social_auth.all()]:
+    if instance.uid not in request.user.social_auth.values_list('uid', flat=True):
         if instance.checked is False:
             instance.checked = True
             instance.harmful = False
@@ -220,7 +230,10 @@ def set_good_changeset(request, pk):
 def uncheck_changeset(request, pk):
     """Mark a changeset as unchecked. You don't need to send data, just an empty
     PUT request."""
-    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
+    instance = get_object_or_404(
+        Changeset.objects.all().select_related('check_user'),
+        pk=pk
+        )
     if instance.checked is False:
         return Response(
             {'message': 'Changeset is not checked.'},
@@ -317,7 +330,9 @@ def stats(request):
 
 
 class ChangesetStatsAPIView(ListAPIView):
-    queryset = Changeset.objects.all()
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related('tags', 'reasons')
     serializer_class = ChangesetStatsSerializer
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
