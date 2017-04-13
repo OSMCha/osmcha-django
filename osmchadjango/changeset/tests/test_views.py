@@ -831,3 +831,18 @@ class TestStatsView(TestCase):
         self.assertEqual(response.data.get('checked_changesets'), 3)
         self.assertEqual(response.data.get('harmful_changesets'), 2)
         self.assertEqual(response.data.get('users_with_harmful_changesets'), 1)
+        self.assertIn(
+            {'name': 'possible import', 'checked_changesets': 1, 'harmful_changesets': 1},
+            response.data.get('reasons')
+            )
+        self.assertIn(
+            {'name': 'suspect_word', 'checked_changesets': 2, 'harmful_changesets': 1},
+            response.data.get('reasons')
+            )
+
+    def test_stats_view_with_filters(self):
+        response = client.get(self.url, {'harmful': False})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('checked_changesets'), 1)
+        self.assertEqual(response.data.get('harmful_changesets'), 0)
+        self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)

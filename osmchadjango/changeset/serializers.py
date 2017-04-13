@@ -65,13 +65,23 @@ class ChangesetListStatsSerializer(ListSerializer):
     read_only = True
 
     def to_representation(self, data):
+        checked_changesets = data.filter(checked=True)
         harmful_changesets = data.filter(harmful=True)
+        reasons = SuspicionReasons.objects.all()
+        reasons_list = [
+            {'name': reason.name,
+            'checked_changesets': checked_changesets.filter(reasons=reason).count(),
+            'harmful_changesets': harmful_changesets.filter(reasons=reason).count(),
+            }
+            for reason in reasons
+            ]
         return {
-            'checked_changesets': data.filter(checked=True).count(),
+            'checked_changesets': checked_changesets.count(),
             'harmful_changesets': harmful_changesets.count(),
             'users_with_harmful_changesets': harmful_changesets.values_list(
                 'user', flat=True
                 ).distinct().count(),
+            'reasons': reasons_list
             }
 
     @property
