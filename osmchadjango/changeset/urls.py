@@ -12,32 +12,32 @@ urlpatterns = [
         name='list'
     ),
     url(
-        regex=r'^changesets/suspect$',
+        regex=r'^changesets/suspect/$',
         view=views.SuspectChangesetListAPIView.as_view(),
         name='suspect-list'
     ),
     url(
-        regex=r'^changesets/no-suspect$',
+        regex=r'^changesets/no-suspect/$',
         view=views.NoSuspectChangesetListAPIView.as_view(),
         name='no-suspect-list'
     ),
     url(
-        regex=r'^changesets/harmful$',
+        regex=r'^changesets/harmful/$',
         view=views.HarmfulChangesetListAPIView.as_view(),
         name='harmful-list'
     ),
     url(
-        regex=r'^changesets/no-harmful$',
+        regex=r'^changesets/no-harmful/$',
         view=views.NoHarmfulChangesetListAPIView.as_view(),
         name='no-harmful-list'
     ),
     url(
-        regex=r'^changesets/checked$',
+        regex=r'^changesets/checked/$',
         view=views.CheckedChangesetListAPIView.as_view(),
         name='checked-list'
     ),
     url(
-        regex=r'^changesets/unchecked$',
+        regex=r'^changesets/unchecked/$',
         view=views.UncheckedChangesetListAPIView.as_view(),
         name='unchecked-list'
     ),
