@@ -67,8 +67,14 @@ class ChangesetListStatsSerializer(ListSerializer):
     def to_representation(self, data):
         checked_changesets = data.filter(checked=True)
         harmful_changesets = data.filter(harmful=True)
-        reasons = SuspicionReasons.objects.order_by('-name')
-        tags = Tag.objects.order_by('-name')
+
+        if self.context['request'].user.is_staff:
+            reasons = SuspicionReasons.objects.order_by('-name')
+            tags = Tag.objects.order_by('-name')
+        else:
+            reasons = SuspicionReasons.objects.filter(is_visible=True).order_by('-name')
+            tags = Tag.objects.filter(is_visible=True).order_by('-name')
+
         reasons_list = [
             {'name': reason.name,
             'checked_changesets': checked_changesets.filter(reasons=reason).count(),
@@ -83,6 +89,7 @@ class ChangesetListStatsSerializer(ListSerializer):
             }
             for tag in tags
             ]
+
         return {
             'checked_changesets': checked_changesets.count(),
             'harmful_changesets': harmful_changesets.count(),
