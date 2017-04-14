@@ -832,14 +832,25 @@ class TestStatsView(TestCase):
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
         self.reason_3 = SuspicionReasons.objects.create(
             name='vandalism in my city', is_visible=False)
-        self.reason_1.changesets.set([self.suspect_changeset, self.harmful_changeset])
-        self.reason_2.changesets.set([self.harmful_changeset_2, self.good_changeset])
-        self.reason_3.changesets.set([self.harmful_changeset_2, self.good_changeset])
+        self.reason_1.changesets.set(
+            [self.suspect_changeset, self.harmful_changeset]
+            )
+        self.reason_2.changesets.set(
+            [self.harmful_changeset_2, self.good_changeset]
+            )
+        self.reason_3.changesets.set(
+            [self.harmful_changeset_2, self.good_changeset]
+            )
         self.tag_1 = Tag.objects.create(name='Vandalism')
         self.tag_2 = Tag.objects.create(name='Minor errors')
-        self.tag_1.changesets.add(self.harmful_changeset)
-        self.tag_1.changesets.add(self.harmful_changeset_2)
+        self.tag_3 = Tag.objects.create(name='Big buildings', is_visible=False)
+        self.tag_1.changesets.set(
+            [self.harmful_changeset, self.harmful_changeset_2]
+            )
         self.tag_2.changesets.add(self.good_changeset)
+        self.tag_3.changesets.set(
+            [self.harmful_changeset, self.harmful_changeset_2, self.good_changeset]
+            )
         self.url = reverse('changeset:stats')
 
     def test_stats_view(self):
@@ -849,6 +860,7 @@ class TestStatsView(TestCase):
         self.assertEqual(response.data.get('harmful_changesets'), 2)
         self.assertEqual(response.data.get('users_with_harmful_changesets'), 2)
         self.assertEqual(len(response.data.get('reasons')), 2)
+        self.assertEqual(len(response.data.get('tags')), 2)
         self.assertIn(
             {'name': 'possible import', 'checked_changesets': 1, 'harmful_changesets': 1},
             response.data.get('reasons')
@@ -873,6 +885,7 @@ class TestStatsView(TestCase):
         self.assertEqual(response.data.get('harmful_changesets'), 0)
         self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
         self.assertEqual(len(response.data.get('reasons')), 2)
+        self.assertEqual(len(response.data.get('tags')), 2)
         self.assertIn(
             {'name': 'possible import', 'checked_changesets': 0, 'harmful_changesets': 0},
             response.data.get('reasons')
@@ -895,7 +908,12 @@ class TestStatsView(TestCase):
         response = client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('reasons')), 3)
+        self.assertEqual(len(response.data.get('tags')), 3)
         self.assertIn(
             {'name': 'vandalism in my city', 'checked_changesets': 2, 'harmful_changesets': 1},
             response.data.get('reasons')
+            )
+        self.assertIn(
+            {'name': 'Big buildings', 'checked_changesets': 3, 'harmful_changesets': 2},
+            response.data.get('tags')
             )
