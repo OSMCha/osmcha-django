@@ -8,7 +8,7 @@ from . import views
 urlpatterns = [
     url(
         regex=r'^$',
-        view=views.UserDetailAPIView.as_view(),
+        view=views.CurrentUserDetailAPIView.as_view(),
         name='detail'
         ),
     ]

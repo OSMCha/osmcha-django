@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 from ..models import User
 
 
-class TestUserDetailAPIView(APITestCase):
+class TestCurrentUserDetailAPIView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test',

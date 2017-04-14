@@ -9,7 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from .serializers import UserSerializer
 
 
-class UserDetailAPIView(RetrieveUpdateAPIView):
+class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
     """Get or update details of the current logged user. It's allowed only to
     update the email address.
     """
