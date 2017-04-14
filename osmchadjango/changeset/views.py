@@ -20,7 +20,8 @@ from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
-    SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer
+    SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
+    UserStatsSerializer
     )
 
 
@@ -300,3 +301,11 @@ class ChangesetStatsAPIView(ListAPIView):
         )
     bbox_filter_include_overlapping = True
     filter_class = ChangesetFilter
+
+
+class UserStatsAPIView(ListAPIView):
+    """Get stats about a user in OSMCHA. This view acce"""
+    serializer_class = UserStatsSerializer
+
+    def get_queryset(self):
+        return Changeset.objects.filter(uid=self.kwargs['uid'])

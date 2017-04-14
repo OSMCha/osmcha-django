@@ -86,4 +86,9 @@ urlpatterns = [
         view=views.ChangesetStatsAPIView.as_view(),
         name='stats'
     ),
+    url(
+        regex=r'^user-stats/(?P<uid>\w+)/$',
+        view=views.UserStatsAPIView.as_view(),
+        name='user-stats'
+    ),
 ]

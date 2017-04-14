@@ -914,3 +914,24 @@ class TestStatsView(APITestCase):
             {'name': 'Big buildings', 'checked_changesets': 3, 'harmful_changesets': 2},
             response.data.get('tags')
             )
+
+
+class TestUserStatsViews(APITestCase):
+    def setUp(self):
+        GoodChangesetFactory(user='user_one', uid='4321')
+        HarmfulChangesetFactory(user='user_one', uid='4321')
+        SuspectChangesetFactory(user='user_one', uid='4321')
+
+    def test_user_one_stats(self):
+        response = self.client.get(reverse('changeset:user-stats', args=['4321']))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('changesets_in_osmcha'), 3)
+        self.assertEqual(response.data.get('checked_changesets'), 2)
+        self.assertEqual(response.data.get('harmful_changesets'), 1)
+
+    def test_user_without_changesets(self):
+        response = self.client.get(reverse('changeset:user-stats', args=['1611']))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('changesets_in_osmcha'), 0)
+        self.assertEqual(response.data.get('checked_changesets'), 0)
+        self.assertEqual(response.data.get('harmful_changesets'), 0)

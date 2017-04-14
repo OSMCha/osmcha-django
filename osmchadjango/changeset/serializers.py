@@ -108,3 +108,26 @@ class ChangesetListStatsSerializer(ListSerializer):
 class ChangesetStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = ChangesetListStatsSerializer
+
+
+class UserStatsListSerializer(ListSerializer):
+    read_only = True
+
+    def to_representation(self, data):
+        checked_changesets = data.filter(checked=True)
+        harmful_changesets = data.filter(harmful=True)
+
+        return {
+            'changesets_in_osmcha': data.count(),
+            'checked_changesets': checked_changesets.count(),
+            'harmful_changesets': harmful_changesets.count()
+            }
+
+    @property
+    def data(self):
+        return super(ListSerializer, self).data
+
+
+class UserStatsSerializer(BaseSerializer):
+    class Meta:
+        list_serializer_class = UserStatsListSerializer
