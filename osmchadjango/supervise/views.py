@@ -1,11 +1,13 @@
 from rest_framework.generics import (
     ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
     )
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
-from ..changeset.serializers import ChangesetSerializer, ChangesetSerializerToStaff
+from ..changeset.serializers import (
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
+    )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest
 from .serializers import AreaOfInterestSerializer
@@ -84,6 +86,22 @@ class AOIListChangesetsAPIView(ListAPIView):
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class AOIStatsAPIView(ListAPIView):
+    """Return the statistics of the changesets that match an Area of Interest.
+    Return the data in the same format as the Changeset Stats view.
+    """
+    queryset = AreaOfInterest.objects.all()
+    serializer_class = ChangesetStatsSerializer
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_object().changesets().select_related(
+            'check_user'
+            ).prefetch_related('tags', 'reasons')
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)

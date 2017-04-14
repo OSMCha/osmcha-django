@@ -21,4 +21,9 @@ urlpatterns = [
         view=views.AOIListChangesetsAPIView.as_view(),
         name='aoi-list-changesets'
         ),
+    url(
+        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
+        view=views.AOIStatsAPIView.as_view(),
+        name='aoi-stats'
+        ),
     ]

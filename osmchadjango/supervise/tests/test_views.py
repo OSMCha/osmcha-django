@@ -6,7 +6,10 @@ from django.contrib.gis.geos import MultiPolygon, Polygon
 from rest_framework.test import APIClient
 from social_django.models import UserSocialAuth
 
-from ...changeset.tests.modelfactories import ChangesetFactory
+from ...changeset.tests.modelfactories import (
+    ChangesetFactory, HarmfulChangesetFactory, GoodChangesetFactory,
+    SuspicionReasonsFactory, TagFactory
+    )
 from ...users.models import User
 from ..models import AreaOfInterest
 
@@ -332,3 +335,90 @@ class TestAOIDetailAPIViews(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 51)
         self.assertEqual(len(response.data['features']), 1)
+
+
+class TestAOIStatsAPIViews(TestCase):
+    def setUp(self):
+        self.m_polygon = MultiPolygon(
+            Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
+            Polygon(((1, 1), (1, 2), (2, 2), (1, 1)))
+            )
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.aoi = AreaOfInterest.objects.create(
+            name='Best place in the world',
+            user=self.user,
+            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            geometry=self.m_polygon
+            )
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        HarmfulChangesetFactory(
+            editor='JOSM 1.5',
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        self.good_changesets = GoodChangesetFactory.create_batch(
+            51,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        self.reason = SuspicionReasonsFactory(name='possible import')
+        self.reason_2 = SuspicionReasonsFactory(
+            name='Mass Deletion', is_visible=False)
+        self.reason.changesets.set(self.good_changesets[0:5])
+        self.reason_2.changesets.set(self.good_changesets[5:10])
+        self.tag_1 = TagFactory(name='Vandalism')
+        self.tag_2 = TagFactory(name='Big buildings', is_visible=False)
+        self.tag_1.changesets.set(self.good_changesets[0:5])
+        self.tag_2.changesets.set(self.good_changesets[5:10])
+        self.url = reverse('supervise:aoi-stats', args=[self.aoi.pk])
+
+    def test_stats_unauthenticated(self):
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('checked_changesets'), 51)
+        self.assertEqual(response.data.get('harmful_changesets'), 0)
+        self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
+        self.assertEqual(len(response.data.get('reasons')), 1)
+        self.assertEqual(len(response.data.get('tags')), 1)
+        self.assertIn(
+            {'name': 'possible import', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('reasons')
+            )
+        self.assertIn(
+            {'name': 'Vandalism', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('tags')
+            )
+
+    def test_stats_with_staff_user(self):
+        client.login(username=self.user.username, password='password')
+        response = client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('checked_changesets'), 51)
+        self.assertEqual(response.data.get('harmful_changesets'), 0)
+        self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
+        self.assertEqual(len(response.data.get('reasons')), 2)
+        self.assertEqual(len(response.data.get('tags')), 2)
+        self.assertIn(
+            {'name': 'possible import', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('reasons')
+            )
+        self.assertIn(
+            {'name': 'Mass Deletion', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('reasons')
+            )
+        self.assertIn(
+            {'name': 'Vandalism', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('tags')
+            )
+        self.assertIn(
+            {'name': 'Big buildings', 'checked_changesets': 5, 'harmful_changesets': 0},
+            response.data.get('tags')
+            )
