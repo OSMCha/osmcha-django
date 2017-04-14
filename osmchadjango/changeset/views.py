@@ -330,6 +330,12 @@ def stats(request):
 
 
 class ChangesetStatsAPIView(ListAPIView):
+    """Get stats about Changesets. It will return the total number of checked
+    and harmful changesets, the number of users with harmful changesets and the
+    number of checked and harmful changesets by Suspicion Reason and by Tag.
+    It's possible to filter the changesets using the same filter parameters of
+    the changeset list endpoint.
+    """
     queryset = Changeset.objects.all().select_related(
         'check_user'
         ).prefetch_related('tags', 'reasons')
