@@ -32,7 +32,9 @@ class FeatureListAPIView(ListAPIView):
     the min Lat, min Lon, max Lat, max Lon values. It's also possible to filter
     using other fields. The default pagination return 50 objects by page.
     """
-    queryset = Feature.objects.all()
+    queryset = Feature.objects.all().select_related(
+        'check_user', 'changeset'
+        ).prefetch_related('reasons', 'tags')
     serializer_class = FeatureSerializer
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
@@ -53,7 +55,9 @@ class FeatureListAPIView(ListAPIView):
 
 class FeatureDetailAPIView(RetrieveAPIView):
     '''Get details of a Feature object. Type: GeoJSON'''
-    queryset = Feature.objects.all()
+    queryset = Feature.objects.all().select_related(
+        'check_user', 'changeset'
+        ).prefetch_related('reasons', 'tags')
 
     def get_object(self):
         changeset = self.kwargs['changeset']
@@ -194,7 +198,8 @@ def set_harmful_feature(request, changeset, slug):
     make an empty PUT request.
     """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
-    if instance.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+    user_uids = request.user.social_auth.values_list('uid', flat=True)
+    if instance.changeset.uid not in user_uids:
         if instance.checked is False:
             instance.checked = True
             instance.harmful = True
@@ -229,7 +234,8 @@ def set_harmful_feature(request, changeset, slug):
 def set_good_feature(request, changeset, slug):
     """Mark a feature as good."""
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
-    if instance.changeset.uid not in [i.uid for i in request.user.social_auth.all()]:
+    user_uids = request.user.social_auth.values_list('uid', flat=True)
+    if instance.changeset.uid not in user_uids:
         if instance.checked is False:
             instance.checked = True
             instance.harmful = False
