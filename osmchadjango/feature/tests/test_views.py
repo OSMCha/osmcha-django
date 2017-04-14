@@ -1,14 +1,13 @@
 import json
 from datetime import date, datetime
 
-from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.test.client import encode_multipart
 
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
 
 from ...changeset.models import (Tag, SuspicionReasons, Changeset)
@@ -20,10 +19,8 @@ from .modelfactories import (
     FeatureFactory, CheckedFeatureFactory, WayFeatureFactory
     )
 
-client = APIClient()
 
-
-class TestCreateFeature(TestCase):
+class TestCreateFeature(APITestCase):
     def setUp(self):
         self.fixture = json.load(open(
             settings.APPS_DIR.path('feature/tests/fixtures/way-23.json')(),
@@ -51,7 +48,7 @@ class TestCreateFeature(TestCase):
         self.token = Token.objects.create(user=self.user)
 
     def test_create_feature(self):
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.fixture),
             content_type="application/json",
@@ -59,7 +56,7 @@ class TestCreateFeature(TestCase):
             )
         self.assertEqual(response.status_code, 201)
 
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.new_fixture),
             content_type="application/json",
@@ -93,7 +90,7 @@ class TestCreateFeature(TestCase):
         self.assertIn('geometry', feature.geojson.keys())
 
     def test_unathenticated_request(self):
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.fixture),
             content_type="application/json",
@@ -112,7 +109,7 @@ class TestCreateFeature(TestCase):
             uid='444444',
             )
         token = Token.objects.create(user=user)
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.new_fixture),
             content_type="application/json",
@@ -131,7 +128,7 @@ class TestCreateFeature(TestCase):
                 ),
             is_suspect=False
             )
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.fixture),
             content_type="application/json",
@@ -143,7 +140,7 @@ class TestCreateFeature(TestCase):
 
     def test_invalid_geometry(self):
         self.fixture['geometry'] = {}
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.fixture),
             content_type="application/json",
@@ -155,7 +152,7 @@ class TestCreateFeature(TestCase):
         self.assertEqual(SuspicionReasons.objects.count(), 0)
 
     def test_create_feature_with_is_visible_false(self):
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.unvisible_fixture),
             content_type="application/json",
@@ -179,7 +176,7 @@ class TestCreateFeature(TestCase):
                 ),
             is_suspect=True
             )
-        response = client.post(
+        response = self.client.post(
             reverse('feature:create'),
             data=json.dumps(self.unvisible_fixture),
             content_type="application/json",
@@ -194,7 +191,7 @@ class TestCreateFeature(TestCase):
         self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 1)
 
 
-class TestFeatureListAPIView(TestCase):
+class TestFeatureListAPIView(APITestCase):
     def setUp(self):
         FeatureFactory.create_batch(15)
         WayFeatureFactory.create_batch(15)
@@ -203,128 +200,128 @@ class TestFeatureListAPIView(TestCase):
         self.url = reverse('feature:list')
 
     def test_list_view(self):
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 50)
         self.assertEqual(response.data.get('count'), 60)
 
     def test_pagination(self):
-        response = client.get(self.url, {'page': 2})
+        response = self.client.get(self.url, {'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 10)
         self.assertEqual(response.data['count'], 60)
         # test page_size parameter
-        response = client.get(self.url, {'page_size': 60})
+        response = self.client.get(self.url, {'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 60)
 
     def test_filters(self):
-        response = client.get(self.url, {'in_bbox': '40,13,43,15'})
+        response = self.client.get(self.url, {'in_bbox': '40,13,43,15'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 60)
-        response = client.get(
+        response = self.client.get(
             self.url,
             {'in_bbox': '40,13,43,15', 'checked': 'true'}
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 30)
 
-        response = client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
+        response = self.client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
-        response = client.get(self.url, {'harmful': 'true'})
+        response = self.client.get(self.url, {'harmful': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 15)
 
-        response = client.get(self.url, {'harmful': 'false'})
+        response = self.client.get(self.url, {'harmful': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 15)
 
     def test_csv_renderer(self):
         self.assertIn(PaginatedCSVRenderer, FeatureListAPIView().renderer_classes)
-        response = client.get(self.url, {'format': 'csv', 'page_size': 70})
+        response = self.client.get(self.url, {'format': 'csv', 'page_size': 70})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 60)
-        response = client.get(self.url, {'format': 'csv', 'checked': True})
+        response = self.client.get(self.url, {'format': 'csv', 'checked': True})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 30)
 
 
-class TestOrderingOfFeatureListAPIView(TestCase):
+class TestOrderingOfFeatureListAPIView(APITestCase):
     def setUp(self):
         CheckedFeatureFactory.create_batch(10)
         self.url = reverse('feature:list')
 
     def test_ordering(self):
         # default ordering is by descending changeset id
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.all()]
             )
         # ascending changeset id
-        response = client.get(self.url, {'order_by': 'changeset_id'})
+        response = self.client.get(self.url, {'order_by': 'changeset_id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('changeset_id')]
             )
         # descending changeset date
-        response = client.get(self.url, {'order_by': '-changeset__date'})
+        response = self.client.get(self.url, {'order_by': '-changeset__date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('-changeset__date')]
             )
         # ascending changeset date
-        response = client.get(self.url, {'order_by': 'changeset__date'})
+        response = self.client.get(self.url, {'order_by': 'changeset__date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('changeset__date')]
             )
         # ascending id
-        response = client.get(self.url, {'order_by': 'id'})
+        response = self.client.get(self.url, {'order_by': 'id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('id')]
             )
         # descending id
-        response = client.get(self.url, {'order_by': '-id'})
+        response = self.client.get(self.url, {'order_by': '-id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('-id')]
             )
         # ascending osm_id
-        response = client.get(self.url, {'order_by': 'osm_id'})
+        response = self.client.get(self.url, {'order_by': 'osm_id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('osm_id')]
             )
         # descending osm_id
-        response = client.get(self.url, {'order_by': '-osm_id'})
+        response = self.client.get(self.url, {'order_by': '-osm_id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('-osm_id')]
             )
         # ascending check_date
-        response = client.get(self.url, {'order_by': 'check_date'})
+        response = self.client.get(self.url, {'order_by': 'check_date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('check_date')]
             )
         # descending check_date
-        response = client.get(self.url, {'order_by': '-check_date'})
+        response = self.client.get(self.url, {'order_by': '-check_date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Feature.objects.order_by('-check_date')]
             )
 
 
-class TestFeatureDetailAPIView(TestCase):
+class TestFeatureDetailAPIView(APITestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
 
     def test_feature_detail_view(self):
-        response = client.get(
+        response = self.client.get(
             reverse(
                 'feature:detail',
                 args=[self.feature.changeset.id, self.feature.url]
@@ -387,7 +384,7 @@ class TestFeatureDetailAPIView(TestCase):
         self.assertIn('geometry', response.data.keys())
 
 
-class TestReasonsAndTagsFields(TestCase):
+class TestReasonsAndTagsFields(APITestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
         tag = Tag.objects.create(name='Vandalism')
@@ -419,7 +416,7 @@ class TestReasonsAndTagsFields(TestCase):
             )
 
     def test_detail_view_with_normal_user(self):
-        response = client.get(
+        response = self.client.get(
             reverse(
                 'feature:detail',
                 args=[self.feature.changeset.id, self.feature.url]
@@ -443,7 +440,7 @@ class TestReasonsAndTagsFields(TestCase):
             )
 
     def test_list_view_with_normal_user(self):
-        response = client.get(reverse('feature:list'))
+        response = self.client.get(reverse('feature:list'))
         self.assertIn(
             'new mapper edits',
             response.data['features'][0]['properties']['reasons']
@@ -462,8 +459,8 @@ class TestReasonsAndTagsFields(TestCase):
             )
 
     def test_detail_view_with_admin(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
             reverse(
                 'feature:detail',
                 args=[self.feature.changeset.id, self.feature.url]
@@ -487,8 +484,8 @@ class TestReasonsAndTagsFields(TestCase):
             )
 
     def test_list_view_with_admin(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(reverse('feature:list'))
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(reverse('feature:list'))
         self.assertIn(
             'Suspicious Feature in my city',
             response.data['features'][0]['properties']['reasons']
@@ -507,7 +504,7 @@ class TestReasonsAndTagsFields(TestCase):
             )
 
 
-class TestCheckFeatureViews(TestCase):
+class TestCheckFeatureViews(APITestCase):
     def setUp(self):
         self.feature = FeatureFactory()
         self.user = User.objects.create_user(
@@ -542,13 +539,13 @@ class TestCheckFeatureViews(TestCase):
             )
 
     def test_check_feature_unauthenticated(self):
-        response = client.put(self.set_harmful_url)
+        response = self.client.put(self.set_harmful_url)
         self.assertEqual(response.status_code, 401)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
         self.assertFalse(self.feature.checked)
 
-        response = client.put(self.set_good_url)
+        response = self.client.put(self.set_good_url)
         self.assertEqual(response.status_code, 401)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
@@ -558,8 +555,8 @@ class TestCheckFeatureViews(TestCase):
         """User can't mark the feature as harmful because he is the author of
         the changeset that modified the feature.
         """
-        client.login(username=self.changeset_user.username, password='password')
-        response = client.put(self.set_harmful_url)
+        self.client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(self.set_harmful_url)
         self.assertEqual(response.status_code, 403)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
@@ -571,8 +568,8 @@ class TestCheckFeatureViews(TestCase):
         """User can't mark the feature as good because he is the author of
         the changeset that modified the feature.
         """
-        client.login(username=self.changeset_user.username, password='password')
-        response = client.put(self.set_good_url)
+        self.client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(self.set_good_url)
         self.assertEqual(response.status_code, 403)
         self.feature.refresh_from_db()
         self.assertIsNone(self.feature.harmful)
@@ -581,12 +578,12 @@ class TestCheckFeatureViews(TestCase):
         self.assertIsNone(self.feature.check_date)
 
     def test_set_harmful_feature_with_tags(self):
-        client.login(username=self.user.username, password='password')
+        self.client.login(username=self.user.username, password='password')
         content = encode_multipart(
             'BoUnDaRyStRiNg',
             {'tags': [self.tag_1.id, self.tag_2.id]}
             )
-        response = client.put(
+        response = self.client.put(
             self.set_harmful_url,
             content,
             content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
@@ -606,16 +603,16 @@ class TestCheckFeatureViews(TestCase):
             )
 
     def test_set_harmful_feature(self):
-        client.login(username=self.user.username, password='password')
-        response = client.put(self.set_harmful_url)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(self.set_harmful_url)
         self.assertEqual(response.status_code, 200)
         self.feature.refresh_from_db()
         self.assertTrue(self.feature.harmful)
         self.assertTrue(self.feature.checked)
 
     def test_set_good_feature(self):
-        client.login(username=self.user.username, password='password')
-        response = client.put(self.set_good_url)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(self.set_good_url)
         self.assertEqual(response.status_code, 200)
         self.feature.refresh_from_db()
         self.assertFalse(self.feature.harmful)
@@ -623,9 +620,9 @@ class TestCheckFeatureViews(TestCase):
 
     def test_try_to_check_feature_already_checked(self):
         feature = CheckedFeatureFactory()
-        client.login(username=self.user.username, password='password')
+        self.client.login(username=self.user.username, password='password')
         # first try to mark a checked feature as good
-        response = client.put(
+        response = self.client.put(
             reverse('feature:set-good', args=[feature.changeset, feature.url])
             )
         self.assertEqual(response.status_code, 403)
@@ -637,7 +634,7 @@ class TestCheckFeatureViews(TestCase):
             'BoUnDaRyStRiNg',
             {'tags': [self.tag_1.id, self.tag_2.id]}
             )
-        response = client.put(
+        response = self.client.put(
             reverse('feature:set-harmful', args=[feature.changeset, feature.url]),
             content,
             content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
@@ -647,19 +644,19 @@ class TestCheckFeatureViews(TestCase):
         self.assertNotEqual(feature.check_user, self.user)
 
     def test_404(self):
-        client.login(username=self.user.username, password='password')
-        response = client.put(
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
             reverse('feature:set-good', args=[4988787832, 'way-16183212']),
             )
         self.assertEqual(response.status_code, 404)
 
-        response = client.put(
+        response = self.client.put(
             reverse('feature:set-harmful', args=[4988787832, 'way-16183212']),
             )
         self.assertEqual(response.status_code, 404)
 
 
-class TestUncheckFeatureView(TestCase):
+class TestUncheckFeatureView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_2',

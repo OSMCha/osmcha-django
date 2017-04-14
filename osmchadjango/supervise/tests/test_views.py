@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
 
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
 
 from ...changeset.tests.modelfactories import (
@@ -13,10 +12,8 @@ from ...changeset.tests.modelfactories import (
 from ...users.models import User
 from ..models import AreaOfInterest
 
-client = APIClient()
 
-
-class TestAoIListView(TestCase):
+class TestAoIListView(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -64,18 +61,18 @@ class TestAoIListView(TestCase):
         self.url = reverse('supervise:aoi-list-create')
 
     def test_list_view_unauthenticated(self):
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 401)
 
     def test_list_view(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(self.url)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 2)
 
     def test_list_view_with_user_2(self):
-        client.login(username=self.user_2.username, password='password')
-        response = client.get(self.url)
+        self.client.login(username=self.user_2.username, password='password')
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 1)
         self.assertEqual(
@@ -88,7 +85,7 @@ class TestAoIListView(TestCase):
             )
 
 
-class TestAOICreateView(TestCase):
+class TestAOICreateView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_user',
@@ -111,13 +108,13 @@ class TestAOICreateView(TestCase):
             }
 
     def test_create_AOI_unauthenticated(self):
-        response = client.post(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(AreaOfInterest.objects.count(), 0)
 
     def test_create_AOI(self):
-        client.login(username=self.user.username, password='password')
-        response = client.post(self.url, self.data)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
         aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
@@ -130,15 +127,15 @@ class TestAOICreateView(TestCase):
             )
 
     def test_validation(self):
-        client.login(username=self.user.username, password='password')
-        response = client.post(self.url, {'name': 'Empty AoI'})
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, {'name': 'Empty AoI'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(AreaOfInterest.objects.count(), 0)
 
         # test validation of unique name of AoI for each user
-        response = client.post(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
-        response = client.post(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 400)
 
     def test_auto_user_field(self):
@@ -152,15 +149,15 @@ class TestAOICreateView(TestCase):
             provider='openstreetmap',
             uid='4444',
             )
-        client.login(username=self.user.username, password='password')
+        self.client.login(username=self.user.username, password='password')
         self.data['user'] = user_2.username
-        response = client.post(self.url, self.data)
+        response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
 
 
-class TestAOIDetailAPIViews(TestCase):
+class TestAOIDetailAPIViews(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -192,7 +189,7 @@ class TestAOIDetailAPIViews(TestCase):
             }
 
     def test_retrieve_detail(self):
-        response = client.get(reverse('supervise:aoi-detail', args=[self.aoi.pk]))
+        response = self.client.get(reverse('supervise:aoi-detail', args=[self.aoi.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.data['properties']['name'],
@@ -220,7 +217,7 @@ class TestAOIDetailAPIViews(TestCase):
             )
 
     def test_update_aoi_unauthenticated(self):
-        response = client.put(
+        response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
             )
@@ -229,7 +226,7 @@ class TestAOIDetailAPIViews(TestCase):
         self.assertEqual(self.aoi.name, 'Best place in the world')
 
     def test_delete_aoi_unauthenticated(self):
-        response = client.delete(
+        response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 401)
@@ -241,8 +238,8 @@ class TestAOIDetailAPIViews(TestCase):
             email='c@a.com',
             password='password'
             )
-        client.login(username=user.username, password='password')
-        response = client.put(
+        self.client.login(username=user.username, password='password')
+        response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
             )
@@ -256,16 +253,16 @@ class TestAOIDetailAPIViews(TestCase):
             email='c@a.com',
             password='password'
             )
-        client.login(username=user.username, password='password')
-        response = client.delete(
+        self.client.login(username=user.username, password='password')
+        response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
 
     def test_update_with_aoi_owner_user(self):
-        client.login(username=self.user.username, password='password')
-        response = client.put(
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
             )
@@ -280,15 +277,15 @@ class TestAOIDetailAPIViews(TestCase):
             )
 
     def test_validation(self):
-        client.login(username=self.user.username, password='password')
-        response = client.put(
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
             )
         self.assertEqual(response.status_code, 200)
 
         # validate if the user are not allowed to let the filters and geometry fields empty
-        response = client.put(
+        response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             {'name': u'Golfo da Guiné'}
             )
@@ -298,8 +295,8 @@ class TestAOIDetailAPIViews(TestCase):
         self.assertIsNotNone(self.aoi.geometry)
 
     def test_delete_with_aoi_owner_user(self):
-        client.login(username=self.user.username, password='password')
-        response = client.delete(
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 204)
@@ -317,7 +314,7 @@ class TestAOIDetailAPIViews(TestCase):
             harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
-        response = client.get(
+        response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
@@ -328,7 +325,7 @@ class TestAOIDetailAPIViews(TestCase):
         self.assertIn('properties', response.data['features'][0].keys())
 
         # test pagination
-        response = client.get(
+        response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
             {'page': 2}
             )
@@ -337,7 +334,7 @@ class TestAOIDetailAPIViews(TestCase):
         self.assertEqual(len(response.data['features']), 1)
 
 
-class TestAOIStatsAPIViews(TestCase):
+class TestAOIStatsAPIViews(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -381,7 +378,7 @@ class TestAOIStatsAPIViews(TestCase):
         self.url = reverse('supervise:aoi-stats', args=[self.aoi.pk])
 
     def test_stats_unauthenticated(self):
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('checked_changesets'), 51)
         self.assertEqual(response.data.get('harmful_changesets'), 0)
@@ -398,8 +395,8 @@ class TestAOIStatsAPIViews(TestCase):
             )
 
     def test_stats_with_staff_user(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(self.url)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('checked_changesets'), 51)
         self.assertEqual(response.data.get('harmful_changesets'), 0)

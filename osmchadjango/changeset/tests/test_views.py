@@ -1,9 +1,8 @@
-from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.test.client import encode_multipart
 
 from social_django.models import UserSocialAuth
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 
 from ...users.models import User
 from ..models import SuspicionReasons, Tag, Changeset, UserWhitelist
@@ -13,10 +12,8 @@ from .modelfactories import (
     HarmfulChangesetFactory, TagFactory, UserWhitelistFactory
     )
 
-client = APIClient()
 
-
-class TestChangesetListView(TestCase):
+class TestChangesetListView(APITestCase):
 
     def setUp(self):
         SuspectChangesetFactory.create_batch(26)
@@ -24,35 +21,35 @@ class TestChangesetListView(TestCase):
         self.url = reverse('changeset:list')
 
     def test_changeset_list_response(self):
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 50)
         self.assertEqual(response.data['count'], 52)
 
     def test_pagination(self):
-        response = client.get(self.url, {'page': 2})
+        response = self.client.get(self.url, {'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 2)
         self.assertEqual(response.data['count'], 52)
         # test page_size parameter
-        response = client.get(self.url, {'page_size': 60})
+        response = self.client.get(self.url, {'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
 
     def test_filters(self):
-        response = client.get(self.url, {'in_bbox': '-72,43,-70,45'})
+        response = self.client.get(self.url, {'in_bbox': '-72,43,-70,45'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 52)
 
-        response = client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
+        response = self.client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
-        response = client.get(self.url, {'is_suspect': 'true'})
+        response = self.client.get(self.url, {'is_suspect': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
 
-        response = client.get(self.url, {'is_suspect': 'false'})
+        response = self.client.get(self.url, {'is_suspect': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
 
@@ -70,10 +67,10 @@ class TestChangesetListView(TestCase):
         UserWhitelistFactory(user=user, whitelist_user='test')
 
         # test without login
-        response = client.get(self.url, {'hide_whitelist': 'true'})
+        response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 52)
-        response = client.get(self.url, {'hide_whitelist': 'true', 'checked': 'true'})
+        response = self.client.get(self.url, {'hide_whitelist': 'true', 'checked': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
         # test with login. As all changesets in the DB are from a whitelisted
@@ -85,15 +82,15 @@ class TestChangesetListView(TestCase):
 
     def test_csv_renderer(self):
         self.assertIn(PaginatedCSVRenderer, ChangesetListAPIView().renderer_classes)
-        response = client.get(self.url, {'format': 'csv', 'page_size': 60})
+        response = self.client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
-        response = client.get(self.url, {'is_suspect': 'true', 'format': 'csv'})
+        response = self.client.get(self.url, {'is_suspect': 'true', 'format': 'csv'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 26)
 
 
-class TestChangesetFilteredViews(TestCase):
+class TestChangesetFilteredViews(APITestCase):
     def setUp(self):
         ChangesetFactory()
         SuspectChangesetFactory()
@@ -102,42 +99,42 @@ class TestChangesetFilteredViews(TestCase):
 
     def test_suspect_changesets_view(self):
         url = reverse('changeset:suspect-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 3)
 
     def test_no_suspect_changesets_view(self):
         url = reverse('changeset:no-suspect-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
 
     def test_harmful_changesets_view(self):
         url = reverse('changeset:harmful-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
 
     def test_no_harmful_changesets_view(self):
         url = reverse('changeset:no-harmful-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
 
     def test_checked_changesets_view(self):
         url = reverse('changeset:checked-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 2)
 
     def test_unchecked_changesets_view(self):
         url = reverse('changeset:unchecked-list')
-        response = client.get(url)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 2)
 
 
-class TestChangesetListViewOrdering(TestCase):
+class TestChangesetListViewOrdering(APITestCase):
 
     def setUp(self):
         SuspectChangesetFactory.create_batch(2, delete=2)
@@ -147,73 +144,73 @@ class TestChangesetListViewOrdering(TestCase):
 
     def test_ordering(self):
         # default ordering is by descending id
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.all()]
             )
         # ascending id
-        response = client.get(self.url, {'order_by': 'id'})
+        response = self.client.get(self.url, {'order_by': 'id'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('id')]
             )
         # ascending date ordering
-        response = client.get(self.url, {'order_by': 'date'})
+        response = self.client.get(self.url, {'order_by': 'date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('date')]
             )
         # descending date ordering
-        response = client.get(self.url, {'order_by': '-date'})
+        response = self.client.get(self.url, {'order_by': '-date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-date')]
             )
         # ascending check_date
-        response = client.get(self.url, {'order_by': 'check_date'})
+        response = self.client.get(self.url, {'order_by': 'check_date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('check_date')]
             )
         # descending check_date ordering
-        response = client.get(self.url, {'order_by': '-check_date'})
+        response = self.client.get(self.url, {'order_by': '-check_date'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-check_date')]
             )
         # ascending create ordering
-        response = client.get(self.url, {'order_by': 'create'})
+        response = self.client.get(self.url, {'order_by': 'create'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('create')]
             )
         # descending create ordering
-        response = client.get(self.url, {'order_by': '-create'})
+        response = self.client.get(self.url, {'order_by': '-create'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-create')]
             )
         # ascending modify ordering
-        response = client.get(self.url, {'order_by': 'modify'})
+        response = self.client.get(self.url, {'order_by': 'modify'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('modify')]
             )
         # descending modify ordering
-        response = client.get(self.url, {'order_by': '-modify'})
+        response = self.client.get(self.url, {'order_by': '-modify'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-modify')]
             )
         # ascending delete ordering
-        response = client.get(self.url, {'order_by': 'delete'})
+        response = self.client.get(self.url, {'order_by': 'delete'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('delete')]
             )
         # descending delete ordering
-        response = client.get(self.url, {'order_by': '-delete'})
+        response = self.client.get(self.url, {'order_by': '-delete'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-delete')]
@@ -221,14 +218,14 @@ class TestChangesetListViewOrdering(TestCase):
 
     def test_invalid_ordering_field(self):
         # default ordering is by descending id
-        response = client.get(self.url, {'order_by': 'user'})
+        response = self.client.get(self.url, {'order_by': 'user'})
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.all()]
             )
 
 
-class TestChangesetDetailView(TestCase):
+class TestChangesetDetailView(APITestCase):
 
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -245,14 +242,14 @@ class TestChangesetDetailView(TestCase):
         tag.changesets.add(self.changeset)
 
     def test_changeset_detail_response(self):
-        response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('id'), 31982803)
         self.assertIn('properties', response.data.keys())
         self.assertIn('geometry', response.data.keys())
 
 
-class TestReasonsAndTagFieldsInChangesetViews(TestCase):
+class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test',
@@ -284,7 +281,7 @@ class TestReasonsAndTagFieldsInChangesetViews(TestCase):
         self.tag_2.changesets.add(self.changeset)
 
     def test_detail_view_by_normal_user(self):
-        response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
         self.assertEqual(len(response.data['properties']['tags']), 1)
@@ -296,8 +293,8 @@ class TestReasonsAndTagFieldsInChangesetViews(TestCase):
             )
 
     def test_detail_view_by_admin(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(
             'Big edit in my city',
@@ -311,7 +308,7 @@ class TestReasonsAndTagFieldsInChangesetViews(TestCase):
             )
 
     def test_list_view_by_normal_user(self):
-        response = client.get(reverse('changeset:list'))
+        response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
         tags = response.data['features'][0]['properties']['tags']
@@ -322,8 +319,8 @@ class TestReasonsAndTagFieldsInChangesetViews(TestCase):
         self.assertIn('Vandalism', tags)
 
     def test_list_view_by_admin(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(reverse('changeset:list'))
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
         tags = response.data['features'][0]['properties']['tags']
@@ -333,7 +330,7 @@ class TestReasonsAndTagFieldsInChangesetViews(TestCase):
         self.assertIn('Vandalism in my city', tags)
 
 
-class TestSuspicionReasonsAPIListView(TestCase):
+class TestSuspicionReasonsAPIListView(APITestCase):
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(
             name='possible import',
@@ -356,7 +353,7 @@ class TestSuspicionReasonsAPIListView(TestCase):
             )
 
     def test_view(self):
-        response = client.get(reverse('changeset:suspicion-reasons-list'))
+        response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         reason_dict = {
@@ -370,13 +367,13 @@ class TestSuspicionReasonsAPIListView(TestCase):
         self.assertIn(reason_dict, response.data)
 
     def test_admin_user_request(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(reverse('changeset:suspicion-reasons-list'))
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
 
 
-class TestTagListAPIView(TestCase):
+class TestTagListAPIView(APITestCase):
     def setUp(self):
         self.tag_1 = Tag.objects.create(
             name='Illegal import',
@@ -399,7 +396,7 @@ class TestTagListAPIView(TestCase):
             )
 
     def test_view(self):
-        response = client.get(reverse('changeset:tags-list'))
+        response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 1)
         tag_dict = {
@@ -416,13 +413,13 @@ class TestTagListAPIView(TestCase):
             )
 
     def test_admin_user_request(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(reverse('changeset:tags-list'))
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
 
 
-class TestCheckChangesetViews(TestCase):
+class TestCheckChangesetViews(APITestCase):
 
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -449,7 +446,7 @@ class TestCheckChangesetViews(TestCase):
         self.tag_2 = TagFactory(name='Vandalism')
 
     def test_set_harmful_changeset_unlogged(self):
-        response = client.put(
+        response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
@@ -460,7 +457,7 @@ class TestCheckChangesetViews(TestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_unlogged(self):
-        response = client.put(
+        response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
@@ -610,7 +607,7 @@ class TestCheckChangesetViews(TestCase):
         self.assertNotEqual(changeset.check_user, self.user)
 
 
-class TestUncheckChangesetView(TestCase):
+class TestUncheckChangesetView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_2',
@@ -693,7 +690,7 @@ class TestUncheckChangesetView(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class TestWhitelistUserView(TestCase):
+class TestWhitelistUserView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_2',
@@ -754,7 +751,7 @@ class TestWhitelistUserView(TestCase):
             )
 
 
-class TestUserWhitelistDestroyAPIView(TestCase):
+class TestUserWhitelistDestroyAPIView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_2',
@@ -810,7 +807,7 @@ class TestUserWhitelistDestroyAPIView(TestCase):
         self.assertEqual(UserWhitelist.objects.count(), 0)
 
 
-class TestStatsView(TestCase):
+class TestStatsView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test_user',
@@ -854,7 +851,7 @@ class TestStatsView(TestCase):
         self.url = reverse('changeset:stats')
 
     def test_stats_view(self):
-        response = client.get(self.url)
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('checked_changesets'), 3)
         self.assertEqual(response.data.get('harmful_changesets'), 2)
@@ -879,7 +876,7 @@ class TestStatsView(TestCase):
             )
 
     def test_stats_view_with_filters(self):
-        response = client.get(self.url, {'harmful': False})
+        response = self.client.get(self.url, {'harmful': False})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('checked_changesets'), 1)
         self.assertEqual(response.data.get('harmful_changesets'), 0)
@@ -904,8 +901,8 @@ class TestStatsView(TestCase):
             )
 
     def test_stats_view_with_staff_user(self):
-        client.login(username=self.user.username, password='password')
-        response = client.get(self.url)
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('reasons')), 3)
         self.assertEqual(len(response.data.get('tags')), 3)
