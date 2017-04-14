@@ -1,16 +1,12 @@
-import datetime
-
-from django.shortcuts import render
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.http import HttpResponse
 
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import api_view, parser_classes, permission_classes
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
-    DestroyAPIView, GenericAPIView
+    DestroyAPIView
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
@@ -283,50 +279,6 @@ class UserWhitelistDestroyAPIView(DestroyAPIView):
 
     def get_queryset(self):
         return UserWhitelist.objects.filter(user=self.request.user)
-
-
-def stats(request):
-    from_date = request.GET.get('from', None)
-    to_date = request.GET.get('to', datetime.datetime.now())
-    reviewer = request.GET.get('reviewer', '')
-    if from_date:
-        try:
-            changesets_qset = Changeset.objects.filter(
-                check_date__gte=from_date, check_date__lte=to_date
-                )
-        except:
-            return HttpResponse('Bad query parameters', status=400)
-    else:
-        changesets_qset = Changeset.objects.all()
-
-    changesets_qset = ChangesetFilter(request.GET, queryset=changesets_qset).qs
-
-    total_checked = changesets_qset.filter(checked=True).count()
-    total_harmful = changesets_qset.filter(harmful=True).count()
-    users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
-    users_blacklisted = changesets_qset.filter(harmful=True).values('user').distinct().count()
-
-    counts = {}
-    for reason in SuspicionReasons.objects.all():
-        counts[reason.name] = {}
-        counts[reason.name]['id'] = reason.id
-        counts[reason.name]['checked'] = changesets_qset.filter(reasons=reason, checked=True).count()
-        counts[reason.name]['harmful'] = changesets_qset.filter(reasons=reason, harmful=True).count()
-
-    counts['None'] = {}
-    counts['None']['id'] = 'None'
-    counts['None']['checked'] = changesets_qset.filter(reasons=None, checked=True).count()
-    counts['None']['harmful'] = changesets_qset.filter(reasons=None, harmful=True).count()
-
-    context = {
-        'checked': total_checked,
-        'harmful': total_harmful,
-        'users_whitelisted': users_whitelisted,
-        'users_blacklisted': users_blacklisted,
-        'counts': counts,
-        'get': request.GET.dict()
-        }
-    return render(request, 'changeset/stats.html', context=context)
 
 
 class ChangesetStatsAPIView(ListAPIView):
