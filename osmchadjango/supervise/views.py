@@ -76,7 +76,9 @@ class AOIListChangesetsAPIView(ListAPIView):
             return ChangesetSerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.get_object().changesets()
+        queryset = self.get_object().changesets().select_related(
+            'check_user'
+            ).prefetch_related('tags', 'reasons')
 
         page = self.paginate_queryset(queryset)
         if page is not None:
