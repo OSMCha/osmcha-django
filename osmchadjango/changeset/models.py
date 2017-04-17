@@ -8,7 +8,7 @@ from ..users.models import User
 class SuspicionReasons(models.Model):
     name = models.CharField(max_length=255, unique=True, db_index=True)
     description = models.CharField(max_length=1000, blank=True)
-    is_visible = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True, db_index=True)
     for_changeset = models.BooleanField(default=True)
     for_feature = models.BooleanField(default=True)
 
@@ -27,7 +27,7 @@ class SuspicionReasons(models.Model):
 class Tag(models.Model):
     name = models.CharField(max_length=255, db_index=True, unique=True)
     description = models.CharField(max_length=1000, blank=True)
-    is_visible = models.BooleanField(default=True)
+    is_visible = models.BooleanField(default=True, db_index=True)
     for_changeset = models.BooleanField(default=True)
     for_feature = models.BooleanField(default=True)
 
@@ -57,8 +57,8 @@ class Changeset(models.Model):
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
     comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
-    source = models.CharField(max_length=1000, blank=True, null=True)
-    imagery_used = models.CharField(max_length=1000, blank=True, null=True)
+    source = models.CharField(max_length=1000, blank=True, null=True,  db_index=True)
+    imagery_used = models.CharField(max_length=1000, blank=True, null=True,  db_index=True)
     date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     create = models.IntegerField(db_index=True, null=True)
@@ -98,31 +98,6 @@ class Changeset(models.Model):
             return "{}/{}/{}".format(id_base, centroid[1], centroid[0])
         else:
             return ""
-
-    def to_row(self):
-        reasons = self.reasons.all()
-        reasons_string = ",".join(reasons.values_list('name', flat=True))
-        changeset = {
-            'id': self.id,
-            'user': self.user,
-            'editor': self.editor,
-            'powerfull_editor': str(self.powerfull_editor),
-            'comment': self.comment.encode('utf8') if self.comment else "",
-            'source': self.source,
-            'imagery_used': self.imagery_used,
-            'date': self.date.strftime('%Y-%m-%d'),
-            'reasons': reasons_string,
-            'create': self.create,
-            'modify': self.modify,
-            'delete': self.delete,
-            'bbox': str(self.bbox.geojson).encode('utf8'),
-            'is_suspect': str(self.is_suspect),
-            'harmful': str(self.harmful),
-            'checked': str(self.checked),
-            'check_user': self.check_user.name,
-            'check_date': self.check_date.strftime('%Y-%m-%d')
-            }
-        return changeset
 
     @property
     def features(self):
