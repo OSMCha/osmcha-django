@@ -39,7 +39,7 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     class Meta:
         model = Changeset
         geo_field = 'bbox'
-        exclude = ('powerfull_editor', 'uid')
+        exclude = ('powerfull_editor',)
 
 
 class ChangesetSerializer(ChangesetSerializerToStaff):
