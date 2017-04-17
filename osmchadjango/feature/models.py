@@ -11,7 +11,7 @@ class Feature(models.Model):
     osm_id = models.BigIntegerField()
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()
-    geometry = models.GeometryField(null=True, blank=True)
+    geometry = models.GeometryField(null=True, blank=True, db_index=True)
     old_geometry = models.GeometryField(null=True, blank=True)
     geojson = JSONField()
     old_geojson = JSONField(null=True, blank=True)
@@ -19,11 +19,11 @@ class Feature(models.Model):
         'changeset.SuspicionReasons', related_name='features')
     tags = models.ManyToManyField(
         'changeset.Tag', related_name='features')
-    harmful = models.NullBooleanField()
-    checked = models.BooleanField(default=False)
-    check_user = models.ForeignKey(User, null=True, blank=True)
-    check_date = models.DateTimeField(null=True, blank=True)
-    url = models.SlugField(max_length=1000)
+    harmful = models.NullBooleanField(db_index=True)
+    checked = models.BooleanField(default=False, db_index=True)
+    check_user = models.ForeignKey(User, null=True, blank=True, db_index=True)
+    check_date = models.DateTimeField(null=True, blank=True, db_index=True)
+    url = models.SlugField(max_length=1000, db_index=True)
     comparator_version = models.CharField(max_length=1000, blank=True, null=True)
 
     class Meta:
