@@ -16,33 +16,22 @@ User = get_user_model()
 
 class TestFeatureFilter(TestCase):
     def setUp(self):
-        self.user = User.objects.create(username='the_user_1', email='a@b.com')
+        self.user = User.objects.create(
+            username='the_user_1', email='a@b.com', name='The User')
         self.feature = FeatureFactory()
         self.way_feature = WayFeatureFactory()
         self.checked_feature = CheckedFeatureFactory(check_user=self.user)
 
     def test_osm_type_filter(self):
-        self.assertEqual(
-            FeatureFilter({'osm_type': 'node'}).qs.count(), 2
-            )
-        self.assertEqual(
-            FeatureFilter({'osm_type': 'way'}).qs.count(), 1
-            )
+        self.assertEqual(FeatureFilter({'osm_type': 'node'}).qs.count(), 2)
+        self.assertEqual(FeatureFilter({'osm_type': 'way'}).qs.count(), 1)
 
     def test_checked_and_is_harmful_filters(self):
         CheckedFeatureFactory(harmful=False)
-        self.assertEqual(
-            FeatureFilter({'checked': 'true'}).qs.count(), 2
-            )
-        self.assertEqual(
-            FeatureFilter({'checked': 'false'}).qs.count(), 2
-            )
-        self.assertEqual(
-            FeatureFilter({'harmful': 'false'}).qs.count(), 1
-            )
-        self.assertEqual(
-            FeatureFilter({'harmful': 'true'}).qs.count(), 1
-            )
+        self.assertEqual(FeatureFilter({'checked': 'true'}).qs.count(), 2)
+        self.assertEqual(FeatureFilter({'checked': 'false'}).qs.count(), 2)
+        self.assertEqual(FeatureFilter({'harmful': 'false'}).qs.count(), 1)
+        self.assertEqual(FeatureFilter({'harmful': 'true'}).qs.count(), 1)
 
     def test_date_filters(self):
         tomorrow = date.today() + timedelta(days=1)
@@ -65,13 +54,14 @@ class TestFeatureFilter(TestCase):
             )
 
     def test_users_filters(self):
-        user_2 = User.objects.create(username='the_user_2', email='b@b.com')
+        user_2 = User.objects.create(
+            username='the_user_2', email='b@b.com', name="The User 2")
         CheckedFeatureFactory(check_user=user_2)
         self.assertEqual(
-            FeatureFilter({'checked_by': 'the_user_1'}).qs.count(), 1
+            FeatureFilter({'checked_by': 'The User'}).qs.count(), 1
             )
         self.assertEqual(
-            FeatureFilter({'checked_by': 'the_user_1,the_user_2'}).qs.count(),
+            FeatureFilter({'checked_by': 'The User,The User 2'}).qs.count(),
             2
             )
         self.assertEqual(

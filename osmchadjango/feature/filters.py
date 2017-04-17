@@ -29,7 +29,7 @@ class FeatureFilter(GeoFilterSet):
         return queryset.filter(**{lookup: users_array})
 
     def filter_check_users(self, queryset, name, value):
-        lookup = '__'.join([name, 'username', 'in'])
+        lookup = '__'.join([name, 'name', 'in'])
         users_array = [t.strip() for t in value.split(',')]
         return queryset.filter(**{lookup: users_array})
 
