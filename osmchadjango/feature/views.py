@@ -242,6 +242,12 @@ def set_good_feature(request, changeset, slug):
             instance.check_user = request.user
             instance.check_date = timezone.now()
             instance.save()
+            if 'tags' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('tags')]
+                tags = changeset_models.Tag.objects.filter(
+                    id__in=ids
+                    )
+                instance.tags.set(tags)
             return Response(
                 {'message': 'Feature marked as good.'},
                 status=status.HTTP_200_OK

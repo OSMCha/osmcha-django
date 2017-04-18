@@ -593,14 +593,8 @@ class TestCheckFeatureViews(APITestCase):
         self.assertTrue(self.feature.harmful)
         self.assertTrue(self.feature.checked)
         self.assertEqual(self.feature.tags.count(), 2)
-        self.assertIn(
-            self.tag_1,
-            self.feature.tags.all()
-            )
-        self.assertIn(
-            self.tag_2,
-            self.feature.tags.all()
-            )
+        self.assertIn(self.tag_1, self.feature.tags.all())
+        self.assertIn(self.tag_2, self.feature.tags.all())
 
     def test_set_harmful_feature(self):
         self.client.login(username=self.user.username, password='password')
@@ -611,6 +605,25 @@ class TestCheckFeatureViews(APITestCase):
         self.assertTrue(self.feature.checked)
 
     def test_set_good_feature(self):
+        self.client.login(username=self.user.username, password='password')
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'tags': [self.tag_1.id, self.tag_2.id]}
+            )
+        response = self.client.put(
+            self.set_good_url,
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            )
+        self.assertEqual(response.status_code, 200)
+        self.feature.refresh_from_db()
+        self.assertFalse(self.feature.harmful)
+        self.assertTrue(self.feature.checked)
+        self.assertEqual(self.feature.tags.count(), 2)
+        self.assertIn(self.tag_1, self.feature.tags.all())
+        self.assertIn(self.tag_2, self.feature.tags.all())
+
+    def test_set_good_feature_without_tags(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(self.set_good_url)
         self.assertEqual(response.status_code, 200)
@@ -675,8 +688,9 @@ class TestUncheckFeatureView(APITestCase):
         self.harmful_feature = CheckedFeatureFactory(check_user=self.user)
         self.harmful_feature_2 = CheckedFeatureFactory()
         self.tag = Tag.objects.create(name='Vandalism')
-        self.tag.features.add(self.harmful_feature)
-        self.tag.features.add(self.harmful_feature_2)
+        self.tag.features.set(
+            [self.harmful_feature, self.harmful_feature_2, self.good_feature]
+            )
 
     def test_unauthenticated_response(self):
         response = self.client.put(
@@ -725,6 +739,7 @@ class TestUncheckFeatureView(APITestCase):
         self.assertFalse(self.good_feature.checked)
         self.assertIsNone(self.good_feature.check_user)
         self.assertIsNone(self.good_feature.check_date)
+        self.assertEqual(self.good_feature.tags.count(), 0)
 
     def test_user_uncheck_permission(self):
         """User can only uncheck features that he checked."""
