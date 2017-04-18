@@ -54,4 +54,4 @@ class TestCreateChangesetWithoutBBOX(TestCase):
         changeset = create_changeset(47052680)
         self.assertEqual(Changeset.objects.count(), 1)
         self.assertIsNone(changeset.bbox)
-        self.assertEqual(changeset.area, 0)
+        self.assertEqual(changeset.area, None)

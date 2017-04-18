@@ -93,6 +93,7 @@ class TestChangesetModel(TestCase):
 
     def test_changeset_creation(self):
         self.assertIsInstance(self.changeset, Changeset)
+        self.assertGreater(self.changeset.area, 0)
         self.assertEqual(Changeset.objects.all().count(), 1)
 
         self.assertFalse(self.changeset.checked)

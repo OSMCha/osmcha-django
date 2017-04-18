@@ -167,7 +167,9 @@ def set_harmful_changeset(request, pk):
             instance.harmful = True
             instance.check_user = request.user
             instance.check_date = timezone.now()
-            instance.save()
+            instance.save(
+                update_fields=['checked', 'harmful', 'check_user', 'check_date']
+                )
             if 'tags' in request.data.keys():
                 ids = [int(i) for i in request.data.pop('tags')]
                 tags = Tag.objects.filter(
@@ -206,7 +208,9 @@ def set_good_changeset(request, pk):
             instance.harmful = False
             instance.check_user = request.user
             instance.check_date = timezone.now()
-            instance.save()
+            instance.save(
+                update_fields=['checked', 'harmful', 'check_user', 'check_date']
+                )
             if 'tags' in request.data.keys():
                 ids = [int(i) for i in request.data.pop('tags')]
                 tags = Tag.objects.filter(
@@ -249,7 +253,9 @@ def uncheck_changeset(request, pk):
         instance.harmful = None
         instance.check_user = None
         instance.check_date = None
-        instance.save()
+        instance.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
         instance.tags.clear()
         return Response(
             {'message': 'Changeset marked as unchecked.'},

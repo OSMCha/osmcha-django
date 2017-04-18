@@ -77,6 +77,12 @@ class Changeset(models.Model):
     def __str__(self):
         return '%s' % self.id
 
+    def save(self, *args, **kwargs):
+        # populate area field when saving object
+        if self.bbox is not None:
+            self.area = self.bbox.area
+        super(Changeset, self).save(*args, **kwargs)
+
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
         return 'http://www.openstreetmap.org/changeset/{}'.format(self.id)
