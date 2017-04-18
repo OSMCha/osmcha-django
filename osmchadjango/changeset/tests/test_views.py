@@ -575,6 +575,33 @@ class TestCheckChangesetViews(APITestCase):
 
     def test_set_good_changeset_put(self):
         self.client.login(username=self.user.username, password='password')
+        content = encode_multipart(
+            'BoUnDaRyStRiNg',
+            {'tags': [self.tag_1.id, self.tag_2.id]}
+            )
+        response = self.client.put(
+            reverse('changeset:set_good', args=[self.changeset_2]),
+            content,
+            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            )
+        self.assertEqual(response.status_code, 200)
+        self.changeset_2.refresh_from_db()
+        self.assertFalse(self.changeset_2.harmful)
+        self.assertTrue(self.changeset_2.checked)
+        self.assertEqual(self.changeset_2.check_user, self.user)
+        self.assertIsNotNone(self.changeset_2.check_date)
+        self.assertEqual(self.changeset_2.tags.count(), 2)
+        self.assertIn(
+            self.tag_1,
+            self.changeset_2.tags.all()
+            )
+        self.assertIn(
+            self.tag_2,
+            self.changeset_2.tags.all()
+            )
+
+    def test_set_good_changeset_put_without_data(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset_2]),
             )
@@ -637,9 +664,12 @@ class TestUncheckChangesetView(APITestCase):
         self.good_changeset = GoodChangesetFactory(check_user=self.user)
         self.harmful_changeset = HarmfulChangesetFactory(check_user=self.user)
         self.harmful_changeset_2 = HarmfulChangesetFactory()
-        self.reason = TagFactory(name='Vandalism')
-        self.reason.changesets.add(self.harmful_changeset)
-        self.reason.changesets.add(self.harmful_changeset_2)
+        self.tag = TagFactory(name='Vandalism')
+        self.tag.changesets.set([
+            self.good_changeset,
+            self.harmful_changeset,
+            self.harmful_changeset_2
+            ])
 
     def test_unauthenticated_response(self):
         response = self.client.put(
@@ -652,7 +682,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertEqual(self.harmful_changeset.check_user, self.user)
         self.assertIsNotNone(self.harmful_changeset.check_date)
         self.assertEqual(self.harmful_changeset.tags.count(), 1)
-        self.assertIn(self.reason, self.harmful_changeset.tags.all())
+        self.assertIn(self.tag, self.harmful_changeset.tags.all())
 
     def test_uncheck_harmful_changeset(self):
         self.client.login(username=self.user.username, password='password')
@@ -666,7 +696,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertIsNone(self.harmful_changeset.check_user)
         self.assertIsNone(self.harmful_changeset.check_date)
         self.assertEqual(self.harmful_changeset.tags.count(), 0)
-        self.assertNotIn(self.harmful_changeset, self.reason.changesets.all())
+        self.assertNotIn(self.harmful_changeset, self.tag.changesets.all())
 
     def test_uncheck_good_changeset(self):
         self.client.login(username=self.user.username, password='password')
@@ -679,6 +709,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertFalse(self.good_changeset.checked)
         self.assertIsNone(self.good_changeset.check_user)
         self.assertIsNone(self.good_changeset.check_date)
+        self.assertEqual(self.good_changeset.tags.count(), 0)
 
     def test_user_uncheck_permission(self):
         """User can only uncheck changesets that he checked."""
@@ -693,7 +724,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertTrue(self.harmful_changeset_2.checked)
         self.assertIsNotNone(self.harmful_changeset_2.check_user)
         self.assertIsNotNone(self.harmful_changeset_2.check_date)
-        self.assertIn(self.reason, self.harmful_changeset_2.tags.all())
+        self.assertIn(self.tag, self.harmful_changeset_2.tags.all())
 
     def test_try_to_uncheck_unchecked_changeset(self):
         """It's not possible to uncheck an unchecked changeset!"""

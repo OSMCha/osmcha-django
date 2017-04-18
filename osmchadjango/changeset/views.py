@@ -155,8 +155,8 @@ class TagListAPIView(ListAPIView):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_changeset(request, pk):
-    """Mark a changeset as harmful. The 'tags'
-    field is optional and needs to be a list with the ids of the reasons. If you
+    """Mark a changeset as harmful. The 'tags' field is optional and needs to be
+    a list with the ids of the tags you want to add to the changeset. If you
     don't want to set the 'tags', you don't need to send data, just
     make an empty PUT request.
     """
@@ -194,8 +194,10 @@ def set_harmful_changeset(request, pk):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_changeset(request, pk):
-    """Mark a changeset as good. You don't need to send data, just an empty
-    PUT request.
+    """Mark a changeset as good. The 'tags' field is optional and needs to be
+    a list with the ids of the tags you want to add to the changeset. If you
+    don't want to set the 'tags', you don't need to send data, just
+    make an empty PUT request.
     """
     instance = get_object_or_404(Changeset.objects.all(), pk=pk)
     if instance.uid not in request.user.social_auth.values_list('uid', flat=True):
@@ -205,6 +207,12 @@ def set_good_changeset(request, pk):
             instance.check_user = request.user
             instance.check_date = timezone.now()
             instance.save()
+            if 'tags' in request.data.keys():
+                ids = [int(i) for i in request.data.pop('tags')]
+                tags = Tag.objects.filter(
+                    id__in=ids
+                    )
+                instance.tags.set(tags)
             return Response(
                 {'message': 'Changeset marked as good.'},
                 status=status.HTTP_200_OK
