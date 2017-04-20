@@ -26,6 +26,7 @@ urlpatterns = [
 
     # api docs
     url(r'^api-docs/', schema_view, name='api-docs'),
+    url(r'^', schema_view),
 
     # Your stuff: custom urls includes go here
     url(r'^api/v1/', include("osmchadjango.changeset.urls", namespace="changeset")),
