@@ -1,7 +1,7 @@
 import json
-from datetime import datetime
 
 from django.contrib.gis.geos import Point, LineString
+from django.utils import timezone
 
 import factory
 
@@ -26,7 +26,7 @@ class CheckedFeatureFactory(FeatureFactory):
     checked = True
     harmful = True
     check_user = factory.SubFactory(UserFactory)
-    check_date = factory.LazyFunction(datetime.now)
+    check_date = factory.LazyFunction(timezone.now)
     osm_version = 2
 
 
