@@ -4,6 +4,7 @@ from rest_framework.serializers import (
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
+from ..feature.serializers import FeatureSimpleSerializer
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 
@@ -35,6 +36,7 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
     reasons = StringRelatedField(many=True, read_only=True)
     tags = StringRelatedField(many=True, read_only=True)
+    features = FeatureSimpleSerializer(many=True, read_only=True)
 
     class Meta:
         model = Changeset

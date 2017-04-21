@@ -1,10 +1,9 @@
+import json
+
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
-from rest_framework.serializers import StringRelatedField
+from rest_framework.serializers import StringRelatedField, ModelSerializer
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from ..changeset.serializers import (
-    BasicSuspicionReasonsSerializer, BasicTagSerializer
-    )
 from .models import Feature
 
 
@@ -40,3 +39,22 @@ class FeatureSerializer(FeatureSerializerToStaff):
         return obj.tags.filter(
             is_visible=True
             ).values_list('name', flat=True)
+
+
+class FeatureSimpleSerializer(ModelSerializer):
+    name = SerializerMethodField()
+
+    class Meta:
+        model = Feature
+        fields = ('osm_id', 'url', 'name')
+
+    def get_name(self, obj):
+        try:
+            return obj.geojson['properties']['name']
+        except TypeError:
+            try:
+                return json.loads(obj.geojson)['properties']['name']
+            except KeyError:
+                return None
+        except KeyError:
+            return None

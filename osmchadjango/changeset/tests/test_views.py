@@ -1,3 +1,5 @@
+import json
+
 from django.core.urlresolvers import reverse
 from django.test.client import encode_multipart
 
@@ -5,6 +7,7 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
 
 from ...users.models import User
+from ...feature.tests.modelfactories import FeatureFactory
 from ..models import SuspicionReasons, Tag, Changeset, UserWhitelist
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
@@ -70,7 +73,10 @@ class TestChangesetListView(APITestCase):
         response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 52)
-        response = self.client.get(self.url, {'hide_whitelist': 'true', 'checked': 'true'})
+        response = self.client.get(
+            self.url,
+            {'hide_whitelist': 'true', 'checked': 'true'}
+            )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
         # test with login. As all changesets in the DB are from a whitelisted
@@ -81,11 +87,17 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.data['count'], 0)
 
     def test_csv_renderer(self):
-        self.assertIn(PaginatedCSVRenderer, ChangesetListAPIView().renderer_classes)
+        self.assertIn(
+            PaginatedCSVRenderer,
+            ChangesetListAPIView().renderer_classes
+            )
         response = self.client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
-        response = self.client.get(self.url, {'is_suspect': 'true', 'format': 'csv'})
+        response = self.client.get(
+            self.url,
+            {'is_suspect': 'true', 'format': 'csv'}
+            )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 26)
 
@@ -235,32 +247,85 @@ class TestChangesetDetailView(APITestCase):
             is_visible=False
             )
         self.changeset = HarmfulChangesetFactory(id=31982803)
+        self.feature = FeatureFactory(changeset=self.changeset)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
+        self.reason_2.features.add(self.feature)
         self.reason_3.changesets.add(self.changeset)
         tag = Tag.objects.create(name='Vandalism')
         tag.changesets.add(self.changeset)
 
     def test_changeset_detail_response(self):
-        response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
+        response = self.client.get(
+            reverse('changeset:detail', args=[self.changeset.id])
+            )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('id'), 31982803)
-        self.assertIn('properties', response.data.keys())
-        self.assertIn('uid', response.data['properties'].keys())
-        self.assertIn('editor', response.data['properties'].keys())
-        self.assertIn('user', response.data['properties'].keys())
-        self.assertIn('date', response.data['properties'].keys())
-        self.assertIn('imagery_used', response.data['properties'].keys())
-        self.assertIn('source', response.data['properties'].keys())
-        self.assertIn('comment', response.data['properties'].keys())
-        self.assertIn('create', response.data['properties'].keys())
-        self.assertIn('modify', response.data['properties'].keys())
-        self.assertIn('is_suspect', response.data['properties'].keys())
-        self.assertIn('harmful', response.data['properties'].keys())
-        self.assertIn('checked', response.data['properties'].keys())
-        self.assertIn('check_user', response.data['properties'].keys())
-        self.assertIn('check_date', response.data['properties'].keys())
         self.assertIn('geometry', response.data.keys())
+        self.assertIn('properties', response.data.keys())
+        self.assertEqual(self.changeset.uid, response.data['properties']['uid'])
+        self.assertEqual(
+            self.changeset.editor,
+            response.data['properties']['editor']
+            )
+        self.assertEqual(self.changeset.user, response.data['properties']['user'])
+        self.assertEqual(
+            self.changeset.imagery_used,
+            response.data['properties']['imagery_used']
+            )
+        self.assertEqual(
+            self.changeset.source,
+            response.data['properties']['source']
+            )
+        self.assertEqual(
+            self.changeset.comment,
+            response.data['properties']['comment']
+            )
+        self.assertEqual(
+            self.changeset.create,
+            response.data['properties']['create']
+            )
+        self.assertEqual(
+            self.changeset.modify,
+            response.data['properties']['modify']
+            )
+        self.assertEqual(
+            self.changeset.delete,
+            response.data['properties']['delete']
+            )
+        self.assertEqual(
+            self.changeset.check_user.name,
+            response.data['properties']['check_user']
+            )
+        self.assertTrue(response.data['properties']['is_suspect'])
+        self.assertTrue(response.data['properties']['checked'])
+        self.assertTrue(response.data['properties']['harmful'])
+        self.assertIn('date', response.data['properties'].keys())
+        self.assertIn('check_date', response.data['properties'].keys())
+        self.assertEqual(len(response.data['properties']['features']), 1)
+        self.assertEqual(
+            self.feature.osm_id,
+            response.data['properties']['features'][0]['osm_id']
+            )
+        self.assertEqual(
+            self.feature.url,
+            response.data['properties']['features'][0]['url']
+            )
+        self.assertEqual(
+            response.data['properties']['features'][0]['name'],
+            'Test'
+            )
+
+    def test_feature_without_name_tag(self):
+        self.feature.geojson = json.dumps({'properties': {'osm:type': 'node'}})
+        self.feature.save()
+        response = self.client.get(
+            reverse('changeset:detail', args=[self.changeset.id])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(
+            response.data['properties']['features'][0]['name']
+            )
 
 
 class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
@@ -320,6 +385,49 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
             'Vandalism in my city',
             response.data['properties']['tags']
             )
+        self.assertEqual(response.data.get('id'), 31982803)
+        self.assertIn('geometry', response.data.keys())
+        self.assertIn('properties', response.data.keys())
+        self.assertEqual(self.changeset.uid, response.data['properties']['uid'])
+        self.assertEqual(
+            self.changeset.editor,
+            response.data['properties']['editor']
+            )
+        self.assertEqual(self.changeset.user, response.data['properties']['user'])
+        self.assertEqual(
+            self.changeset.imagery_used,
+            response.data['properties']['imagery_used']
+            )
+        self.assertEqual(
+            self.changeset.source,
+            response.data['properties']['source']
+            )
+        self.assertEqual(
+            self.changeset.comment,
+            response.data['properties']['comment']
+            )
+        self.assertEqual(
+            self.changeset.create,
+            response.data['properties']['create']
+            )
+        self.assertEqual(
+            self.changeset.modify,
+            response.data['properties']['modify']
+            )
+        self.assertEqual(
+            self.changeset.delete,
+            response.data['properties']['delete']
+            )
+        self.assertEqual(
+            self.changeset.check_user.name,
+            response.data['properties']['check_user']
+            )
+        self.assertTrue(response.data['properties']['is_suspect'])
+        self.assertTrue(response.data['properties']['checked'])
+        self.assertTrue(response.data['properties']['harmful'])
+        self.assertIn('date', response.data['properties'].keys())
+        self.assertIn('check_date', response.data['properties'].keys())
+        self.assertEqual(len(response.data['properties']['features']), 0)
 
     def test_list_view_by_normal_user(self):
         response = self.client.get(reverse('changeset:list'))
