@@ -51,7 +51,6 @@ DJANGO_APPS = (
 )
 THIRD_PARTY_APPS = (
     'crispy_forms',  # Form layouts
-    'query_parameters',  # django-query-parameters
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
