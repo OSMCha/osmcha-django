@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.contrib.gis.geos import Polygon
 from django.test import TestCase
 
 from ..filters import ChangesetFilter
@@ -249,4 +250,43 @@ class TestChangesetFilter(TestCase):
                 {'all_tags': '{},{}'.format(tag_1.id, tag_3.id)}
                 ).qs.count(),
             0
+            )
+
+
+class TestChangesetAreaLowerThan(TestCase):
+    def setUp(self):
+        ChangesetFactory(
+            bbox=Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)])
+            )
+        self.geojson_1 = """{
+            'type': 'Polygon',
+            'coordinates': [[[0, 0], [0, 1], [1, 1], [1, 0], [0, 0]]]
+            }"""
+        self.geojson_2 = """{
+            'type': 'Polygon',
+            'coordinates': [[[0, 0], [0, 2], [2, 2], [2, 0], [0, 0]]]
+            }"""
+
+    def test_area_lower_than_filter(self):
+        # Area of the filter is 9 times lower than the area of the changeset
+        self.assertEqual(
+            ChangesetFilter({'geometry': self.geojson_1, 'area_lt': 10}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'geometry': self.geojson_1, 'area_lt': 8}).qs.count(),
+            0
+            )
+        # Area of the filter is 4/9 of the area of the changeset
+        self.assertEqual(
+            ChangesetFilter({'geometry': self.geojson_2, 'area_lt': 3}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'geometry': self.geojson_2, 'area_lt': 2}).qs.count(),
+            0
+            )
+        self.assertEqual(
+            ChangesetFilter({'area_lt': 10}).qs.count(),
+            1
             )

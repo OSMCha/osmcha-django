@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.gis.geos import Polygon
 from django.core.urlresolvers import reverse
 from django.test.client import encode_multipart
 
@@ -55,6 +56,27 @@ class TestChangesetListView(APITestCase):
         response = self.client.get(self.url, {'is_suspect': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
+
+    def test_area_lt_filter(self):
+        """Test in_bbox in combination with area_lt filter field."""
+        ChangesetFactory(
+            bbox=Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)])
+            )
+        response = self.client.get(self.url, {'in_bbox': '0,0,1,1', 'area_lt': 10})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+        response = self.client.get(self.url, {'in_bbox': '0,0,1,1', 'area_lt': 8})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'in_bbox': '0,0,2,2', 'area_lt': 3})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+        response = self.client.get(self.url, {'in_bbox': '0,0,2,2', 'area_lt': 2})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
 
     def test_hide_whitelist_filter(self):
         user = User.objects.create_user(

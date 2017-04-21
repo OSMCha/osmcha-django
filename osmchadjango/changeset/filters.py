@@ -1,6 +1,9 @@
+from django.contrib.gis.geos import Polygon
+
 from rest_framework_gis.filterset import GeoFilterSet
 from rest_framework_gis.filters import GeometryFilter
 from django_filters import filters
+from rest_framework_gis.fields import GeometryField
 from django_filters.widgets import BooleanWidget
 
 from .models import Changeset
@@ -37,6 +40,7 @@ class ChangesetFilter(GeoFilterSet):
         method='filter_whitelist',
         widget=BooleanWidget(),
         )
+    area_lt = filters.CharFilter(name=None, method='filter_area_lt')
 
     def filter_whitelist(self, queryset, name, value):
         if self.request.user.is_authenticated() and value:
@@ -82,6 +86,30 @@ class ChangesetFilter(GeoFilterSet):
             ]
         if value in allowed_fields:
             return queryset.order_by(value)
+        else:
+            return queryset
+
+    def filter_area_lt(self, queryset, name, value):
+        """This filter method was designed to exclude changesets that are much
+        bigger than the filter area. For example, if you want only changesets that
+        are lower than 5 times the filter area, you need to pass the value 5.
+        """
+        if 'geometry' in self.data.keys():
+            try:
+                filter_area = self.data['geometry'].area
+            except AttributeError:
+                filter_area = GeometryField().to_internal_value(
+                    self.data['geometry']
+                    ).area
+            return queryset.filter(area__lt=float(value)*filter_area)
+        elif 'in_bbox' in self.data.keys():
+            try:
+                filter_area = Polygon.from_bbox(
+                    (float(n) for n in self.data['in_bbox'].split(','))
+                    ).area
+                return queryset.filter(area__lt=float(value)*filter_area)
+            except ValueError:
+                return queryset
         else:
             return queryset
 
