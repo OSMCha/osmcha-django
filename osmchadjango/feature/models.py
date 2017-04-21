@@ -7,7 +7,7 @@ from ..users.models import User
 
 class Feature(models.Model):
 
-    changeset = models.ForeignKey('changeset.Changeset')
+    changeset = models.ForeignKey('changeset.Changeset', related_name='features')
     osm_id = models.BigIntegerField()
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()

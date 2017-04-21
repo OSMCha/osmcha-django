@@ -106,10 +106,6 @@ class Changeset(models.Model):
         else:
             return ""
 
-    @property
-    def features(self):
-        return self.feature_set.all()
-
     class Meta:
         ordering = ['-id']
 
