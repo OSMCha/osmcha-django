@@ -273,6 +273,7 @@ class TestChangesetDetailView(APITestCase):
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
         self.reason_2.features.add(self.feature)
+        self.reason_3.features.add(self.feature)
         self.reason_3.changesets.add(self.changeset)
         tag = Tag.objects.create(name='Vandalism')
         tag.changesets.add(self.changeset)
@@ -336,6 +337,45 @@ class TestChangesetDetailView(APITestCase):
         self.assertEqual(
             response.data['properties']['features'][0]['name'],
             'Test'
+            )
+        self.assertEqual(
+            len(response.data['properties']['features'][0]['reasons']),
+            1
+            )
+        self.assertIn(
+            'suspect word',
+            response.data['properties']['features'][0]['reasons']
+            )
+
+    def test_changeset_detail_response_with_staff_user(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('changeset:detail', args=[self.changeset.id])
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            len(response.data['properties']['features'][0]['reasons']),
+            2
+            )
+        self.assertIn(
+            'suspect word',
+            response.data['properties']['features'][0]['reasons']
+            )
+        self.assertIn(
+            'Big edit in my city',
+            response.data['properties']['features'][0]['reasons']
             )
 
     def test_feature_without_name_tag(self):

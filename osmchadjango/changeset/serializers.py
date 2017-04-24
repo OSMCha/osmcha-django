@@ -4,7 +4,7 @@ from rest_framework.serializers import (
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from ..feature.serializers import FeatureSimpleSerializer
+from ..feature.serializers import FeatureSimpleSerializer, FeatureSimpleSerializerToStaff
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 
@@ -36,7 +36,7 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.username')
     reasons = StringRelatedField(many=True, read_only=True)
     tags = StringRelatedField(many=True, read_only=True)
-    features = FeatureSimpleSerializer(many=True, read_only=True)
+    features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
 
     class Meta:
         model = Changeset
@@ -47,14 +47,13 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
 class ChangesetSerializer(ChangesetSerializerToStaff):
     reasons = SerializerMethodField()
     tags = SerializerMethodField()
+    features = FeatureSimpleSerializer(many=True, read_only=True)
 
     def get_reasons(self, obj):
-        return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
+        return [i.name for i in obj.reasons.all() if i.is_visible is True]
 
     def get_tags(self, obj):
-        return obj.tags.filter(
-            is_visible=True
-            ).values_list('name', flat=True)
+        return [i.name for i in obj.tags.all() if i.is_visible is True]
 
 
 class UserWhitelistSerializer(ModelSerializer):

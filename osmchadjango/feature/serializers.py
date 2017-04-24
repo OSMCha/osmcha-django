@@ -33,20 +33,19 @@ class FeatureSerializer(FeatureSerializerToStaff):
     tags = SerializerMethodField()
 
     def get_reasons(self, obj):
-        return obj.reasons.filter(is_visible=True).values_list('name', flat=True)
+        return [i.name for i in obj.reasons.all() if i.is_visible is True]
 
     def get_tags(self, obj):
-        return obj.tags.filter(
-            is_visible=True
-            ).values_list('name', flat=True)
+        return [i.name for i in obj.tags.all() if i.is_visible is True]
 
 
-class FeatureSimpleSerializer(ModelSerializer):
+class FeatureSimpleSerializerToStaff(ModelSerializer):
     name = SerializerMethodField()
+    reasons = StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Feature
-        fields = ('osm_id', 'url', 'name')
+        fields = ('osm_id', 'url', 'name', 'reasons')
 
     def get_name(self, obj):
         try:
@@ -58,3 +57,10 @@ class FeatureSimpleSerializer(ModelSerializer):
                 return None
         except KeyError:
             return None
+
+
+class FeatureSimpleSerializer(FeatureSimpleSerializerToStaff):
+    reasons = SerializerMethodField()
+
+    def get_reasons(self, obj):
+        return [i.name for i in obj.reasons.all() if i.is_visible is True]

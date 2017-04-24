@@ -50,7 +50,7 @@ class ChangesetListAPIView(ListAPIView):
     """
     queryset = Changeset.objects.all().select_related(
         'check_user'
-        ).prefetch_related('tags', 'reasons', 'features')
+        ).prefetch_related('tags', 'reasons', 'features', 'features__reasons')
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
