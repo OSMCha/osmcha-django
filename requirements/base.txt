@@ -50,4 +50,3 @@ redis>=2.10.5
 PyYAML==3.11
 # using the premerge version of osmcha
 osmcha==0.3.7
-django-queryset-csv==1.0.0
