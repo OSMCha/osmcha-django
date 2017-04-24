@@ -192,10 +192,10 @@ def create_feature(request):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_feature(request, changeset, slug):
-    """Mark a feature as harmful. The 'tags'
-    field is optional and needs to be a list with the ids of the reasons. If you
-    don't want to set the 'tags', you don't need to send data, just
-    make an empty PUT request.
+    """Mark a feature as harmful. The 'tags' field is optional and needs to receive
+    a list with the ids of the tags you want to add to the feature. If you don't
+    want to set the 'tags', you don't need to send data, just make an empty PUT
+    request.
     """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     user_uids = request.user.social_auth.values_list('uid', flat=True)
@@ -232,7 +232,11 @@ def set_harmful_feature(request, changeset, slug):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_feature(request, changeset, slug):
-    """Mark a feature as good."""
+    """Mark a feature as good. The 'tags' field is optional and needs to receive
+    a list with the ids of the tags you want to add to the feature. If you don't
+    want to set the 'tags', you don't need to send data, just make an empty PUT
+    request.
+    """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     user_uids = request.user.social_auth.values_list('uid', flat=True)
     if instance.changeset.uid not in user_uids:

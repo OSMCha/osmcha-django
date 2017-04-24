@@ -318,7 +318,9 @@ class ChangesetStatsAPIView(ListAPIView):
 
 
 class UserStatsAPIView(ListAPIView):
-    """Get stats about a user in OSMCHA. This view acce"""
+    """Get stats about a user in OSMCHA. You need to inform the uid of the user,
+    so we can get the stats of all usernames he have used.
+    """
     serializer_class = UserStatsSerializer
 
     def get_queryset(self):
