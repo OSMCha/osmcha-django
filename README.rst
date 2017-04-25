@@ -48,8 +48,10 @@ PGHOST                                  PGHOST                            localh
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
+EXTERNAL_FRONTEND_URL                   FRONTEND_URL                      *                                         *
 ======================================= ================================= ========================================= ===========================================
 
+* = https://mapbox.github.io/osmcha-frontend/oauth_landing.html
 
 You can set each of these variables with:
 

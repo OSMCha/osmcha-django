@@ -326,3 +326,9 @@ REST_FRAMEWORK = {
 
 # Allow cross domain requests
 CORS_ORIGIN_ALLOW_ALL = True
+
+REST_SOCIAL_OAUTH_REDIRECT_URI = '/frontend/'
+EXTERNAL_FRONTEND_URL = env(
+    'FRONTEND_URL',
+    default='https://mapbox.github.io/osmcha-frontend/oauth-landing.html'
+    )

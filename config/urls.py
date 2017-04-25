@@ -6,6 +6,7 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 from django.views import defaults
 from django.views import static as static_views
 
@@ -21,6 +22,12 @@ urlpatterns = [
 
     # django-rest-social-auth token urls
     url(r'^api/v1/login/', include('rest_social_auth.urls_token')),
+    url(r'^frontend/$',
+        RedirectView.as_view(
+            url=settings.EXTERNAL_FRONTEND_URL,
+            query_string=True
+            )
+        ),
     # User management
     url(r'^api/v1/users/', include("osmchadjango.users.urls", namespace="users")),
 
