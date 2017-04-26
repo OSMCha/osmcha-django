@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
 
     # django-rest-social-auth token urls
-    url(r'^api/v1/login/', include('rest_social_auth.urls_token')),
+    url(r'^api/v1/login/', include('rest_social_auth.urls_token', namespace='social_auth')),
     url(r'^frontend/$',
         RedirectView.as_view(
             url=settings.EXTERNAL_FRONTEND_URL,
