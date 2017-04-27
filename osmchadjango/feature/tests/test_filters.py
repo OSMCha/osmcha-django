@@ -33,18 +33,26 @@ class TestFeatureFilter(TestCase):
         self.assertEqual(FeatureFilter({'harmful': 'false'}).qs.count(), 1)
         self.assertEqual(FeatureFilter({'harmful': 'true'}).qs.count(), 1)
 
+    def test_char_filters(self):
+        self.assertEqual(
+            FeatureFilter({'editor': 'JOSM'}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'editor': 'Potlatch 2'}).qs.count(), 3
+            )
+
     def test_date_filters(self):
         tomorrow = date.today() + timedelta(days=1)
         yesterday = date.today() - timedelta(days=1)
         CheckedFeatureFactory(check_date=tomorrow)
         self.assertEqual(
-            FeatureFilter({'changeset__date__gte': yesterday}).qs.count(), 4
+            FeatureFilter({'date__gte': yesterday}).qs.count(), 4
             )
         self.assertEqual(
-            FeatureFilter({'changeset__date__lte': yesterday}).qs.count(), 0
+            FeatureFilter({'date__lte': yesterday}).qs.count(), 0
             )
         self.assertEqual(
-            FeatureFilter({'changeset__date__gte': tomorrow}).qs.count(), 0
+            FeatureFilter({'date__gte': tomorrow}).qs.count(), 0
             )
         self.assertEqual(
             FeatureFilter({'check_date__gte': tomorrow}).qs.count(), 1
@@ -68,13 +76,13 @@ class TestFeatureFilter(TestCase):
             FeatureFilter({'checked_by': 'the_user_3,another'}).qs.count(), 0
             )
         self.assertEqual(
-            FeatureFilter({'changeset_users': 'test, user'}).qs.count(), 4
+            FeatureFilter({'users': 'test, user'}).qs.count(), 4
             )
         self.assertEqual(
-            FeatureFilter({'changeset_users': 'bad_user, user'}).qs.count(), 0
+            FeatureFilter({'users': 'bad_user, user'}).qs.count(), 0
             )
 
-    def test_location_filter(self):
+    def test_geometry_filter(self):
         geojson_1 = """{'type': 'Polygon', 'coordinates': [
               [[4, 3], [4, 5], [5, 5], [5, 3], [4, 3]]
             ]}"""
@@ -82,10 +90,10 @@ class TestFeatureFilter(TestCase):
               [[40, 13], [40, 15], [43, 15], [43, 13], [40, 13]]
             ]}"""
         self.assertEqual(
-            FeatureFilter({'location': geojson_1}).qs.count(), 0
+            FeatureFilter({'geometry': geojson_1}).qs.count(), 0
             )
         self.assertEqual(
-            FeatureFilter({'location': geojson_2}).qs.count(), 3
+            FeatureFilter({'geometry': geojson_2}).qs.count(), 3
             )
 
     def test_suspicion_reasons_filter(self):
