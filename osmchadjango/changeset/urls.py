@@ -72,12 +72,12 @@ urlpatterns = [
         name='delete-whitelist-user'
     ),
     url(
-        regex=r'^suspicion-reasons$',
+        regex=r'^suspicion-reasons/$',
         view=views.SuspicionReasonsListAPIView.as_view(),
         name='suspicion-reasons-list'
     ),
     url(
-        regex=r'^tags$',
+        regex=r'^tags/$',
         view=views.TagListAPIView.as_view(),
         name='tags-list'
     ),

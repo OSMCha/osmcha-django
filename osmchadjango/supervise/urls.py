@@ -7,22 +7,22 @@ from . import views
 
 urlpatterns = [
     url(
-        regex=r'^aoi/$',
+        regex=r'^$',
         view=views.AOIListCreateAPIView.as_view(),
         name='aoi-list-create'
         ),
     url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/$',
+        regex=r'^(?P<pk>[0-9a-f-]+)/$',
         view=views.AOIRetrieveUpdateDestroyAPIView.as_view(),
         name='aoi-detail'
         ),
     url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/$',
+        regex=r'^(?P<pk>[0-9a-f-]+)/changesets/$',
         view=views.AOIListChangesetsAPIView.as_view(),
         name='aoi-list-changesets'
         ),
     url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
+        regex=r'^(?P<pk>[0-9a-f-]+)/stats/$',
         view=views.AOIStatsAPIView.as_view(),
         name='aoi-stats'
         ),
