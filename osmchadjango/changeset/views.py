@@ -134,7 +134,7 @@ class SuspicionReasonsListAPIView(ListAPIView):
     serializer_class = SuspicionReasonsSerializer
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if self.request and self.request.user.is_staff:
             return SuspicionReasons.objects.all()
         else:
             return SuspicionReasons.objects.filter(is_visible=True)
@@ -145,7 +145,7 @@ class TagListAPIView(ListAPIView):
     serializer_class = TagSerializer
 
     def get_queryset(self):
-        if self.request.user.is_staff:
+        if self.request and self.request.user.is_staff:
             return Tag.objects.all()
         else:
             return Tag.objects.filter(is_visible=True)
@@ -280,7 +280,10 @@ class UserWhitelistListCreateAPIView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return UserWhitelist.objects.filter(user=self.request.user)
+        if self.request:
+            return UserWhitelist.objects.filter(user=self.request.user)
+        else:
+            return UserWhitelist.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
