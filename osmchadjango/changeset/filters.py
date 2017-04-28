@@ -10,37 +10,103 @@ from .models import Changeset
 
 
 class ChangesetFilter(GeoFilterSet):
-    """Allows to filter Changesets by any of its fields, except 'uuid'
-    (id of OSM user) and 'id' (changeset id). The 'reasons' and the 'harmful_reasons'
-    fields can be filtered by the exact match (filter changesets that have all
-    the search reasons) or by contains match (filter changesets that have any of
-    the reasons).
+    """Allows to filter Changesets by any of its fields, except 'uuid' (id of
+    OSM user). The 'reasons' and the 'harmful_reasons' fields can be filtered by
+    the exact match (filter changesets that have all the search reasons) or by
+    contains match (filter changesets that have any of the reasons).
     """
-    geometry = GeometryFilter(name='bbox', lookup_expr='intersects')
-    checked_by = filters.CharFilter(name='check_user', method='filter_checked_by')
-    users = filters.CharFilter(name='user', method='filter_users')
-    ids = filters.CharFilter(name='id', method='filter_ids')
-    reasons = filters.CharFilter(name='reasons', method='filter_any_reasons')
-    all_reasons = filters.CharFilter(name='reasons', method='filter_all_reasons')
+    geometry = GeometryFilter(
+        name='bbox',
+        lookup_expr='intersects',
+        help_text="""Geospatial filter of changeset whose bbox intersects with
+            another geometry. You can use any geometry type in this filter."""
+        )
+    checked_by = filters.CharFilter(
+        name='check_user',
+        method='filter_checked_by',
+        help_text="""Filter changesets that were checked by a user. Use commas to
+            search for more than one user."""
+        )
+    users = filters.CharFilter(
+        name='user',
+        method='filter_users',
+        help_text="""Filter changesets created by a user. Use commas to search
+            for more than one user."""
+        )
+    ids = filters.CharFilter(
+        name='id',
+        method='filter_ids',
+        help_text="""Filter changesets by its ID. Use commas to search for more
+            than one id."""
+        )
+    reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_any_reasons',
+        help_text="""Filter changesets that have one or more of the Suspicion
+            Reasons. Inform the Suspicion Reasons ids separated by commas."""
+        )
+    all_reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_all_reasons',
+        help_text="""Filter changesets that have ALL the Suspicion Reasons of a
+            list. Inform the Suspicion Reasons ids separated by commas."""
+        )
     tags = filters.CharFilter(
         name='tags',
-        method='filter_any_reasons'
+        method='filter_any_reasons',
+        help_text="""Filter changesets that have one or more of the Tags. Inform
+            the Tags ids separated by commas."""
         )
     all_tags = filters.CharFilter(
         name='tags',
-        method='filter_all_reasons'
+        method='filter_all_reasons',
+        help_text="""Filter changesets that have ALL the Tags of a list. Inform
+            the Tags ids separated by commas."""
         )
-    checked = filters.BooleanFilter(widget=BooleanWidget())
-    harmful = filters.BooleanFilter(widget=BooleanWidget())
-    is_suspect = filters.BooleanFilter(widget=BooleanWidget())
-    powerfull_editor = filters.BooleanFilter(widget=BooleanWidget())
-    order_by = filters.CharFilter(name=None, method='order_queryset')
+    checked = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text="""Filter changesets that were checked or not. Use true/false,
+            1/0 values."""
+        )
+    harmful = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text="""Filter changesets that were marked as harmful or not.
+            Use true/false, 1/0 values."""
+        )
+    is_suspect = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text='Filter changesets that were considered suspect by OSMCHA.'
+        )
+    powerfull_editor = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text="""Filter changesets that were created using a software editor
+            considered powerfull (those that allow to create, modify or delete
+            data in a batch)."""
+        )
+    order_by = filters.CharFilter(
+        name=None,
+        method='order_queryset',
+        help_text="""Order the Changesets by one of the following fields: id,
+            date, check_date, create, modify or delete. Use a minus sign (-)
+            before the field name to reverse the ordering. Default ordering is
+            '-id'."""
+        )
     hide_whitelist = filters.BooleanFilter(
         name=None,
         method='filter_whitelist',
         widget=BooleanWidget(),
+        help_text="""If True, it will exclude the changesets created by the
+            users that you whitelisted."""
         )
-    area_lt = filters.CharFilter(name=None, method='filter_area_lt')
+    area_lt = filters.CharFilter(
+        name=None,
+        method='filter_area_lt',
+        help_text="""Filter changesets that have a bbox area lower than X times
+            the area of your geospatial filter. For example, if the bbox or
+            geometry you defined in your filter has an area of 1 degree and you
+            set 'area_lt=2', it will filter the changesets whose bbox area is
+            lower than 2 degrees."""
+        )
 
     def filter_whitelist(self, queryset, name, value):
         if self.request.user.is_authenticated() and value:
