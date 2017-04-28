@@ -12,15 +12,17 @@ class FeatureFilter(GeoFilterSet):
         name='geometry',
         lookup_expr='intersects',
         help_text="""Geospatial filter of features whose geometry intersects with
-        another geometry. You can use any geometry type in this filter."""
+            another geometry. You can use any geometry type in this filter."""
         )
     checked = filters.BooleanFilter(
         widget=BooleanWidget(),
-        help_text='Filter features that were checked or not.'
+        help_text="""Filter features that were checked or not. Use true/false or
+            1/0 values."""
         )
     harmful = filters.BooleanFilter(
         widget=BooleanWidget(),
-        help_text='Filter items that were marked as harmful or not.'
+        help_text="""Filter features that were marked as harmful or not harmful.
+            Use true/false or 1/0 values."""
         )
     users = filters.CharFilter(
         name='changeset__user',
@@ -55,17 +57,16 @@ class FeatureFilter(GeoFilterSet):
     all_tags = filters.CharFilter(
         name='tags',
         method='filter_all_reasons',
-        help_text="""Filter features that have ALL the Tags of a list. Inform the
-            Tags ids separated by commas."""
+        help_text="""Filter features that have ALL the Tags of a list. Inform
+            the Tags ids separated by commas."""
         )
     order_by = filters.CharFilter(
         name=None,
         method='order_queryset',
         help_text="""Order the Features by one of the following fields: id,
-        osm_id, changeset__date, changeset_id or check_date. Use a minus sign (-)
-        before the field name to reverse the ordering. Default ordering is
-        -changeset_id.
-        """
+            osm_id, changeset__date, changeset_id or check_date. Use a minus
+            sign (-) before the field name to reverse the ordering. Default
+            ordering is '-changeset_id'."""
         )
     osm_version__gte = filters.NumberFilter(
         name='osm_version',
