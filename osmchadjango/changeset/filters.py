@@ -107,6 +107,86 @@ class ChangesetFilter(GeoFilterSet):
             set 'area_lt=2', it will filter the changesets whose bbox area is
             lower than 2 degrees."""
         )
+    create__gte = filters.NumberFilter(
+        name='create',
+        lookup_expr='gte',
+        help_text="""Filter changesets whose number of elements created are
+            greater or equal a number."""
+        )
+    create__lte = filters.NumberFilter(
+        name='create',
+        lookup_expr='lte',
+        help_text="""Filter changesets whose number of elements created are
+            lower or equal a number."""
+        )
+    modify__gte = filters.NumberFilter(
+        name='modify',
+        lookup_expr='gte',
+        help_text="""Filter changesets whose number of elements modified are
+            greater or equal a number."""
+        )
+    modify__lte = filters.NumberFilter(
+        name='modify',
+        lookup_expr='lte',
+        help_text="""Filter changesets whose number of elements modified are
+            lower or equal a number."""
+        )
+    delete__gte = filters.NumberFilter(
+        name='delete',
+        lookup_expr='gte',
+        help_text="""Filter changesets whose number of elements deleted are
+            greater or equal a number."""
+        )
+    delete__lte = filters.NumberFilter(
+        name='delete',
+        lookup_expr='lte',
+        help_text="""Filter changesets whose number of elements deleted are
+            lower or equal a number."""
+        )
+    date__gte = filters.CharFilter(
+        name='date',
+        lookup_expr='gte',
+        help_text='Filter changesets whose date is greater or equal a date.'
+        )
+    date__lte = filters.CharFilter(
+        name='date',
+        lookup_expr='lte',
+        help_text='Filter changesets whose date is lower or equal a date.'
+        )
+    check_date__gte = filters.CharFilter(
+        name='check_date',
+        lookup_expr='gte',
+        help_text='Filter changesets whose check_date is greater or equal a date.'
+        )
+    check_date__lte = filters.CharFilter(
+        name='check_date',
+        lookup_expr='lte',
+        help_text='Filter changesets whose check_date is lower or equal a date.'
+        )
+    editor = filters.CharFilter(
+        name='editor',
+        lookup_expr='icontains',
+        help_text="""Filter changesets by its editor field using the icontains
+            lookup expression."""
+        )
+    comment = filters.CharFilter(
+        name='comment',
+        lookup_expr='icontains',
+        help_text="""Filter changesets by its comment field using the icontains
+            lookup expression."""
+        )
+    source = filters.CharFilter(
+        name='source',
+        lookup_expr='icontains',
+        help_text="""Filter changesets by its source field using the icontains
+            lookup expression."""
+        )
+    imagery_used = filters.CharFilter(
+        name='imagery_used',
+        lookup_expr='icontains',
+        help_text="""Filter changesets by its imagery_used field using the
+            icontains lookup expression."""
+        )
 
     def filter_whitelist(self, queryset, name, value):
         if self.request.user.is_authenticated() and value:
@@ -181,14 +261,4 @@ class ChangesetFilter(GeoFilterSet):
 
     class Meta:
         model = Changeset
-        fields = {
-            'create': ['gte', 'lte'],
-            'modify': ['gte', 'lte'],
-            'delete': ['gte', 'lte'],
-            'date': ['gte', 'lte'],
-            'check_date': ['gte', 'lte'],
-            'editor': ['exact', 'icontains'],
-            'comment': ['exact', 'icontains'],
-            'source': ['exact', 'icontains'],
-            'imagery_used': ['exact', 'icontains'],
-            }
+        fields = []

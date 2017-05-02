@@ -134,47 +134,28 @@ class TestChangesetFilter(TestCase):
     def test_char_field_filters(self):
         # editor field
         self.assertEqual(
-            ChangesetFilter({'editor__icontains': 'id'}).qs.count(), 1
+            ChangesetFilter({'editor': 'id'}).qs.count(), 1
             )
         self.assertEqual(
             ChangesetFilter({'editor': 'Potlatch 2'}).qs.count(), 2
-            )
-        self.assertEqual(
-            ChangesetFilter({'editor__icontains': 'potlatch'}).qs.count(), 2
             )
         # comment field
         self.assertEqual(
             ChangesetFilter({'comment': 'My first edit'}).qs.count(), 1
             )
-        self.assertEqual(
-            ChangesetFilter({'comment__icontains': 'edit'}).qs.count(), 1
-            )
-        self.assertEqual(
-            ChangesetFilter({'comment__icontains': 'import'}).qs.count(), 0
-            )
+        self.assertEqual(ChangesetFilter({'comment': 'edit'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'comment': 'import'}).qs.count(), 0)
         # source field
         self.assertEqual(ChangesetFilter({'source': 'Mapbox'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'source': 'Bing'}).qs.count(), 1)
-        self.assertEqual(
-            ChangesetFilter({'source__icontains': 'Mapbox'}).qs.count(), 1
-            )
-        self.assertEqual(
-            ChangesetFilter({'source__icontains': 'Google'}).qs.count(), 0
-            )
+        self.assertEqual(ChangesetFilter({'source': 'Google'}).qs.count(), 0)
         # imagery_used field
         self.assertEqual(ChangesetFilter({'imagery_used': 'Bing'}).qs.count(), 1)
         self.assertEqual(
-            ChangesetFilter({'imagery_used': 'Mapbox'}).qs.count(), 2
+            ChangesetFilter({'imagery_used': 'Mapbox'}).qs.count(), 3
             )
         self.assertEqual(
-            ChangesetFilter({'imagery_used': 'Mapillary'}).qs.count(), 0
-            )
-        self.assertEqual(
-            ChangesetFilter({'imagery_used__icontains': 'Mapbox'}).qs.count(), 3
-            )
-        self.assertEqual(
-            ChangesetFilter({'imagery_used__icontains': 'Mapillary'}).qs.count(),
-            1
+            ChangesetFilter({'imagery_used': 'Mapillary'}).qs.count(), 1
             )
 
     def test_suspicion_reasons_filter(self):

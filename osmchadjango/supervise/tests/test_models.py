@@ -20,7 +20,7 @@ class TestAreaOfInterestModel(TestCase):
         self.area = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            filters={'editor': 'Potlatch 2', 'harmful': 'False'},
             geometry=self.m_polygon
             )
         self.area_2 = AreaOfInterest.objects.create(

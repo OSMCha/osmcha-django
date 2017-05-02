@@ -46,7 +46,7 @@ class TestAoIListView(APITestCase):
         self.area = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            filters={'editor': 'Potlatch 2', 'harmful': 'False'},
             geometry=self.m_polygon
             )
         self.area_2 = AreaOfInterest.objects.create(
@@ -176,7 +176,7 @@ class TestAOIDetailAPIViews(APITestCase):
         self.aoi = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            filters={'editor': 'Potlatch 2', 'harmful': 'False'},
             geometry=self.m_polygon
             )
         self.data = {
@@ -197,7 +197,7 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(
             response.data['properties']['filters'],
-            {'editor__icontains': 'Potlatch 2', 'harmful': 'False'}
+            {'editor': 'Potlatch 2', 'harmful': 'False'}
             )
         self.assertEqual(
             response.data['geometry']['type'],
@@ -354,7 +354,7 @@ class TestAOIStatsAPIViews(APITestCase):
         self.aoi = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
+            filters={'editor': 'Potlatch 2', 'harmful': 'False'},
             geometry=self.m_polygon
             )
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
