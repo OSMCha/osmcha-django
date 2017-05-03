@@ -22,7 +22,9 @@ def get_geometry_from_filters(data):
             return GEOSGeometry('{}'.format(geometry))
         elif 'in_bbox' in data['filters'].keys():
             geometry = data['filters'].get('in_bbox').split(',')
-        return MultiPolygon(Polygon.from_bbox(geometry))
+            return MultiPolygon(Polygon.from_bbox(geometry))
+        else:
+            return None
     else:
         return None
 

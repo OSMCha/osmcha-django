@@ -317,7 +317,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 )
             )
 
-    def test_update_with_bbox(self):
+    def test_put_update_with_bbox(self):
         data = {
             'filters': {
                 'is_suspect': 'True',
@@ -339,6 +339,42 @@ class TestAoIDetailAPIViews(APITestCase):
                 Polygon(((4, 0), (5, 0), (5, 1), (4, 0)))
                 )
             )
+
+    def test_put_empty_geometry(self):
+        data = {
+            'filters': {
+                'is_suspect': 'True',
+                },
+            'name': 'Golfo da Guiné'
+            }
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
+        self.assertEqual(self.aoi.filters, data.get('filters'))
+        self.assertIsNone(self.aoi.geometry)
+
+    def test_patch_empty_geometry(self):
+        data = {
+            'filters': {
+                'is_suspect': 'True',
+                },
+            'name': 'Golfo da Guiné'
+            }
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.patch(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
+        self.assertEqual(self.aoi.filters, data.get('filters'))
+        self.assertIsNone(self.aoi.geometry)
 
     def test_patch_update_with_bbox(self):
         data = {
