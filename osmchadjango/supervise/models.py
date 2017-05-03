@@ -4,6 +4,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 
 from osmchadjango.changeset.filters import ChangesetFilter
+from osmchadjango.feature.filters import FeatureFilter
 
 
 class AreaOfInterest(models.Model):
@@ -18,10 +19,18 @@ class AreaOfInterest(models.Model):
         return '{} by {}'.format(self.name, self.user.username)
 
     def changesets(self):
-        """Returns the changesets whose bbox intersects with the AreaOfInterest
-        and that matches the filters.
+        """Returns the changesets that matches the filters and geometry of
+        the AreaOfInterest.
         """
         return ChangesetFilter(self.filters).qs
 
+    def features(self):
+        """Returns the features that matches the filters and geometry of
+        the AreaOfInterest.
+        """
+        return FeatureFilter(self.filters).qs
+
     class Meta:
         unique_together = ('user', 'name',)
+        verbose_name = 'Area of Interest'
+        verbose_name_plural = 'Areas of Interest'

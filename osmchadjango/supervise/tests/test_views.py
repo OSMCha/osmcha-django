@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
-from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 
 from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
@@ -11,6 +11,7 @@ from ...changeset.tests.modelfactories import (
     ChangesetFactory, HarmfulChangesetFactory, GoodChangesetFactory,
     SuspicionReasonsFactory, TagFactory
     )
+from ...feature.tests.modelfactories import FeatureFactory, CheckedFeatureFactory
 from ...users.models import User
 from ..models import AreaOfInterest
 
@@ -423,6 +424,34 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(AreaOfInterest.objects.count(), 0)
 
+
+class TestAoIChangesetAndFeatureListViews(APITestCase):
+    def setUp(self):
+        self.m_polygon = MultiPolygon(
+            Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
+            Polygon(((1, 1), (1, 2), (2, 2), (1, 1)))
+            )
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.aoi = AreaOfInterest.objects.create(
+            name='Best place in the world',
+            user=self.user,
+            geometry=self.m_polygon,
+            filters={
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'geometry': self.m_polygon.geojson
+                },
+            )
+
     def test_aoi_list_changesets_view(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
         ChangesetFactory(
@@ -448,6 +477,31 @@ class TestAoIDetailAPIViews(APITestCase):
         # test pagination
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
+            {'page': 2}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 1)
+
+    def test_aoi_list_features_view(self):
+        CheckedFeatureFactory(harmful=False)
+        CheckedFeatureFactory(geometry=Point(0.5, 0.5))
+        CheckedFeatureFactory.create_batch(
+            51, geometry=Point(0.5, 0.5), harmful=False
+            )
+        response = self.client.get(
+            reverse('supervise:aoi-list-features', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 50)
+        self.assertIn('features', response.data.keys())
+        self.assertIn('geometry', response.data['features'][0].keys())
+        self.assertIn('properties', response.data['features'][0].keys())
+
+        # test pagination
+        response = self.client.get(
+            reverse('supervise:aoi-list-features', args=[self.aoi.pk]),
             {'page': 2}
             )
         self.assertEqual(response.status_code, 200)
