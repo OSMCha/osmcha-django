@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
 
@@ -89,8 +91,11 @@ class TestAoIListView(APITestCase):
             )
 
 
-class TestAOICreateView(APITestCase):
+class TestAoICreateView(APITestCase):
     def setUp(self):
+        self.m_polygon = MultiPolygon(
+            Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
+            )
         self.user = User.objects.create_user(
             username='test_user',
             email='b@a.com',
@@ -103,17 +108,14 @@ class TestAOICreateView(APITestCase):
             )
         self.url = reverse('supervise:aoi-list-create')
         self.data = {
-            'name': u'Golfo da Guiné',
+            'name': 'Golfo da Guiné',
             'filters': {
                 'is_suspect': 'True',
-                'geometry': {
-                    "type": "MultiPolygon",
-                    "coordinates": [[[[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]]]]
-                    }
+                'geometry': self.m_polygon.geojson
                 },
             }
         self.data_bbox = {
-            'name': u'Golfo da Guiné',
+            'name': 'Golfo da Guiné',
             'filters': {
                 'is_suspect': 'True',
                 'in_bbox': '2,0,5,2'
@@ -130,12 +132,12 @@ class TestAOICreateView(APITestCase):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
-        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data.get('filters'))
         self.assertTrue(
             aoi.geometry.intersects(
-                Polygon(self.data['filters']['geometry']['coordinates'][0][0])
+                Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
                 )
             )
 
@@ -144,12 +146,12 @@ class TestAOICreateView(APITestCase):
         response = self.client.post(self.url, self.data_bbox)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
-        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data_bbox.get('filters'))
         self.assertTrue(
             aoi.geometry.intersects(
-                Polygon(self.data['filters']['geometry']['coordinates'][0][0])
+                Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
                 )
             )
 
@@ -180,11 +182,11 @@ class TestAOICreateView(APITestCase):
         self.data['user'] = user_2.username
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
-        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
 
 
-class TestAOIDetailAPIViews(APITestCase):
+class TestAoIDetailAPIViews(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -210,15 +212,15 @@ class TestAOIDetailAPIViews(APITestCase):
                 'geometry': self.m_polygon.geojson
                 },
             )
+        self.m_polygon_2 = MultiPolygon(
+            Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
+            )
         self.data = {
             'filters': {
                 'is_suspect': 'True',
-                'geometry': {
-                    "type": "MultiPolygon",
-                    "coordinates": [[[[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]]]]
-                    },
+                'geometry': self.m_polygon_2.geojson,
                 },
-            'name': u'Golfo da Guiné'
+            'name': 'Golfo da Guiné'
             }
 
     def test_retrieve_detail(self):
@@ -232,7 +234,11 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(
             response.data['properties']['filters'],
-            {'editor': 'Potlatch 2', 'harmful': 'False', 'geometry': self.m_polygon.geojson}
+            {
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'geometry': self.m_polygon.geojson
+            }
             )
         self.assertEqual(
             response.data['geometry']['type'],
@@ -303,7 +309,7 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.aoi.refresh_from_db()
-        self.assertEqual(self.aoi.name, u'Golfo da Guiné')
+        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
         self.assertEqual(self.aoi.filters, self.data.get('filters'))
         self.assertTrue(
             self.aoi.geometry.intersects(
@@ -317,7 +323,7 @@ class TestAOIDetailAPIViews(APITestCase):
                 'is_suspect': 'True',
                 'in_bbox': '4,0,5,1'
                 },
-            'name': u'Golfo da Guiné'
+            'name': 'Golfo da Guiné'
             }
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
@@ -326,7 +332,7 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.aoi.refresh_from_db()
-        self.assertEqual(self.aoi.name, u'Golfo da Guiné')
+        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
         self.assertEqual(self.aoi.filters, data.get('filters'))
         self.assertTrue(
             self.aoi.geometry.intersects(
@@ -366,7 +372,7 @@ class TestAOIDetailAPIViews(APITestCase):
         # validate if the user are not allowed to let the filters and geometry fields empty
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
-            {'name': u'Golfo da Guiné'}
+            {'name': 'Golfo da Guiné'}
             )
         self.assertEqual(response.status_code, 400)
         self.aoi.refresh_from_db()
@@ -413,7 +419,7 @@ class TestAOIDetailAPIViews(APITestCase):
         self.assertEqual(len(response.data['features']), 1)
 
 
-class TestAOIStatsAPIViews(APITestCase):
+class TestAoIStatsAPIViews(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
