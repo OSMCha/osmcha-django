@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.core.urlresolvers import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon
 
@@ -105,7 +103,7 @@ class TestAOICreateView(APITestCase):
             )
         self.url = reverse('supervise:aoi-list-create')
         self.data = {
-            'name': 'Golfo da Guiné',
+            'name': u'Golfo da Guiné',
             'filters': {
                 'is_suspect': 'True',
                 'geometry': {
@@ -115,7 +113,7 @@ class TestAOICreateView(APITestCase):
                 },
             }
         self.data_bbox = {
-            'name': 'Golfo da Guiné',
+            'name': u'Golfo da Guiné',
             'filters': {
                 'is_suspect': 'True',
                 'in_bbox': '2,0,5,2'
@@ -132,7 +130,7 @@ class TestAOICreateView(APITestCase):
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
-        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data.get('filters'))
         self.assertTrue(
@@ -146,7 +144,7 @@ class TestAOICreateView(APITestCase):
         response = self.client.post(self.url, self.data_bbox)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
-        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data_bbox.get('filters'))
         self.assertTrue(
@@ -182,7 +180,7 @@ class TestAOICreateView(APITestCase):
         self.data['user'] = user_2.username
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
-        aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
+        aoi = AreaOfInterest.objects.get(name=u'Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
 
 
@@ -220,7 +218,7 @@ class TestAOIDetailAPIViews(APITestCase):
                     "coordinates": [[[[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]]]]
                     },
                 },
-            'name': 'Golfo da Guiné'
+            'name': u'Golfo da Guiné'
             }
 
     def test_retrieve_detail(self):
@@ -305,7 +303,7 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.aoi.refresh_from_db()
-        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
+        self.assertEqual(self.aoi.name, u'Golfo da Guiné')
         self.assertEqual(self.aoi.filters, self.data.get('filters'))
         self.assertTrue(
             self.aoi.geometry.intersects(
@@ -319,7 +317,7 @@ class TestAOIDetailAPIViews(APITestCase):
                 'is_suspect': 'True',
                 'in_bbox': '4,0,5,1'
                 },
-            'name': 'Golfo da Guiné'
+            'name': u'Golfo da Guiné'
             }
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
@@ -328,7 +326,7 @@ class TestAOIDetailAPIViews(APITestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.aoi.refresh_from_db()
-        self.assertEqual(self.aoi.name, 'Golfo da Guiné')
+        self.assertEqual(self.aoi.name, u'Golfo da Guiné')
         self.assertEqual(self.aoi.filters, data.get('filters'))
         self.assertTrue(
             self.aoi.geometry.intersects(
@@ -368,7 +366,7 @@ class TestAOIDetailAPIViews(APITestCase):
         # validate if the user are not allowed to let the filters and geometry fields empty
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
-            {'name': 'Golfo da Guiné'}
+            {'name': u'Golfo da Guiné'}
             )
         self.assertEqual(response.status_code, 400)
         self.aoi.refresh_from_db()
