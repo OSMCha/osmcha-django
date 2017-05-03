@@ -1,3 +1,5 @@
+from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
+
 from rest_framework.generics import (
     ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
     )
@@ -11,6 +13,18 @@ from ..changeset.serializers import (
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest
 from .serializers import AreaOfInterestSerializer
+
+
+def get_geometry_from_filters(data):
+    if 'filters' in data.keys():
+        if 'geometry' in data['filters'].keys():
+            geometry = data['filters'].get('geometry')
+            return GEOSGeometry('{}'.format(geometry))
+        elif 'in_bbox' in data['filters'].keys():
+            geometry = data['filters'].get('in_bbox').split(',')
+        return MultiPolygon(Polygon.from_bbox(geometry))
+    else:
+        return None
 
 
 class IsOwnerOrReadOnly(BasePermission):
@@ -44,7 +58,10 @@ class AOIListCreateAPIView(ListCreateAPIView):
             AreaOfInterest.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        serializer.save(
+            user=self.request.user,
+            geometry=get_geometry_from_filters(self.request.data)
+            )
 
 
 class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
@@ -64,6 +81,11 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     queryset = AreaOfInterest.objects.all()
     serializer_class = AreaOfInterestSerializer
     permission_classes = (IsOwnerOrReadOnly,)
+
+    def perform_update(self, serializer):
+        serializer.save(
+            geometry=get_geometry_from_filters(self.request.data)
+            )
 
 
 class AOIListChangesetsAPIView(ListAPIView):

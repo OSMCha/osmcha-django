@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from rest_framework_gis.fields import GeometryField
 from rest_framework.fields import SerializerMethodField, HiddenField, CurrentUserDefault
 from rest_framework.validators import ValidationError, UniqueTogetherValidator
 
@@ -10,6 +11,7 @@ from .models import AreaOfInterest
 class AreaOfInterestSerializer(GeoFeatureModelSerializer):
     changesets_url = SerializerMethodField()
     user = HiddenField(default=CurrentUserDefault())
+    geometry = GeometryField(read_only=True)
 
     class Meta:
         model = AreaOfInterest

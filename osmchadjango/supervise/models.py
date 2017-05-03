@@ -21,13 +21,7 @@ class AreaOfInterest(models.Model):
         """Returns the changesets whose bbox intersects with the AreaOfInterest
         and that matches the filters.
         """
-        qs = ChangesetFilter(self.filters).qs
-        if self.geometry is not None:
-            return qs.filter(
-                bbox__intersects=self.geometry
-                )
-        else:
-            return qs
+        return ChangesetFilter(self.filters).qs
 
     class Meta:
         unique_together = ('user', 'name',)
