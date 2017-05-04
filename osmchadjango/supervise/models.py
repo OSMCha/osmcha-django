@@ -11,8 +11,8 @@ class AreaOfInterest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True)
     user = models.ForeignKey('users.User')
-    filters = JSONField(blank=True, null=True)
-    geometry = models.MultiPolygonField(blank=True, null=True)
+    filters = JSONField()
+    geometry = models.GeometryField(blank=True, null=True)
     objects = models.GeoManager()
 
     def __str__(self):

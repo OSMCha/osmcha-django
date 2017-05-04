@@ -58,6 +58,7 @@ class TestAoIListView(APITestCase):
             )
         self.area_2 = AreaOfInterest.objects.create(
             user=self.user,
+            filters={'geometry': self.m_polygon_2.geojson},
             geometry=self.m_polygon_2
             )
         self.area_3 = AreaOfInterest.objects.create(

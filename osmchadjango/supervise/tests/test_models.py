@@ -1,5 +1,5 @@
 from django.test import TestCase
-from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
 from django.db.utils import IntegrityError
 
 from ...changeset.tests.modelfactories import ChangesetFactory, UserFactory
@@ -56,12 +56,19 @@ class TestAreaOfInterestModel(TestCase):
     def test_required_user_field(self):
         with self.assertRaises(IntegrityError):
             AreaOfInterest.objects.create(
+                filters={'geometry': self.m_polygon.geojson},
                 geometry=self.m_polygon
+                )
+
+    def test_required_filters_field(self):
+        with self.assertRaises(IntegrityError):
+            AreaOfInterest.objects.create(
+                user=self.user,
+                name='New filter'
                 )
 
     def test_changesets_method(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
-        # changeset created by the same user of the AreaOfInterest
         ChangesetFactory(
             editor='JOSM 1.5',
             harmful=False,
@@ -81,3 +88,46 @@ class TestAreaOfInterestModel(TestCase):
         self.assertIn(changeset, self.area.changesets())
         self.assertEqual(self.area_2.changesets().count(), 0)
         self.assertEqual(self.area_3.changesets().count(), 2)
+
+    def test_other_geometry_types(self):
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+
+        point = Point((0.5, 0.5))
+        point_aoi = AreaOfInterest.objects.create(
+            name='Point filter',
+            user=self.user,
+            filters={
+                'geometry': point.geojson
+                },
+            geometry=point
+            )
+        self.assertEqual(point_aoi.changesets().count(), 1)
+
+        line = LineString(((0.5, 0.5), (1, 1)))
+        line_aoi = AreaOfInterest.objects.create(
+            name='Line filter',
+            user=self.user,
+            filters={
+                'geometry': line.geojson
+                },
+            geometry=line
+            )
+        self.assertEqual(line_aoi.changesets().count(), 1)
+
+        polygon = Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
+        polygon_aoi = AreaOfInterest.objects.create(
+            name='Polygon filter',
+            user=self.user,
+            filters={
+                'geometry': polygon.geojson
+                },
+            geometry=polygon
+            )
+        self.assertEqual(polygon_aoi.changesets().count(), 1)
+
+        self.assertEqual(AreaOfInterest.objects.count(), 6)
