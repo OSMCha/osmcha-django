@@ -14,7 +14,7 @@ def save_real_username(backend, user, response, *args, **kwargs):
     """
     if backend.name == 'openstreetmap' and user.name != response.get('username'):
         user.name = response.get('username')
-        user.save()
+        user.save(update_fields=['name'])
 
 
 def update_user_name(user):
@@ -28,7 +28,7 @@ def update_user_name(user):
         display_name = data.find('user').get('display_name')
         if user.name != display_name:
             user.name = display_name
-            user.save()
+            user.save(update_fields=['name'])
             print('User with uid {} updated successfully.'.format(uid))
     except UserSocialAuth.DoesNotExist:
         print(

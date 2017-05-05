@@ -153,7 +153,7 @@ def create_feature(request):
 
     if not changeset.is_suspect and has_visible_features:
         changeset.is_suspect = True
-        changeset.save()
+        changeset.save(update_fields=['is_suspect'])
 
     try:
         changeset.reasons.add(*reasons)
@@ -205,7 +205,9 @@ def set_harmful_feature(request, changeset, slug):
             instance.harmful = True
             instance.check_user = request.user
             instance.check_date = timezone.now()
-            instance.save()
+            instance.save(
+                update_fields=['checked', 'harmful', 'check_user', 'check_date']
+                )
             if 'tags' in request.data.keys():
                 ids = [int(i) for i in request.data.pop('tags')]
                 tags = changeset_models.Tag.objects.filter(
@@ -245,7 +247,9 @@ def set_good_feature(request, changeset, slug):
             instance.harmful = False
             instance.check_user = request.user
             instance.check_date = timezone.now()
-            instance.save()
+            instance.save(
+                update_fields=['checked', 'harmful', 'check_user', 'check_date']
+                )
             if 'tags' in request.data.keys():
                 ids = [int(i) for i in request.data.pop('tags')]
                 tags = changeset_models.Tag.objects.filter(
@@ -286,7 +290,9 @@ def uncheck_feature(request, changeset, slug):
         instance.harmful = None
         instance.check_user = None
         instance.check_date = None
-        instance.save()
+        instance.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
         instance.tags.clear()
         return Response(
             {'message': 'Feature marked as unchecked.'},
