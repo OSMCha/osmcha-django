@@ -10,9 +10,31 @@ from django.views.generic.base import RedirectView
 from django.views import defaults
 from django.views import static as static_views
 
-from rest_framework_swagger.views import get_swagger_view
+from .docs import SwaggerSchemaView
 
-schema_view = get_swagger_view(title='OSMCHA API')
+API_BASE_URL = 'api/v1/'
+
+api_urls = [
+    url(
+        r'^{}'.format(API_BASE_URL),
+        include("osmchadjango.changeset.urls", namespace="changeset")
+        ),
+    url(
+        r'^{}'.format(API_BASE_URL),
+        include("osmchadjango.feature.urls", namespace="feature")
+        ),
+    url(
+        r'^{}aoi/'.format(API_BASE_URL),
+        include("osmchadjango.supervise.urls", namespace="supervise")
+        ),
+    url(
+        r'^{}users/'.format(API_BASE_URL),
+        include("osmchadjango.users.urls", namespace="users")
+        ),
+    url(r'^{}login/'.format(API_BASE_URL),
+        include('rest_social_auth.urls_token', namespace='social_auth')
+        ),
+    ]
 
 urlpatterns = [
     url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name="about"),
@@ -26,20 +48,14 @@ urlpatterns = [
             )
         ),
     # api docs
-    url(r'^api-docs/$', schema_view, name='api-docs'),
-    url(r'^$', schema_view),
+    url(r'^api-docs/$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
+    url(r'^$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
 
+    # include api_urls
     url(
-        r'^api/v1/',
-        include([
-            url(r'^', include("osmchadjango.changeset.urls", namespace="changeset")),
-            url(r'^', include("osmchadjango.feature.urls", namespace="feature")),
-            url(r'^aoi/', include("osmchadjango.supervise.urls", namespace="supervise")),
-            url(r'^users/', include("osmchadjango.users.urls", namespace="users")),
-            url(r'^login/', include('rest_social_auth.urls_token', namespace='social_auth')),
-            ])
+        r'^',
+        include(api_urls)
         ),
-
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
