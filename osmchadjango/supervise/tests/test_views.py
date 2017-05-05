@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from django.core.urlresolvers import reverse
-from django.contrib.gis.geos import MultiPolygon, Polygon, Point
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
 
 from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
@@ -95,9 +95,7 @@ class TestAoIListView(APITestCase):
 
 class TestAoICreateView(APITestCase):
     def setUp(self):
-        self.m_polygon = MultiPolygon(
-            Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
-            )
+        self.polygon = Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
         self.user = User.objects.create_user(
             username='test_user',
             email='b@a.com',
@@ -113,7 +111,7 @@ class TestAoICreateView(APITestCase):
             'name': 'Golfo da Guiné',
             'filters': {
                 'is_suspect': 'True',
-                'geometry': self.m_polygon.geojson
+                'geometry': self.polygon.geojson
                 },
             }
         self.data_bbox = {
@@ -137,6 +135,7 @@ class TestAoICreateView(APITestCase):
         aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data.get('filters'))
+        self.assertIsInstance(aoi.geometry, Polygon)
         self.assertTrue(
             aoi.geometry.intersects(
                 Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
@@ -151,6 +150,7 @@ class TestAoICreateView(APITestCase):
         aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
         self.assertEqual(aoi.user, self.user)
         self.assertEqual(aoi.filters, self.data_bbox.get('filters'))
+        self.assertIsInstance(aoi.geometry, Polygon)
         self.assertTrue(
             aoi.geometry.intersects(
                 Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
@@ -260,6 +260,7 @@ class TestAoIDetailAPIViews(APITestCase):
             )
 
     def test_update_aoi_unauthenticated(self):
+        """Unauthenticated users can not update AoI"""
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
@@ -268,7 +269,16 @@ class TestAoIDetailAPIViews(APITestCase):
         self.aoi.refresh_from_db()
         self.assertEqual(self.aoi.name, 'Best place in the world')
 
+        response = self.client.patch(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 401)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Best place in the world')
+
     def test_delete_aoi_unauthenticated(self):
+        """Unauthenticated users can not delete AoI"""
         response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -276,6 +286,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 1)
 
     def test_update_aoi_of_another_user(self):
+        """A user can not update AoI of another user."""
         user = User.objects.create_user(
             username='test_2',
             email='c@a.com',
@@ -290,7 +301,16 @@ class TestAoIDetailAPIViews(APITestCase):
         self.aoi.refresh_from_db()
         self.assertEqual(self.aoi.name, 'Best place in the world')
 
+        response = self.client.patch(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            self.data
+            )
+        self.assertEqual(response.status_code, 403)
+        self.aoi.refresh_from_db()
+        self.assertEqual(self.aoi.name, 'Best place in the world')
+
     def test_delete_aoi_of_another_user(self):
+        """A user can not delete AoI of another user."""
         user = User.objects.create_user(
             username='test_2',
             email='c@a.com',
@@ -304,6 +324,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 1)
 
     def test_update_with_aoi_owner_user(self):
+        """User can update his/her AoI"""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
@@ -320,6 +341,7 @@ class TestAoIDetailAPIViews(APITestCase):
             )
 
     def test_put_update_with_bbox(self):
+        """'in_bbox' field must populate the geometry field with a Polygon"""
         data = {
             'filters': {
                 'is_suspect': 'True',
@@ -341,8 +363,11 @@ class TestAoIDetailAPIViews(APITestCase):
                 Polygon(((4, 0), (5, 0), (5, 1), (4, 0)))
                 )
             )
+        self.assertIsInstance(self.aoi.geometry, Polygon)
 
     def test_put_empty_geometry(self):
+        """If the AoI receives a filter without geometry and in_bbox information,
+        the geometry field will be updated to None."""
         data = {
             'filters': {
                 'is_suspect': 'True',
@@ -361,6 +386,8 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertIsNone(self.aoi.geometry)
 
     def test_patch_empty_geometry(self):
+        """If the AoI receives a filter without geometry and in_bbox information,
+        the geometry field will be updated to None."""
         data = {
             'filters': {
                 'is_suspect': 'True',
@@ -379,6 +406,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertIsNone(self.aoi.geometry)
 
     def test_patch_update_with_bbox(self):
+        """'in_bbox' field must populate the geometry field with a Polygon"""
         data = {
             'filters': {
                 'is_suspect': 'True',
@@ -393,11 +421,45 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.aoi.refresh_from_db()
         self.assertEqual(self.aoi.filters, data.get('filters'))
+        self.assertIsInstance(self.aoi.geometry, Polygon)
         self.assertTrue(
             self.aoi.geometry.intersects(
                 Polygon(((4, 0), (5, 0), (5, 1), (4, 0)))
                 )
             )
+
+    def test_update_with_line_and_point(self):
+        """The geometry field must receive any geometry type."""
+        point = Point((0.5, 0.5))
+        data = {
+            'filters': {
+                'geometry': point.geojson,
+                },
+            'name': 'Golfo da Guiné'
+            }
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.aoi.refresh_from_db()
+        self.assertIsInstance(self.aoi.geometry, Point)
+
+        line = LineString(((0.5, 0.5), (1, 1)))
+        data = {
+            'filters': {
+                'geometry': line.geojson,
+                },
+            'name': 'Golfo da Guiné'
+            }
+        response = self.client.put(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk]),
+            data
+            )
+        self.assertEqual(response.status_code, 200)
+        self.aoi.refresh_from_db()
+        self.assertIsInstance(self.aoi.geometry, LineString)
 
     def test_validation(self):
         self.client.login(username=self.user.username, password='password')
