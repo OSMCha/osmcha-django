@@ -65,7 +65,11 @@ class TestCreateFeature(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(Feature.objects.count(), 2)
         self.assertEqual(SuspicionReasons.objects.count(), 2)
-        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 2)
+        self.assertEqual(
+            SuspicionReasons.objects.filter(is_visible=True).count(), 2
+            )
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 2
+            )
         feature = Feature.objects.get(
             osm_id=169218447, changeset__id=42893048
             )

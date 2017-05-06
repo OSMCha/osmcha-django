@@ -29,7 +29,7 @@
       "newMapper": 1
     },
     "suspicions": [
-      {"reason": "new mapper edits"},
+      {"reason": "new mapper edits", "is_visible": true},
       {"reason": "moved an object a significant amount"}
     ],
     "oldVersion": {
