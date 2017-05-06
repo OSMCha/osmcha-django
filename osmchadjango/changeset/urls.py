@@ -47,17 +47,17 @@ urlpatterns = [
         name='detail'
     ),
     url(
-        regex=r'^set-harmful/(?P<pk>\w+)/$',
+        regex=r'^changesets/(?P<pk>\w+)/set-harmful/$',
         view=views.set_harmful_changeset,
         name='set_harmful'
     ),
     url(
-        regex=r'^set-good/(?P<pk>\w+)/$',
+        regex=r'^changesets/(?P<pk>\w+)/set-good/$',
         view=views.set_good_changeset,
         name='set_good'
     ),
     url(
-        regex=r'^uncheck/(?P<pk>\w+)/$',
+        regex=r'^changesets/(?P<pk>\w+)/uncheck/$',
         view=views.uncheck_changeset,
         name='uncheck'
     ),

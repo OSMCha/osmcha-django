@@ -12,7 +12,7 @@ urlpatterns = [
         name='list'
     ),
     url(
-        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/$',
         view=views.FeatureDetailAPIView.as_view(),
         name='detail'
     ),
@@ -22,17 +22,17 @@ urlpatterns = [
         name='create'
     ),
     url(
-        regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-harmful/$',
         view=views.set_harmful_feature,
         name='set-harmful'
     ),
     url(
-        regex=r'^set-good/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-good/$',
         view=views.set_good_feature,
         name='set-good'
     ),
     url(
-        regex=r'^uncheck/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/uncheck/$',
         view=views.uncheck_feature,
         name='uncheck'
     ),
