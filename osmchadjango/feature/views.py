@@ -76,7 +76,9 @@ class FeatureDetailAPIView(RetrieveAPIView):
 @permission_classes((IsAuthenticated, IsAdminUser))
 def create_feature(request):
     '''Create Suspicion Features. It was designed to receive vandalism-dynamosm
-    json output. Only is_staff users can use this endpoint.
+    json output. Only staff users have permissions to create features. You can
+    use the django admin to get a Token to the user you want to use to created
+    features.
     '''
     feature = request.data
 
@@ -97,7 +99,7 @@ def create_feature(request):
     defaults = {
         'osm_id': properties['osm:id'],
         'osm_type': properties['osm:type'],
-        'url': '{}-{}'.format(properties['osm:type'], properties['osm:id']),
+        'url': '{}-{}'  .format(properties['osm:type'], properties['osm:id']),
         'osm_version': properties['osm:version'],
         'comparator_version': feature.get('comparator_version'),
         }
@@ -192,10 +194,10 @@ def create_feature(request):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_feature(request, changeset, slug):
-    """Mark a feature as harmful. The 'tags' field is optional and needs to receive
-    a list with the ids of the tags you want to add to the feature. If you don't
-    want to set the 'tags', you don't need to send data, just make an empty PUT
-    request.
+    """Mark a feature as harmful. You can set the tags of the feature by sending
+    a list of tag ids inside a field named 'tags' in the request data. If you
+    don't want to set the 'tags', you don't need to send data, just make an
+    empty PUT request.
     """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     user_uids = request.user.social_auth.values_list('uid', flat=True)
@@ -234,10 +236,10 @@ def set_harmful_feature(request, changeset, slug):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_feature(request, changeset, slug):
-    """Mark a feature as good. The 'tags' field is optional and needs to receive
-    a list with the ids of the tags you want to add to the feature. If you don't
-    want to set the 'tags', you don't need to send data, just make an empty PUT
-    request.
+    """Mark a feature as good. You can set the tags of the feature by sending
+    a list of tag ids inside a field named 'tags' in the request data. If you
+    don't want to set the 'tags', you don't need to send data, just make an
+    empty PUT request.
     """
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     user_uids = request.user.social_auth.values_list('uid', flat=True)
