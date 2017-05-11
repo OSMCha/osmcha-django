@@ -630,6 +630,7 @@ class TestCheckChangesetViews(APITestCase):
         self.tag_2 = TagFactory(name='Vandalism')
 
     def test_set_harmful_changeset_unlogged(self):
+        """Anonymous users can't mark a changeset as harmful."""
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
             )
@@ -641,6 +642,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_unlogged(self):
+        """Anonymous users can't mark a changeset as good."""
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset])
             )
@@ -652,6 +654,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_harmful_changeset_not_allowed(self):
+        """User can't mark his own changeset as harmful."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset])
@@ -664,6 +667,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_not_allowed(self):
+        """User can't mark his own changeset as good."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset])
@@ -676,6 +680,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_harmful_changeset_get(self):
+        """GET is not an allowed method in the set_harmful URL."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('changeset:set_harmful', args=[self.changeset_2]),
@@ -689,6 +694,9 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset_2.check_date)
 
     def test_set_harmful_changeset_put(self):
+        """User can set a changeset of another user as harmful with a PUT request.
+        We can also set the tags of the changeset sending it as data.
+        """
         self.client.login(username=self.user.username, password='password')
         content = encode_multipart(
             'BoUnDaRyStRiNg',
@@ -717,6 +725,9 @@ class TestCheckChangesetViews(APITestCase):
             )
 
     def test_set_harmful_changeset_put_without_data(self):
+        """Test marking a changeset as harmful without sending data (so the
+        changeset will not receive tags).
+        """
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk])
@@ -731,6 +742,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertEqual(self.changeset_2.tags.count(), 0)
 
     def test_set_good_changeset_get(self):
+        """GET is not an allowed method in the set_good URL."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('changeset:set_good', args=[self.changeset_2]),
@@ -744,6 +756,9 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset_2.check_date)
 
     def test_set_good_changeset_put(self):
+        """User can set a changeset of another user as good with a PUT request.
+        We can also set the tags of the changeset sending it as data.
+        """
         self.client.login(username=self.user.username, password='password')
         content = encode_multipart(
             'BoUnDaRyStRiNg',
@@ -771,6 +786,9 @@ class TestCheckChangesetViews(APITestCase):
             )
 
     def test_set_good_changeset_put_without_data(self):
+        """Test marking a changeset as good without sending data (so the
+        changeset will not receive tags).
+        """
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset_2]),
@@ -795,6 +813,9 @@ class TestCheckChangesetViews(APITestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_try_to_check_changeset_already_checked(self):
+        """A PUT request to set_harmful or set_good urls of a checked changeset
+        will not change anything on it.
+        """
         changeset = HarmfulChangesetFactory(uid=333)
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
@@ -903,6 +924,100 @@ class TestUncheckChangesetView(APITestCase):
             reverse('changeset:uncheck', args=[self.suspect_changeset.pk]),
             )
         self.assertEqual(response.status_code, 403)
+
+
+class TestThrottling(APITestCase):
+    def setUp(self):
+        self.changesets = SuspectChangesetFactory.create_batch(
+            5, user='test2', uid='999999', editor='iD',
+            )
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+
+    def test_set_harmful_throttling(self):
+        """User can only check 3 changesets each minute."""
+        self.client.login(username=self.user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set_harmful', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_set_good_throttling(self):
+        self.client.login(username=self.user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set_good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_mixed_throttling(self):
+        """Test if both set_harmful and set_good views are throttled together."""
+        self.client.login(username=self.user.username, password='password')
+        three_changesets = self.changesets[:3]
+        for changeset in three_changesets:
+            response = self.client.put(
+                reverse('changeset:set_good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(
+            reverse('changeset:set_harmful', args=[self.changesets[3].pk]),
+            )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_set_good_by_staff_user(self):
+        """Staff users have not limit of checked changesets by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set_good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
+
+    def test_set_harmful_by_staff_user(self):
+        """Staff users have not limit of checked changesets by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set_harmful', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
 
 
 class TestWhitelistUserView(APITestCase):

@@ -326,6 +326,9 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
         ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_THROTTLE_RATES': {
+        'non_staff_user': '3/min'
+        },
     }
 
 # Allow cross domain requests

@@ -10,7 +10,9 @@ import django_filters.rest_framework
 from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, get_object_or_404
     )
-from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.decorators import (
+    api_view, parser_classes, permission_classes, throttle_classes
+    )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -21,6 +23,7 @@ from rest_framework_gis.filters import InBBoxFilter
 from osmchadjango.changeset import models as changeset_models
 
 from ..changeset.views import StandardResultsSetPagination, PaginatedCSVRenderer
+from ..changeset.views import NonStaffUserThrottle
 from .models import Feature
 from .serializers import FeatureSerializer, FeatureSerializerToStaff
 from .filters import FeatureFilter
@@ -191,6 +194,7 @@ def create_feature(request):
 
 
 @api_view(['PUT'])
+@throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_feature(request, changeset, slug):
@@ -233,6 +237,7 @@ def set_harmful_feature(request, changeset, slug):
 
 
 @api_view(['PUT'])
+@throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_feature(request, changeset, slug):

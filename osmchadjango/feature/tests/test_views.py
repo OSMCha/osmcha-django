@@ -673,6 +673,102 @@ class TestCheckFeatureViews(APITestCase):
         self.assertEqual(response.status_code, 404)
 
 
+class TestThrottling(APITestCase):
+    def setUp(self):
+        self.features = FeatureFactory.create_batch(5)
+        self.user = User.objects.create_user(
+            username='test_user',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='44444',
+            )
+
+    def test_set_harmful_throttling(self):
+        """A user can only check 3 features each minute"""
+        self.client.login(username=self.user.username, password='password')
+        for f in self.features:
+            response = self.client.put(
+                reverse('feature:set-harmful', args=[f.changeset.id, f.url])
+                )
+
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 3)
+
+    def test_set_good_throttling(self):
+        self.client.login(username=self.user.username, password='password')
+        for f in self.features:
+            response = self.client.put(
+                reverse('feature:set-good', args=[f.changeset.id, f.url])
+                )
+
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 3)
+
+    def test_mixed_throttling(self):
+        """Test if both set_harmful and set_good views are throttled together."""
+        self.client.login(username=self.user.username, password='password')
+        for f in self.features[:3]:
+            response = self.client.put(
+                reverse('feature:set-good', args=[f.changeset.id, f.url])
+                )
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(
+            reverse(
+                'feature:set-harmful',
+                args=[self.features[3].changeset.id, self.features[3].url]
+                )
+            )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 3)
+
+    def test_set_harmful_by_staff_user(self):
+        """Staff users have not limit of checked features by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for f in self.features:
+            response = self.client.put(
+                reverse('feature:set-harmful', args=[f.changeset.id, f.url])
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 5)
+
+    def test_set_good_by_staff_user(self):
+        """Staff users have not limit of checked features by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for f in self.features:
+            response = self.client.put(
+                reverse('feature:set-good', args=[f.changeset.id, f.url])
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 5)
+
+
 class TestUncheckFeatureView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(

@@ -3,7 +3,9 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 
 import django_filters.rest_framework
 from rest_framework import status
-from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.decorators import (
+    api_view, parser_classes, permission_classes, throttle_classes
+    )
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
     DestroyAPIView
@@ -23,6 +25,7 @@ from .serializers import (
     SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
     UserStatsSerializer
     )
+from .throttling import NonStaffUserThrottle
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
@@ -48,6 +51,7 @@ class ChangesetListAPIView(ListAPIView):
     receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
     accepted formats. The default pagination return 50 objects by page.
     """
+
     queryset = Changeset.objects.all().select_related(
         'check_user'
         ).prefetch_related('tags', 'reasons', 'features', 'features__reasons')
@@ -152,6 +156,7 @@ class TagListAPIView(ListAPIView):
 
 
 @api_view(['PUT'])
+@throttle_classes([NonStaffUserThrottle])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_harmful_changeset(request, pk):
@@ -193,6 +198,7 @@ def set_harmful_changeset(request, pk):
 
 
 @api_view(['PUT'])
+@throttle_classes([NonStaffUserThrottle])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def set_good_changeset(request, pk):
