@@ -4,7 +4,6 @@ from datetime import date, datetime
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
-from django.test.client import encode_multipart
 
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
