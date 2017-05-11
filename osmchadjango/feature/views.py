@@ -11,22 +11,25 @@ from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, get_object_or_404
     )
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, throttle_classes
+    api_view, parser_classes, permission_classes, detail_route
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
 
-from osmchadjango.changeset import models as changeset_models
-
+from ..changeset import models as changeset_models
 from ..changeset.views import StandardResultsSetPagination, PaginatedCSVRenderer
 from ..changeset.views import NonStaffUserThrottle
+
 from .models import Feature
-from .serializers import FeatureSerializer, FeatureSerializerToStaff
 from .filters import FeatureFilter
+from .serializers import (
+    FeatureSerializer, FeatureSerializerToStaff, FeatureTagsSerializer
+    )
 
 
 class FeatureListAPIView(ListAPIView):
@@ -193,90 +196,83 @@ def create_feature(request):
         )
 
 
-@api_view(['PUT'])
-@throttle_classes((NonStaffUserThrottle,))
-@parser_classes((JSONParser, MultiPartParser, FormParser))
-@permission_classes((IsAuthenticated,))
-def set_harmful_feature(request, changeset, slug):
-    """Mark a feature as harmful. You can set the tags of the feature by sending
-    a list of tag ids inside a field named 'tags' in the request data. If you
-    don't want to set the 'tags', you don't need to send data, just make an
-    empty PUT request.
-    """
-    instance = get_object_or_404(Feature, changeset=changeset, url=slug)
-    user_uids = request.user.social_auth.values_list('uid', flat=True)
-    if instance.changeset.uid not in user_uids:
-        if instance.checked is False:
-            instance.checked = True
-            instance.harmful = True
-            instance.check_user = request.user
-            instance.check_date = timezone.now()
-            instance.save(
-                update_fields=['checked', 'harmful', 'check_user', 'check_date']
-                )
-            if 'tags' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('tags')]
-                tags = changeset_models.Tag.objects.filter(
-                    id__in=ids
-                    )
-                instance.tags.set(tags)
-            return Response(
-                {'message': 'Feature marked as harmful.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                {'message': 'Feature could not be updated.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-    else:
+class CheckFeature(ModelViewSet):
+    queryset = Feature.objects.all()
+    serializer_class = FeatureTagsSerializer
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = (NonStaffUserThrottle,)
+
+    def update_feature(self, feature, request, harmful):
+        """Update the feature fields and return a 200 Response """
+        feature.checked = True
+        feature.harmful = harmful
+        feature.check_user = request.user
+        feature.check_date = timezone.now()
+        feature.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
         return Response(
-            {'message': 'User does not have permission to update this feature.'},
-            status=status.HTTP_403_FORBIDDEN
+            {'message': 'Feature marked as {}.'.format('harmful' if harmful else 'good')},
+            status=status.HTTP_200_OK
             )
 
-
-@api_view(['PUT'])
-@throttle_classes((NonStaffUserThrottle,))
-@parser_classes((JSONParser, MultiPartParser, FormParser))
-@permission_classes((IsAuthenticated,))
-def set_good_feature(request, changeset, slug):
-    """Mark a feature as good. You can set the tags of the feature by sending
-    a list of tag ids inside a field named 'tags' in the request data. If you
-    don't want to set the 'tags', you don't need to send data, just make an
-    empty PUT request.
-    """
-    instance = get_object_or_404(Feature, changeset=changeset, url=slug)
-    user_uids = request.user.social_auth.values_list('uid', flat=True)
-    if instance.changeset.uid not in user_uids:
-        if instance.checked is False:
-            instance.checked = True
-            instance.harmful = False
-            instance.check_user = request.user
-            instance.check_date = timezone.now()
-            instance.save(
-                update_fields=['checked', 'harmful', 'check_user', 'check_date']
-                )
-            if 'tags' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('tags')]
-                tags = changeset_models.Tag.objects.filter(
-                    id__in=ids
-                    )
-                instance.tags.set(tags)
+    @detail_route(methods=['put'])
+    def set_harmful(self, request, changeset, slug):
+        """Mark a feature as harmful. You can set the tags of the feature by sending
+        a list of tag ids inside a field named 'tags' in the request data. If you
+        don't want to set the 'tags', you don't need to send data, just make an
+        empty PUT request.
+        """
+        feature = get_object_or_404(Feature, changeset=changeset, url=slug)
+        if feature.checked:
             return Response(
-                {'message': 'Feature marked as good.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                {'message': 'Feature could not be updated.'},
+                {'message': 'Feature was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-    else:
-        return Response(
-            {'message': 'User does not have permission to update this feature.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not check his own feature.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if request.data:
+            serializer = FeatureTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                feature.tags.set(serializer.data['tags'])
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
+        return self.update_feature(feature, request, harmful=True)
+
+    @detail_route(methods=['put'])
+    def set_good(self, request, changeset, slug):
+        """Mark a feature as good. You can set the tags of the feature by sending
+        a list of tag ids inside a field named 'tags' in the request data. If you
+        don't want to set the 'tags', you don't need to send data, just make an
+        empty PUT request.
+        """
+        feature = get_object_or_404(Feature, changeset=changeset, url=slug)
+        if feature.checked:
+            return Response(
+                {'message': 'Feature was already checked.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not check his own feature.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if request.data:
+            serializer = FeatureTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                feature.tags.set(serializer.data['tags'])
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
+        return self.update_feature(feature, request, harmful=False)
 
 
 @api_view(['PUT'])

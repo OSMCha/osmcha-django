@@ -23,12 +23,12 @@ urlpatterns = [
     ),
     url(
         regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-harmful/$',
-        view=views.set_harmful_feature,
+        view=views.CheckFeature.as_view({'put': 'set_harmful'}),
         name='set-harmful'
     ),
     url(
         regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-good/$',
-        view=views.set_good_feature,
+        view=views.CheckFeature.as_view({'put': 'set_good'}),
         name='set-good'
     ),
     url(

@@ -581,16 +581,11 @@ class TestCheckFeatureViews(APITestCase):
         self.assertIsNone(self.feature.check_user)
         self.assertIsNone(self.feature.check_date)
 
-    def test_set_harmful_feature_with_tags(self):
+    def test_set_harmful_feature(self):
         self.client.login(username=self.user.username, password='password')
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
         response = self.client.put(
             self.set_harmful_url,
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            {'tags': [self.tag_1.id, self.tag_2.id]},
             )
         self.assertEqual(response.status_code, 200)
         self.feature.refresh_from_db()
@@ -600,7 +595,21 @@ class TestCheckFeatureViews(APITestCase):
         self.assertIn(self.tag_1, self.feature.tags.all())
         self.assertIn(self.tag_2, self.feature.tags.all())
 
-    def test_set_harmful_feature(self):
+    def test_set_harmful_feature_invalid_tag_ids(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            self.set_harmful_url,
+            {'tags': [self.tag_1.id, 345435, 898734]},
+            )
+        self.assertEqual(response.status_code, 400)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+        self.assertIsNone(self.feature.check_user)
+        self.assertIsNone(self.feature.check_date)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_set_harmful_feature_without_tags(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(self.set_harmful_url)
         self.assertEqual(response.status_code, 200)
@@ -610,14 +619,9 @@ class TestCheckFeatureViews(APITestCase):
 
     def test_set_good_feature(self):
         self.client.login(username=self.user.username, password='password')
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
         response = self.client.put(
             self.set_good_url,
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            {'tags': [self.tag_1.id, self.tag_2.id]},
             )
         self.assertEqual(response.status_code, 200)
         self.feature.refresh_from_db()
@@ -626,6 +630,20 @@ class TestCheckFeatureViews(APITestCase):
         self.assertEqual(self.feature.tags.count(), 2)
         self.assertIn(self.tag_1, self.feature.tags.all())
         self.assertIn(self.tag_2, self.feature.tags.all())
+
+    def test_set_good_feature_invalid_tag_ids(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            self.set_good_url,
+            {'tags': [self.tag_1.id, 43543, 43523]},
+            )
+        self.assertEqual(response.status_code, 400)
+        self.feature.refresh_from_db()
+        self.assertIsNone(self.feature.harmful)
+        self.assertFalse(self.feature.checked)
+        self.assertIsNone(self.feature.check_user)
+        self.assertIsNone(self.feature.check_date)
+        self.assertEqual(self.feature.tags.count(), 0)
 
     def test_set_good_feature_without_tags(self):
         self.client.login(username=self.user.username, password='password')
@@ -647,14 +665,9 @@ class TestCheckFeatureViews(APITestCase):
         self.assertNotEqual(feature.check_user, self.user)
 
         # now try to mark a checked feature as harmful
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
         response = self.client.put(
             reverse('feature:set-harmful', args=[feature.changeset, feature.url]),
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            {'tags': [self.tag_1.id, self.tag_2.id]},
             )
         self.assertEqual(response.status_code, 403)
         feature.refresh_from_db()

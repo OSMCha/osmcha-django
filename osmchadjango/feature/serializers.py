@@ -1,10 +1,13 @@
 import json
 
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
-from rest_framework.serializers import StringRelatedField, ModelSerializer
+from rest_framework.serializers import (
+    StringRelatedField, ModelSerializer, PrimaryKeyRelatedField
+    )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
 from .models import Feature
+from ..changeset.models import Tag
 
 
 class FeatureSerializerToStaff(GeoFeatureModelSerializer):
@@ -64,3 +67,11 @@ class FeatureSimpleSerializer(FeatureSimpleSerializerToStaff):
 
     def get_reasons(self, obj):
         return [i.name for i in obj.reasons.all() if i.is_visible is True]
+
+
+class FeatureTagsSerializer(ModelSerializer):
+    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+
+    class Meta:
+        model = Feature
+        fields = ('tags',)
