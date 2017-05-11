@@ -49,4 +49,4 @@ redis>=2.10.5
 # Your custom requirements go here
 PyYAML==3.11
 # using the premerge version of osmcha
-osmcha==0.3.7
+osmcha==0.3.8
