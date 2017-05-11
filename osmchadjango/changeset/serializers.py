@@ -1,10 +1,13 @@
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import (
-    ModelSerializer, StringRelatedField, ListSerializer, BaseSerializer, PrimaryKeyRelatedField
+    ModelSerializer, StringRelatedField, ListSerializer, BaseSerializer,
+    PrimaryKeyRelatedField
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from ..feature.serializers import FeatureSimpleSerializer, FeatureSimpleSerializerToStaff
+from ..feature.serializers import (
+    FeatureSimpleSerializer, FeatureSimpleSerializerToStaff
+    )
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 
@@ -106,6 +109,14 @@ class ChangesetListStatsSerializer(ListSerializer):
         return super(ListSerializer, self).data
 
 
+class ChangesetTagsSerializer(ModelSerializer):
+    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+
+    class Meta:
+        model = Changeset
+        fields = ('tags',)
+
+
 class ChangesetStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = ChangesetListStatsSerializer
@@ -132,11 +143,3 @@ class UserStatsListSerializer(ListSerializer):
 class UserStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = UserStatsListSerializer
-
-
-class ChangesetTagsSerializer(ModelSerializer):
-    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-
-    class Meta:
-        model = Changeset
-        fields = ('tags',)

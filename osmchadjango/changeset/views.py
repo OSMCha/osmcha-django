@@ -195,9 +195,15 @@ class CheckChangeset(ModelViewSet):
                 {'message': 'User can not check his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-        serializer = ChangesetTagsSerializer(data=request.data)
-        if serializer.is_valid():
-            changeset.tags.set(Tag.objects.filter(id__in=serializer.data['tags']))
+        if request.data:
+            serializer = ChangesetTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                changeset.tags.set(serializer.data['tags'])
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
         return self.update_changeset(changeset, request, harmful=True)
 
     @detail_route(methods=['put'])
@@ -218,9 +224,15 @@ class CheckChangeset(ModelViewSet):
                 {'message': 'User can not check his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-        serializer = ChangesetTagsSerializer(data=request.data)
-        if serializer.is_valid():
-            changeset.tags.set(Tag.objects.filter(id__in=serializer.data['tags']))
+        if request.data:
+            serializer = ChangesetTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                changeset.tags.set(serializer.data['tags'])
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
         return self.update_changeset(changeset, request, harmful=False)
 
 

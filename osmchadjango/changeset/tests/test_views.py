@@ -720,6 +720,24 @@ class TestCheckChangesetViews(APITestCase):
             self.changeset_2.tags.all()
             )
 
+    def test_set_harmful_changeset_with_invalid_tag_id(self):
+        """Return a 400 error if a user try to add a invalid tag id to a changeset.
+        """
+        self.client.login(username=self.user.username, password='password')
+        data = {'tags': [self.tag_1.id, 87765, 898986]}
+        response = self.client.put(
+            reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
+            data
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.changeset_2.refresh_from_db()
+        self.assertIsNone(self.changeset_2.harmful)
+        self.assertFalse(self.changeset_2.checked)
+        self.assertIsNone(self.changeset_2.check_user)
+        self.assertIsNone(self.changeset_2.check_date)
+        self.assertEqual(self.changeset_2.tags.count(), 0)
+
     def test_set_harmful_changeset_put_without_data(self):
         """Test marking a changeset as harmful without sending data (so the
         changeset will not receive tags).
@@ -776,6 +794,24 @@ class TestCheckChangesetViews(APITestCase):
             self.tag_2,
             self.changeset_2.tags.all()
             )
+
+    def test_set_good_changeset_with_invalid_tag_id(self):
+        """Return a 400 error if a user try to add a invalid tag id to a changeset.
+        """
+        self.client.login(username=self.user.username, password='password')
+        data = {'tags': [self.tag_1.id, 87765, 898986]}
+        response = self.client.put(
+            reverse('changeset:set_good', args=[self.changeset_2.pk]),
+            data
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.changeset_2.refresh_from_db()
+        self.assertIsNone(self.changeset_2.harmful)
+        self.assertFalse(self.changeset_2.checked)
+        self.assertIsNone(self.changeset_2.check_user)
+        self.assertIsNone(self.changeset_2.check_date)
+        self.assertEqual(self.changeset_2.tags.count(), 0)
 
     def test_set_good_changeset_put_without_data(self):
         """Test marking a changeset as good without sending data (so the
