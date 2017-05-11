@@ -698,14 +698,10 @@ class TestCheckChangesetViews(APITestCase):
         We can also set the tags of the changeset sending it as data.
         """
         self.client.login(username=self.user.username, password='password')
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
+        data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
             reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            data
             )
 
         self.assertEqual(response.status_code, 200)
@@ -760,14 +756,10 @@ class TestCheckChangesetViews(APITestCase):
         We can also set the tags of the changeset sending it as data.
         """
         self.client.login(username=self.user.username, password='password')
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
+        data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
             reverse('changeset:set_good', args=[self.changeset_2]),
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            data
             )
         self.assertEqual(response.status_code, 200)
         self.changeset_2.refresh_from_db()
@@ -825,14 +817,10 @@ class TestCheckChangesetViews(APITestCase):
         changeset.refresh_from_db()
         self.assertNotEqual(changeset.check_user, self.user)
 
-        content = encode_multipart(
-            'BoUnDaRyStRiNg',
-            {'tags': [self.tag_1.id, self.tag_2.id]}
-            )
+        data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
             reverse('changeset:set_harmful', args=[changeset.pk]),
-            content,
-            content_type='multipart/form-data; boundary=BoUnDaRyStRiNg'
+            data,
             )
         self.assertEqual(response.status_code, 403)
         changeset.refresh_from_db()

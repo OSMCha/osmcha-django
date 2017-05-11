@@ -4,7 +4,7 @@ from django.utils.translation import ugettext, ugettext_lazy as _
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, throttle_classes
+    api_view, parser_classes, permission_classes, detail_route
     )
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
@@ -14,6 +14,7 @@ from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.viewsets import ModelViewSet
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
@@ -23,7 +24,7 @@ from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
-    UserStatsSerializer
+    UserStatsSerializer, ChangesetTagsSerializer
     )
 from .throttling import NonStaffUserThrottle
 
@@ -155,88 +156,72 @@ class TagListAPIView(ListAPIView):
             return Tag.objects.filter(is_visible=True)
 
 
-@api_view(['PUT'])
-@throttle_classes([NonStaffUserThrottle])
-@parser_classes((JSONParser, MultiPartParser, FormParser))
-@permission_classes((IsAuthenticated,))
-def set_harmful_changeset(request, pk):
-    """Mark a changeset as harmful. You can set the tags of the changeset by
-    sending a list of tag ids inside a field named 'tags' in the request data.
-    If you don't want to set the 'tags', you don't need to send data, just make
-    an empty PUT request.
-    """
-    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-    if instance.uid not in request.user.social_auth.values_list('uid', flat=True):
-        if instance.checked is False:
-            instance.checked = True
-            instance.harmful = True
-            instance.check_user = request.user
-            instance.check_date = timezone.now()
-            instance.save(
-                update_fields=['checked', 'harmful', 'check_user', 'check_date']
-                )
-            if 'tags' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('tags')]
-                tags = Tag.objects.filter(
-                    id__in=ids
-                    )
-                instance.tags.set(tags)
-            return Response(
-                {'message': 'Changeset marked as harmful.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                {'message': 'Changeset could not be updated.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-    else:
+class CheckChangeset(ModelViewSet):
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetTagsSerializer
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = [NonStaffUserThrottle]
+
+    def update_changeset(self, changeset, request, harmful):
+        """Update 'checked', 'harmful', 'check_user', 'check_date' fields of the
+        changeset and return a 200 response"""
+        changeset.checked = True
+        changeset.harmful = harmful
+        changeset.check_user = request.user
+        changeset.check_date = timezone.now()
+        changeset.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
         return Response(
-            {'message': 'User does not have permission to update this changeset.'},
-            status=status.HTTP_403_FORBIDDEN
+            {'message': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
+            status=status.HTTP_200_OK
             )
 
-
-@api_view(['PUT'])
-@throttle_classes([NonStaffUserThrottle])
-@parser_classes((JSONParser, MultiPartParser, FormParser))
-@permission_classes((IsAuthenticated,))
-def set_good_changeset(request, pk):
-    """Mark a changeset as good. You can set the tags of the changeset by
-    sending a list of tag ids inside a field named 'tags' in the request data.
-    If you don't want to set the 'tags', you don't need to send data, just make
-    an empty PUT request.
-    """
-    instance = get_object_or_404(Changeset.objects.all(), pk=pk)
-    if instance.uid not in request.user.social_auth.values_list('uid', flat=True):
-        if instance.checked is False:
-            instance.checked = True
-            instance.harmful = False
-            instance.check_user = request.user
-            instance.check_date = timezone.now()
-            instance.save(
-                update_fields=['checked', 'harmful', 'check_user', 'check_date']
-                )
-            if 'tags' in request.data.keys():
-                ids = [int(i) for i in request.data.pop('tags')]
-                tags = Tag.objects.filter(
-                    id__in=ids
-                    )
-                instance.tags.set(tags)
+    @detail_route(methods=['put'])
+    def set_harmful(self, request, pk):
+        """Mark a changeset as harmful. You can set the tags of the changeset by
+        sending a list of tag ids inside a field named 'tags' in the request data.
+        If you don't want to set the 'tags', you don't need to send data, just make
+        an empty PUT request.
+        """
+        changeset = self.get_object()
+        if changeset.checked:
             return Response(
-                {'message': 'Changeset marked as good.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                {'message': 'Changeset could not be updated.'},
+                {'message': 'Changeset was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-    else:
-        return Response(
-            {'message': 'User does not have permission to update this changeset.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not check his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        serializer = ChangesetTagsSerializer(data=request.data)
+        if serializer.is_valid():
+            changeset.tags.set(Tag.objects.filter(id__in=serializer.data['tags']))
+        return self.update_changeset(changeset, request, harmful=True)
+
+    @detail_route(methods=['put'])
+    def set_good(self, request, pk):
+        """Mark a changeset as good. You can set the tags of the changeset by
+        sending a list of tag ids inside a field named 'tags' in the request data.
+        If you don't want to set the 'tags', you don't need to send data, just make
+        an empty PUT request.
+        """
+        changeset = self.get_object()
+        if changeset.checked:
+            return Response(
+                {'message': 'Changeset was already checked.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not check his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        serializer = ChangesetTagsSerializer(data=request.data)
+        if serializer.is_valid():
+            changeset.tags.set(Tag.objects.filter(id__in=serializer.data['tags']))
+        return self.update_changeset(changeset, request, harmful=False)
 
 
 @api_view(['PUT'])
