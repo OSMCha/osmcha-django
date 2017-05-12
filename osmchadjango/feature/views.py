@@ -11,7 +11,7 @@ from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, get_object_or_404
     )
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route
+    api_view, parser_classes, permission_classes, detail_route, throttle_classes
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -78,6 +78,7 @@ class FeatureDetailAPIView(RetrieveAPIView):
 
 
 @api_view(['POST'])
+@throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
 def create_feature(request):
