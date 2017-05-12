@@ -62,3 +62,23 @@ DATABASES = {
          'HOST': env('PGHOST', default='localhost')
      }
 }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': env('ANON_USER_THROTTLE_RATE', default='30/min'),
+        'user': env('COMMON_USER_THROTTLE_RATE', default='180/min'),
+        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        },
+    }

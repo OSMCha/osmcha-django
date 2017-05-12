@@ -327,7 +327,7 @@ REST_FRAMEWORK = {
         ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
     'DEFAULT_THROTTLE_RATES': {
-        'non_staff_user': '3/min'
+        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
         },
     }
 
