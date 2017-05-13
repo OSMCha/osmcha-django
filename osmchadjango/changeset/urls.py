@@ -62,6 +62,11 @@ urlpatterns = [
         name='uncheck'
     ),
     url(
+        regex=r'^changesets/(?P<pk>\w+)/add-tag/(?P<tag_pk>\w+)/$',
+        view=views.AddTagToChangesetAPIView.as_view({'put': 'add_tag'}),
+        name='add-tag'
+    ),
+    url(
         regex=r'^whitelist-user/$',
         view=views.UserWhitelistListCreateAPIView.as_view(),
         name='whitelist-user'

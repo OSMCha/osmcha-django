@@ -1288,3 +1288,127 @@ class TestUserStatsViews(APITestCase):
         self.assertEqual(response.data.get('changesets_in_osmcha'), 0)
         self.assertEqual(response.data.get('checked_changesets'), 0)
         self.assertEqual(response.data.get('harmful_changesets'), 0)
+
+
+class TestAddTagAPIView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            email='c@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='999',
+            )
+        self.changeset_user = User.objects.create_user(
+            username='test',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.changeset_user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.changeset = ChangesetFactory()
+        self.checked_changeset = HarmfulChangesetFactory(check_user=self.user)
+        self.tag = TagFactory(name='Not verified')
+
+    def test_unauthenticated_can_not_add_tag(self):
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.changeset.tags.count(), 0)
+
+    def test_can_not_add_invalid_tag_id(self):
+        """When the tag id does not exist, it will return a 404 response."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.changeset.id, 44534])
+            )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.changeset.tags.count(), 0)
+
+    def test_add_tag(self):
+        """A user that is not the creator of the changeset can add tags to an
+        unchecked changeset.
+        """
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.changeset.tags.count(), 1)
+        self.assertIn(self.tag, self.changeset.tags.all())
+
+        # test add the same tag again
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.changeset.tags.count(), 1)
+
+    def test_add_tag_by_changeset_owner(self):
+        """The user that created the changeset can not add tags to it."""
+        self.client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.changeset.tags.count(), 0)
+
+    def test_add_tag_to_checked_changeset(self):
+        """The user that checked the changeset can add tags to it."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_changeset.tags.count(), 1)
+        self.assertIn(self.tag, self.checked_changeset.tags.all())
+        self.client.logout()
+
+    def test_other_user_can_not_add_tag_to_checked_changeset(self):
+        """A non staff user can not add tags to a changeset that other user have
+        checked.
+        """
+        other_user = User.objects.create_user(
+            username='other_user',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=other_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=other_user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.changeset.tags.count(), 0)
+
+    def test_staff_user_add_tag_to_checked_changeset(self):
+        """A staff user can add tags to a changeset."""
+        staff_user = User.objects.create_user(
+            username='admin',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=staff_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=staff_user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_changeset.tags.count(), 1)
+        self.assertIn(self.tag, self.checked_changeset.tags.all())
