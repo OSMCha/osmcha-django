@@ -10,6 +10,7 @@ from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
 
 from ...changeset.models import (Tag, SuspicionReasons, Changeset)
+from ...changeset.tests.modelfactories import TagFactory
 from ...changeset.views import PaginatedCSVRenderer
 from ...users.models import User
 from ..models import Feature
@@ -67,8 +68,7 @@ class TestCreateFeature(APITestCase):
         self.assertEqual(
             SuspicionReasons.objects.filter(is_visible=True).count(), 2
             )
-        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 2
-            )
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 2)
         feature = Feature.objects.get(
             osm_id=169218447, changeset__id=42893048
             )
@@ -881,3 +881,285 @@ class TestUncheckFeatureView(APITestCase):
                 )
             )
         self.assertEqual(response.status_code, 403)
+
+
+class TestAddTagToFeature(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            email='c@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='999',
+            )
+        self.changeset_user = User.objects.create_user(
+            username='test',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.changeset_user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.feature = FeatureFactory()
+        self.checked_feature = CheckedFeatureFactory(check_user=self.user)
+        self.tag = TagFactory(name='Not verified', for_feature=True)
+
+    def test_unauthenticated_can_not_add_tag(self):
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.feature.changeset, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_can_not_add_invalid_tag_id(self):
+        """When the tag id does not exist, it will return a 404 response."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.feature.changeset.id, self.feature.url, 876343]
+                )
+            )
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_add_tag(self):
+        """A user that is not the creator of the feature can add tags to an
+        unchecked feature.
+        """
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.feature.tags.count(), 1)
+        self.assertIn(self.tag, self.feature.tags.all())
+
+        # test add the same tag again
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.feature.tags.count(), 1)
+
+    def test_add_tag_by_feature_owner(self):
+        """The user that created the feature can not add tags to it."""
+        self.client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_add_tag_to_checked_feature(self):
+        """The user that checked the feature can add tags to it."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_feature.tags.count(), 1)
+        self.assertIn(self.tag, self.checked_feature.tags.all())
+
+    def test_other_user_can_not_add_tag_to_checked_feature(self):
+        """A non staff user can not add tags to a feature that other user have
+        checked.
+        """
+        other_user = User.objects.create_user(
+            username='other_user',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=other_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=other_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_staff_user_add_tag_to_checked_feature(self):
+        """A staff user can add tags to a feature."""
+        staff_user = User.objects.create_user(
+            username='admin',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=staff_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=staff_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:add-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_feature.tags.count(), 1)
+        self.assertIn(self.tag, self.checked_feature.tags.all())
+
+
+class TestRemoveTagToChangeset(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            email='c@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='999',
+            )
+        self.changeset_user = User.objects.create_user(
+            username='test',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=self.changeset_user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.feature = FeatureFactory()
+        self.checked_feature = CheckedFeatureFactory(check_user=self.user)
+        self.tag = TagFactory(name='Not verified')
+        self.feature.tags.add(self.tag)
+        self.checked_feature.tags.add(self.tag)
+
+    def test_unauthenticated_can_not_remove_tag(self):
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.feature.tags.count(), 1)
+
+    def test_can_not_remove_invalid_tag_id(self):
+        """When the tag id does not exist it will return a 404 response."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.feature.changeset.id, self.feature.url, 433232]
+                )
+            )
+        self.assertEqual(response.status_code, 404)
+
+    def test_remove_tag(self):
+        """A user that is not the creator of the changeset can remote tags to an
+        unchecked changeset.
+        """
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.feature.tags.count(), 0)
+
+    def test_remove_tag_by_changeset_owner(self):
+        """The user that created the changeset can not remove its tags."""
+        self.client.login(username=self.changeset_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.feature.changeset.id, self.feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.feature.tags.count(), 1)
+
+    def test_remove_tag_of_checked_changeset(self):
+        """The user that checked the changeset can remove its tags."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_feature.tags.count(), 0)
+
+    def test_other_user_can_not_remove_tag_to_checked_changeset(self):
+        """A non staff user can not remove tags of a changeset that other user
+        have checked.
+        """
+        other_user = User.objects.create_user(
+            username='other_user',
+            email='b@a.com',
+            password='password',
+            )
+        UserSocialAuth.objects.create(
+            user=other_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=other_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.checked_feature.tags.count(), 1)
+
+    def test_staff_user_remove_tag_to_checked_changeset(self):
+        """A staff user can remove tags to a changeset."""
+        staff_user = User.objects.create_user(
+            username='admin',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=staff_user,
+            provider='openstreetmap',
+            uid='28763',
+            )
+        self.client.login(username=staff_user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'feature:remove-tag',
+                args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.checked_feature.tags.count(), 0)

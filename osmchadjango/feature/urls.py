@@ -32,6 +32,16 @@ urlpatterns = [
         name='set-good'
     ),
     url(
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/add-tag/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveFeatureTagsAPIView.as_view({'put': 'add_tag'}),
+        name='add-tag'
+    ),
+    url(
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/remove-tag/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveFeatureTagsAPIView.as_view({'put': 'remove_tag'}),
+        name='remove-tag'
+    ),
+    url(
         regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/uncheck/$',
         view=views.uncheck_feature,
         name='uncheck'

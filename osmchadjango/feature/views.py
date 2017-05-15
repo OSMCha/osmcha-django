@@ -22,8 +22,9 @@ from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
 
 from ..changeset import models as changeset_models
-from ..changeset.views import StandardResultsSetPagination, PaginatedCSVRenderer
-from ..changeset.views import NonStaffUserThrottle
+from ..changeset.views import (
+    StandardResultsSetPagination, PaginatedCSVRenderer, NonStaffUserThrottle
+    )
 
 from .models import Feature
 from .filters import FeatureFilter
@@ -306,4 +307,66 @@ def uncheck_feature(request, changeset, slug):
         return Response(
             {'message': 'User does not have permission to uncheck this feature.'},
             status=status.HTTP_403_FORBIDDEN
+            )
+
+
+class AddRemoveFeatureTagsAPIView(ModelViewSet):
+    queryset = Feature.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    @detail_route(methods=['put'])
+    def add_tag(self, request, changeset, slug, tag_pk):
+        object = get_object_or_404(
+            Feature.objects.all(),
+            changeset=changeset,
+            url=slug
+            )
+        tag = get_object_or_404(
+            changeset_models.Tag.objects.filter(for_feature=True),
+            pk=tag_pk
+            )
+
+        if object.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not add tags to his own changeset/feature.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if object.checked and (
+            request.user != object.check_user and not request.user.is_staff):
+            return Response(
+                {'message': 'User can not add tags to a changeset/feature checked by another user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
+        object.tags.add(tag)
+        return Response(
+            {'message': 'Tag added.'},
+            status=status.HTTP_200_OK
+            )
+
+    @detail_route(methods=['put'])
+    def remove_tag(self, request, changeset, slug, tag_pk):
+        object = get_object_or_404(
+            Feature.objects.all(),
+            changeset=changeset,
+            url=slug
+            )
+        tag = get_object_or_404(changeset_models.Tag.objects.all(), pk=tag_pk)
+
+        if object.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not remove tags of his own changeset/feature.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if object.checked and (
+            request.user != object.check_user and not request.user.is_staff):
+            return Response(
+                {'message': 'User can not remove tags of a changeset/feature checked by another user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
+        object.tags.remove(tag)
+        return Response(
+            {'message': 'Tag removed.'},
+            status=status.HTTP_200_OK
             )
