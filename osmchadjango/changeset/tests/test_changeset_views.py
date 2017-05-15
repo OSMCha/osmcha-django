@@ -860,7 +860,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class TestAddTagToChangesetAPIView(APITestCase):
+class TestAddTagToChangeset(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='user',
@@ -983,7 +983,7 @@ class TestAddTagToChangesetAPIView(APITestCase):
         self.assertIn(self.tag, self.checked_changeset.tags.all())
 
 
-class TestRemoveTagToChangesetAPIView(APITestCase):
+class TestRemoveTagToChangeset(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='user',
@@ -1009,6 +1009,7 @@ class TestRemoveTagToChangesetAPIView(APITestCase):
         self.checked_changeset = HarmfulChangesetFactory(check_user=self.user)
         self.tag = TagFactory(name='Not verified')
         self.changeset.tags.add(self.tag)
+        self.checked_changeset.tags.add(self.tag)
 
     def test_unauthenticated_can_not_remove_tag(self):
         response = self.client.put(
@@ -1073,7 +1074,7 @@ class TestRemoveTagToChangesetAPIView(APITestCase):
             reverse('changeset:remove-tag', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(self.changeset.tags.count(), 1)
+        self.assertEqual(self.checked_changeset.tags.count(), 1)
 
     def test_staff_user_remove_tag_to_checked_changeset(self):
         """A staff user can remove tags to a changeset."""
