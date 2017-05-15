@@ -49,12 +49,12 @@ urlpatterns = [
     url(
         regex=r'^changesets/(?P<pk>\w+)/set-harmful/$',
         view=views.CheckChangeset.as_view({'put': 'set_harmful'}),
-        name='set_harmful'
+        name='set-harmful'
     ),
     url(
         regex=r'^changesets/(?P<pk>\w+)/set-good/$',
         view=views.CheckChangeset.as_view({'put': 'set_good'}),
-        name='set_good'
+        name='set-good'
     ),
     url(
         regex=r'^changesets/(?P<pk>\w+)/uncheck/$',

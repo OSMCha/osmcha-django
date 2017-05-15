@@ -631,7 +631,7 @@ class TestCheckChangesetViews(APITestCase):
     def test_set_harmful_changeset_unlogged(self):
         """Anonymous users can't mark a changeset as harmful."""
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changeset])
+            reverse('changeset:set-harmful', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
         self.changeset.refresh_from_db()
@@ -643,7 +643,7 @@ class TestCheckChangesetViews(APITestCase):
     def test_set_good_changeset_unlogged(self):
         """Anonymous users can't mark a changeset as good."""
         response = self.client.put(
-            reverse('changeset:set_good', args=[self.changeset])
+            reverse('changeset:set-good', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 401)
         self.changeset.refresh_from_db()
@@ -656,7 +656,7 @@ class TestCheckChangesetViews(APITestCase):
         """User can't mark his own changeset as harmful."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changeset])
+            reverse('changeset:set-harmful', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 403)
         self.changeset.refresh_from_db()
@@ -669,7 +669,7 @@ class TestCheckChangesetViews(APITestCase):
         """User can't mark his own changeset as good."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_good', args=[self.changeset])
+            reverse('changeset:set-good', args=[self.changeset])
             )
         self.assertEqual(response.status_code, 403)
         self.changeset.refresh_from_db()
@@ -682,7 +682,7 @@ class TestCheckChangesetViews(APITestCase):
         """GET is not an allowed method in the set_harmful URL."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
-            reverse('changeset:set_harmful', args=[self.changeset_2]),
+            reverse('changeset:set-harmful', args=[self.changeset_2]),
             )
 
         self.assertEqual(response.status_code, 405)
@@ -699,7 +699,7 @@ class TestCheckChangesetViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
+            reverse('changeset:set-harmful', args=[self.changeset_2.pk]),
             data
             )
 
@@ -725,7 +725,7 @@ class TestCheckChangesetViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, 87765, 898986]}
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changeset_2.pk]),
+            reverse('changeset:set-harmful', args=[self.changeset_2.pk]),
             data
             )
 
@@ -743,7 +743,7 @@ class TestCheckChangesetViews(APITestCase):
         """
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changeset_2.pk])
+            reverse('changeset:set-harmful', args=[self.changeset_2.pk])
             )
 
         self.assertEqual(response.status_code, 200)
@@ -758,7 +758,7 @@ class TestCheckChangesetViews(APITestCase):
         """GET is not an allowed method in the set_good URL."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
-            reverse('changeset:set_good', args=[self.changeset_2]),
+            reverse('changeset:set-good', args=[self.changeset_2]),
             )
 
         self.assertEqual(response.status_code, 405)
@@ -775,7 +775,7 @@ class TestCheckChangesetViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
-            reverse('changeset:set_good', args=[self.changeset_2]),
+            reverse('changeset:set-good', args=[self.changeset_2]),
             data
             )
         self.assertEqual(response.status_code, 200)
@@ -800,7 +800,7 @@ class TestCheckChangesetViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, 87765, 898986]}
         response = self.client.put(
-            reverse('changeset:set_good', args=[self.changeset_2.pk]),
+            reverse('changeset:set-good', args=[self.changeset_2.pk]),
             data
             )
 
@@ -818,7 +818,7 @@ class TestCheckChangesetViews(APITestCase):
         """
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_good', args=[self.changeset_2]),
+            reverse('changeset:set-good', args=[self.changeset_2]),
             )
         self.assertEqual(response.status_code, 200)
         self.changeset_2.refresh_from_db()
@@ -830,12 +830,12 @@ class TestCheckChangesetViews(APITestCase):
     def test_404(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_good', args=[4988787832]),
+            reverse('changeset:set-good', args=[4988787832]),
             )
         self.assertEqual(response.status_code, 404)
 
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[4988787832]),
+            reverse('changeset:set-harmful', args=[4988787832]),
             )
         self.assertEqual(response.status_code, 404)
 
@@ -846,7 +846,7 @@ class TestCheckChangesetViews(APITestCase):
         changeset = HarmfulChangesetFactory(uid=333)
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
-            reverse('changeset:set_good', args=[changeset.pk]),
+            reverse('changeset:set-good', args=[changeset.pk]),
             )
         self.assertEqual(response.status_code, 403)
         changeset.refresh_from_db()
@@ -854,7 +854,7 @@ class TestCheckChangesetViews(APITestCase):
 
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[changeset.pk]),
+            reverse('changeset:set-harmful', args=[changeset.pk]),
             data,
             )
         self.assertEqual(response.status_code, 403)
@@ -970,7 +970,7 @@ class TestThrottling(APITestCase):
         self.client.login(username=self.user.username, password='password')
         for changeset in self.changesets:
             response = self.client.put(
-                reverse('changeset:set_harmful', args=[changeset.pk]),
+                reverse('changeset:set-harmful', args=[changeset.pk]),
                 )
         self.assertEqual(response.status_code, 429)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
@@ -979,7 +979,7 @@ class TestThrottling(APITestCase):
         self.client.login(username=self.user.username, password='password')
         for changeset in self.changesets:
             response = self.client.put(
-                reverse('changeset:set_good', args=[changeset.pk]),
+                reverse('changeset:set-good', args=[changeset.pk]),
                 )
         self.assertEqual(response.status_code, 429)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
@@ -990,12 +990,12 @@ class TestThrottling(APITestCase):
         three_changesets = self.changesets[:3]
         for changeset in three_changesets:
             response = self.client.put(
-                reverse('changeset:set_good', args=[changeset.pk]),
+                reverse('changeset:set-good', args=[changeset.pk]),
                 )
         self.assertEqual(response.status_code, 200)
 
         response = self.client.put(
-            reverse('changeset:set_harmful', args=[self.changesets[3].pk]),
+            reverse('changeset:set-harmful', args=[self.changesets[3].pk]),
             )
         self.assertEqual(response.status_code, 429)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
@@ -1016,7 +1016,7 @@ class TestThrottling(APITestCase):
         self.client.login(username=user.username, password='password')
         for changeset in self.changesets:
             response = self.client.put(
-                reverse('changeset:set_good', args=[changeset.pk]),
+                reverse('changeset:set-good', args=[changeset.pk]),
                 )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
@@ -1037,7 +1037,7 @@ class TestThrottling(APITestCase):
         self.client.login(username=user.username, password='password')
         for changeset in self.changesets:
             response = self.client.put(
-                reverse('changeset:set_harmful', args=[changeset.pk]),
+                reverse('changeset:set-harmful', args=[changeset.pk]),
                 )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
