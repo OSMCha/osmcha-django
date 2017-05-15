@@ -8,7 +8,7 @@ from rest_framework.test import APITestCase
 
 from ...users.models import User
 from ...feature.tests.modelfactories import FeatureFactory
-from ..models import SuspicionReasons, Tag, Changeset, UserWhitelist
+from ..models import SuspicionReasons, Tag, Changeset
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
@@ -513,95 +513,6 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertIn('Vandalism in my city', tags)
 
 
-class TestSuspicionReasonsAPIListView(APITestCase):
-    def setUp(self):
-        self.reason_1 = SuspicionReasons.objects.create(
-            name='possible import',
-            description='A changeset that created too much map elements.'
-            )
-        self.reason_2 = SuspicionReasons.objects.create(
-            name='suspect word',
-            is_visible=False
-            )
-        self.user = User.objects.create_user(
-            username='test',
-            password='password',
-            email='a@a.com',
-            is_staff=True
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-
-    def test_view(self):
-        response = self.client.get(reverse('changeset:suspicion-reasons-list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        reason_dict = {
-            'id': self.reason_1.id,
-            'name': 'possible import',
-            'description': self.reason_1.description,
-            'is_visible': True,
-            'for_changeset': True,
-            'for_feature': True
-            }
-        self.assertIn(reason_dict, response.data)
-
-    def test_admin_user_request(self):
-        self.client.login(username=self.user.username, password='password')
-        response = self.client.get(reverse('changeset:suspicion-reasons-list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-
-
-class TestTagListAPIView(APITestCase):
-    def setUp(self):
-        self.tag_1 = Tag.objects.create(
-            name='Illegal import',
-            description='A changeset that imported illegal data.'
-            )
-        self.tag_2 = Tag.objects.create(
-            name='Vandalism in my city',
-            is_visible=False
-            )
-        self.user = User.objects.create_user(
-            username='test',
-            password='password',
-            email='a@a.com',
-            is_staff=True
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-
-    def test_view(self):
-        response = self.client.get(reverse('changeset:tags-list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        tag_dict = {
-            'id': self.tag_1.id,
-            'name': 'Illegal import',
-            'description': self.tag_1.description,
-            'is_visible': True,
-            'for_changeset': True,
-            'for_feature': True
-            }
-        self.assertIn(
-            tag_dict,
-            response.data
-            )
-
-    def test_admin_user_request(self):
-        self.client.login(username=self.user.username, password='password')
-        response = self.client.get(reverse('changeset:tags-list'))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
-
-
 class TestCheckChangesetViews(APITestCase):
 
     def setUp(self):
@@ -949,347 +860,6 @@ class TestUncheckChangesetView(APITestCase):
         self.assertEqual(response.status_code, 403)
 
 
-class TestThrottling(APITestCase):
-    def setUp(self):
-        self.changesets = SuspectChangesetFactory.create_batch(
-            5, user='test2', uid='999999', editor='iD',
-            )
-        self.user = User.objects.create_user(
-            username='test',
-            password='password',
-            email='a@a.com'
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-
-    def test_set_harmful_throttling(self):
-        """User can only check 3 changesets each minute."""
-        self.client.login(username=self.user.username, password='password')
-        for changeset in self.changesets:
-            response = self.client.put(
-                reverse('changeset:set-harmful', args=[changeset.pk]),
-                )
-        self.assertEqual(response.status_code, 429)
-        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
-
-    def test_set_good_throttling(self):
-        self.client.login(username=self.user.username, password='password')
-        for changeset in self.changesets:
-            response = self.client.put(
-                reverse('changeset:set-good', args=[changeset.pk]),
-                )
-        self.assertEqual(response.status_code, 429)
-        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
-
-    def test_mixed_throttling(self):
-        """Test if both set_harmful and set_good views are throttled together."""
-        self.client.login(username=self.user.username, password='password')
-        three_changesets = self.changesets[:3]
-        for changeset in three_changesets:
-            response = self.client.put(
-                reverse('changeset:set-good', args=[changeset.pk]),
-                )
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.put(
-            reverse('changeset:set-harmful', args=[self.changesets[3].pk]),
-            )
-        self.assertEqual(response.status_code, 429)
-        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
-
-    def test_set_good_by_staff_user(self):
-        """Staff users have not limit of checked changesets by minute."""
-        user = User.objects.create_user(
-            username='test_staff',
-            password='password',
-            email='a@a.com',
-            is_staff=True
-            )
-        UserSocialAuth.objects.create(
-            user=user,
-            provider='openstreetmap',
-            uid='8987',
-            )
-        self.client.login(username=user.username, password='password')
-        for changeset in self.changesets:
-            response = self.client.put(
-                reverse('changeset:set-good', args=[changeset.pk]),
-                )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
-
-    def test_set_harmful_by_staff_user(self):
-        """Staff users have not limit of checked changesets by minute."""
-        user = User.objects.create_user(
-            username='test_staff',
-            password='password',
-            email='a@a.com',
-            is_staff=True
-            )
-        UserSocialAuth.objects.create(
-            user=user,
-            provider='openstreetmap',
-            uid='8987',
-            )
-        self.client.login(username=user.username, password='password')
-        for changeset in self.changesets:
-            response = self.client.put(
-                reverse('changeset:set-harmful', args=[changeset.pk]),
-                )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
-
-
-class TestWhitelistUserView(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='test_2',
-            password='password',
-            email='a@a.com'
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-        self.user_2 = User.objects.create_user(
-            username='test_user',
-            password='password',
-            email='b@a.com'
-            )
-        UserSocialAuth.objects.create(
-            user=self.user_2,
-            provider='openstreetmap',
-            uid='444444',
-            )
-        self.url = reverse('changeset:whitelist-user')
-
-    def test_list_whitelist_unauthenticated(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 401)
-
-    def test_create_whitelist_unauthenticated(self):
-        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(UserWhitelist.objects.count(), 0)
-
-    def test_create_and_list_whitelist(self):
-        # test whitelisting a user and getting the list of whitelisted users
-        self.client.login(username=self.user.username, password='password')
-        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
-        self.assertEqual(response.status_code, 201)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-        self.client.logout()
-        # the same with another user
-        self.client.login(username=self.user_2.username, password='password')
-        response = self.client.post(self.url, {'whitelist_user': 'the_user'})
-        self.assertEqual(response.status_code, 201)
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-
-        self.assertEqual(UserWhitelist.objects.count(), 2)
-        self.assertEqual(UserWhitelist.objects.filter(user=self.user).count(), 1)
-        self.assertEqual(UserWhitelist.objects.filter(user=self.user_2).count(), 1)
-        self.assertEqual(
-            UserWhitelist.objects.filter(whitelist_user='good_user').count(), 1
-            )
-        self.assertEqual(
-            UserWhitelist.objects.filter(whitelist_user='the_user').count(), 1
-            )
-
-
-class TestUserWhitelistDestroyAPIView(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='test_2',
-            password='password',
-            email='a@a.com'
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-        UserWhitelist.objects.create(user=self.user, whitelist_user='good_user')
-        self.user_2 = User.objects.create_user(
-            username='test_user',
-            password='password',
-            email='b@a.com'
-            )
-        UserSocialAuth.objects.create(
-            user=self.user_2,
-            provider='openstreetmap',
-            uid='444444',
-            )
-        UserWhitelist.objects.create(user=self.user_2, whitelist_user='the_user')
-
-    def test_delete_whitelist_unauthenticated(self):
-        response = self.client.delete(
-            reverse('changeset:delete-whitelist-user', args=['good_user'])
-            )
-        self.assertEqual(response.status_code, 401)
-        response = self.client.delete(
-            reverse('changeset:delete-whitelist-user', args=['the_user'])
-            )
-        self.assertEqual(response.status_code, 401)
-
-    def test_delete_userwhitelist(self):
-        self.client.login(username=self.user.username, password='password')
-        response = self.client.delete(
-            reverse('changeset:delete-whitelist-user', args=['good_user'])
-            )
-        self.assertEqual(response.status_code, 204)
-        # test delete a whitelist of another user
-        response = self.client.delete(
-            reverse('changeset:delete-whitelist-user', args=['the_user'])
-            )
-        self.assertEqual(response.status_code, 404)
-        self.client.logout()
-
-        self.client.login(username=self.user_2.username, password='password')
-        response = self.client.delete(
-            reverse('changeset:delete-whitelist-user', args=['the_user'])
-            )
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(UserWhitelist.objects.count(), 0)
-
-
-class TestStatsView(APITestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='test_user',
-            email='b@a.com',
-            password='password',
-            is_staff=True
-            )
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-        self.changeset = ChangesetFactory()
-        self.suspect_changeset = SuspectChangesetFactory()
-        self.harmful_changeset = HarmfulChangesetFactory(user='another_user')
-        self.harmful_changeset_2 = HarmfulChangesetFactory()
-        self.good_changeset = GoodChangesetFactory()
-        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
-        self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')
-        self.reason_3 = SuspicionReasons.objects.create(
-            name='vandalism in my city', is_visible=False)
-        self.reason_1.changesets.set(
-            [self.suspect_changeset, self.harmful_changeset]
-            )
-        self.reason_2.changesets.set(
-            [self.harmful_changeset_2, self.good_changeset]
-            )
-        self.reason_3.changesets.set(
-            [self.harmful_changeset_2, self.good_changeset]
-            )
-        self.tag_1 = Tag.objects.create(name='Vandalism')
-        self.tag_2 = Tag.objects.create(name='Minor errors')
-        self.tag_3 = Tag.objects.create(name='Big buildings', is_visible=False)
-        self.tag_1.changesets.set(
-            [self.harmful_changeset, self.harmful_changeset_2]
-            )
-        self.tag_2.changesets.add(self.good_changeset)
-        self.tag_3.changesets.set(
-            [self.harmful_changeset, self.harmful_changeset_2, self.good_changeset]
-            )
-        self.url = reverse('changeset:stats')
-
-    def test_stats_view(self):
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('checked_changesets'), 3)
-        self.assertEqual(response.data.get('harmful_changesets'), 2)
-        self.assertEqual(response.data.get('users_with_harmful_changesets'), 2)
-        self.assertEqual(len(response.data.get('reasons')), 2)
-        self.assertEqual(len(response.data.get('tags')), 2)
-        self.assertIn(
-            {'name': 'possible import', 'checked_changesets': 1, 'harmful_changesets': 1},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'suspect_word', 'checked_changesets': 2, 'harmful_changesets': 1},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Vandalism', 'checked_changesets': 2, 'harmful_changesets': 2},
-            response.data.get('tags')
-            )
-        self.assertIn(
-            {'name': 'Minor errors', 'checked_changesets': 1, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
-
-    def test_stats_view_with_filters(self):
-        response = self.client.get(self.url, {'harmful': False})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('checked_changesets'), 1)
-        self.assertEqual(response.data.get('harmful_changesets'), 0)
-        self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
-        self.assertEqual(len(response.data.get('reasons')), 2)
-        self.assertEqual(len(response.data.get('tags')), 2)
-        self.assertIn(
-            {'name': 'possible import', 'checked_changesets': 0, 'harmful_changesets': 0},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'suspect_word', 'checked_changesets': 1, 'harmful_changesets': 0},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Vandalism', 'checked_changesets': 0, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
-        self.assertIn(
-            {'name': 'Minor errors', 'checked_changesets': 1, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
-
-    def test_stats_view_with_staff_user(self):
-        self.client.login(username=self.user.username, password='password')
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data.get('reasons')), 3)
-        self.assertEqual(len(response.data.get('tags')), 3)
-        self.assertIn(
-            {'name': 'vandalism in my city', 'checked_changesets': 2, 'harmful_changesets': 1},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Big buildings', 'checked_changesets': 3, 'harmful_changesets': 2},
-            response.data.get('tags')
-            )
-
-
-class TestUserStatsViews(APITestCase):
-    def setUp(self):
-        GoodChangesetFactory(user='user_one', uid='4321')
-        HarmfulChangesetFactory(user='user_one', uid='4321')
-        SuspectChangesetFactory(user='user_one', uid='4321')
-
-    def test_user_one_stats(self):
-        response = self.client.get(reverse('changeset:user-stats', args=['4321']))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('changesets_in_osmcha'), 3)
-        self.assertEqual(response.data.get('checked_changesets'), 2)
-        self.assertEqual(response.data.get('harmful_changesets'), 1)
-
-    def test_user_without_changesets(self):
-        response = self.client.get(reverse('changeset:user-stats', args=['1611']))
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('changesets_in_osmcha'), 0)
-        self.assertEqual(response.data.get('checked_changesets'), 0)
-        self.assertEqual(response.data.get('harmful_changesets'), 0)
-
-
 class TestAddTagToChangesetAPIView(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
@@ -1524,3 +1094,97 @@ class TestRemoveTagToChangesetAPIView(APITestCase):
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.checked_changeset.tags.count(), 0)
+
+
+class TestThrottling(APITestCase):
+    def setUp(self):
+        self.changesets = SuspectChangesetFactory.create_batch(
+            5, user='test2', uid='999999', editor='iD',
+            )
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+
+    def test_set_harmful_throttling(self):
+        """User can only check 3 changesets each minute."""
+        self.client.login(username=self.user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set-harmful', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_set_good_throttling(self):
+        self.client.login(username=self.user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set-good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_mixed_throttling(self):
+        """Test if both set_harmful and set_good views are throttled together."""
+        self.client.login(username=self.user.username, password='password')
+        three_changesets = self.changesets[:3]
+        for changeset in three_changesets:
+            response = self.client.put(
+                reverse('changeset:set-good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(
+            reverse('changeset:set-harmful', args=[self.changesets[3].pk]),
+            )
+        self.assertEqual(response.status_code, 429)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
+
+    def test_set_good_by_staff_user(self):
+        """Staff users have not limit of checked changesets by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set-good', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
+
+    def test_set_harmful_by_staff_user(self):
+        """Staff users have not limit of checked changesets by minute."""
+        user = User.objects.create_user(
+            username='test_staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='8987',
+            )
+        self.client.login(username=user.username, password='password')
+        for changeset in self.changesets:
+            response = self.client.put(
+                reverse('changeset:set-harmful', args=[changeset.pk]),
+                )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
