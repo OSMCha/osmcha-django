@@ -63,8 +63,13 @@ urlpatterns = [
     ),
     url(
         regex=r'^changesets/(?P<pk>\w+)/add-tag/(?P<tag_pk>\w+)/$',
-        view=views.AddTagToChangesetAPIView.as_view({'put': 'add_tag'}),
+        view=views.AddRemoveChangesetTagsAPIView.as_view({'put': 'add_tag'}),
         name='add-tag'
+    ),
+    url(
+        regex=r'^changesets/(?P<pk>\w+)/remove-tag/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveChangesetTagsAPIView.as_view({'put': 'remove_tag'}),
+        name='remove-tag'
     ),
     url(
         regex=r'^whitelist-user/$',

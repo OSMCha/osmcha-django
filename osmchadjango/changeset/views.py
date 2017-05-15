@@ -271,30 +271,53 @@ def uncheck_changeset(request, pk):
             )
 
 
-class AddTagToChangesetAPIView(ModelViewSet):
+class AddRemoveChangesetTagsAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
 
     @detail_route(methods=['put'])
     def add_tag(self, request, pk, tag_pk):
-        changeset = self.get_object()
+        object = self.get_object()
         tag = get_object_or_404(Tag.objects.filter(for_changeset=True), pk=tag_pk)
 
-        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+        if object.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not add tags to his own changeset.'},
+                {'message': 'User can not add tags to his own changeset/feature.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-        if changeset.checked and (
-            request.user != changeset.check_user and not request.user.is_staff):
+        if object.checked and (
+            request.user != object.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not add tags to a changeset checked by another user.'},
+                {'message': 'User can not add tags to a changeset/feature checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
-        changeset.tags.add(tag)
+        object.tags.add(tag)
         return Response(
-            {'message': 'Tag added to the changeset.'},
+            {'message': 'Tag added.'},
+            status=status.HTTP_200_OK
+            )
+
+    @detail_route(methods=['put'])
+    def remove_tag(self, request, pk, tag_pk):
+        object = self.get_object()
+        tag = get_object_or_404(Tag.objects.all(), pk=tag_pk)
+
+        if object.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'message': 'User can not remove tags of his own changeset/feature.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if object.checked and (
+            request.user != object.check_user and not request.user.is_staff):
+            return Response(
+                {'message': 'User can not remove tags of a changeset/feature checked by another user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
+        object.tags.remove(tag)
+        return Response(
+            {'message': 'Tag removed.'},
             status=status.HTTP_200_OK
             )
 
