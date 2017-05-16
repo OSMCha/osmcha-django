@@ -277,47 +277,57 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
     @detail_route(methods=['put'])
     def add_tag(self, request, pk, tag_pk):
-        object = self.get_object()
+        """Add a tag to a changeset. If the changeset is unchecked, any user can
+        add and remove tags. After the changeset got checked, only staff users
+        and the user that checked it can add and remove tags. The user that
+        created the changeset can't add or remove tags.
+        """
+        changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.filter(for_changeset=True), pk=tag_pk)
 
-        if object.uid in request.user.social_auth.values_list('uid', flat=True):
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not add tags to his own changeset/feature.'},
+                {'message': 'User can not add tags to his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-        if object.checked and (
-            request.user != object.check_user and not request.user.is_staff):
+        if changeset.checked and (
+            request.user != changeset.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not add tags to a changeset/feature checked by another user.'},
+                {'message': 'User can not add tags to a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
-        object.tags.add(tag)
+        changeset.tags.add(tag)
         return Response(
-            {'message': 'Tag added.'},
+            {'message': 'Tag added to the changeset.'},
             status=status.HTTP_200_OK
             )
 
     @detail_route(methods=['put'])
     def remove_tag(self, request, pk, tag_pk):
-        object = self.get_object()
+        """Remove a tag from a changeset. If the changeset is unchecked, any user can
+        add and remove tags. After the changeset got checked, only staff users
+        and the user that checked it can add and remove tags. The user that
+        created the changeset can't add or remove tags.
+        """
+        changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.all(), pk=tag_pk)
 
-        if object.uid in request.user.social_auth.values_list('uid', flat=True):
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not remove tags of his own changeset/feature.'},
+                {'message': 'User can not remove tags from his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
-        if object.checked and (
-            request.user != object.check_user and not request.user.is_staff):
+        if changeset.checked and (
+            request.user != changeset.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not remove tags of a changeset/feature checked by another user.'},
+                {'message': 'User can not remove tags from a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
-        object.tags.remove(tag)
+        changeset.tags.remove(tag)
         return Response(
-            {'message': 'Tag removed.'},
+            {'message': 'Tag removed from the changeset.'},
             status=status.HTTP_200_OK
             )
 
