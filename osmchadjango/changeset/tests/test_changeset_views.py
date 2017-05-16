@@ -887,8 +887,8 @@ class TestAddTagToChangeset(APITestCase):
         self.tag = TagFactory(name='Not verified')
 
     def test_unauthenticated_can_not_add_tag(self):
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(self.changeset.tags.count(), 0)
@@ -896,8 +896,8 @@ class TestAddTagToChangeset(APITestCase):
     def test_can_not_add_invalid_tag_id(self):
         """When the tag id does not exist, it will return a 404 response."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.changeset.id, 44534])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.changeset.id, 44534])
             )
         self.assertEqual(response.status_code, 404)
         self.assertEqual(self.changeset.tags.count(), 0)
@@ -907,16 +907,16 @@ class TestAddTagToChangeset(APITestCase):
         unchecked changeset.
         """
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.changeset.tags.count(), 1)
         self.assertIn(self.tag, self.changeset.tags.all())
 
         # test add the same tag again
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.changeset.tags.count(), 1)
@@ -924,8 +924,8 @@ class TestAddTagToChangeset(APITestCase):
     def test_add_tag_by_changeset_owner(self):
         """The user that created the changeset can not add tags to it."""
         self.client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.changeset.tags.count(), 0)
@@ -933,8 +933,8 @@ class TestAddTagToChangeset(APITestCase):
     def test_add_tag_to_checked_changeset(self):
         """The user that checked the changeset can add tags to it."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.checked_changeset.tags.count(), 1)
@@ -955,8 +955,8 @@ class TestAddTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.changeset.tags.count(), 0)
@@ -975,8 +975,8 @@ class TestAddTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:add-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.post(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.checked_changeset.tags.count(), 1)
@@ -1012,8 +1012,8 @@ class TestRemoveTagToChangeset(APITestCase):
         self.checked_changeset.tags.add(self.tag)
 
     def test_unauthenticated_can_not_remove_tag(self):
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 401)
         self.assertEqual(self.changeset.tags.count(), 1)
@@ -1021,8 +1021,8 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_can_not_remove_invalid_tag_id(self):
         """When the tag id does not exist it will return a 404 response."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.changeset.id, 44534])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.changeset.id, 44534])
             )
         self.assertEqual(response.status_code, 404)
 
@@ -1031,8 +1031,8 @@ class TestRemoveTagToChangeset(APITestCase):
         unchecked changeset.
         """
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.changeset.tags.count(), 0)
@@ -1040,8 +1040,8 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_remove_tag_by_changeset_owner(self):
         """The user that created the changeset can not remove its tags."""
         self.client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.changeset.tags.count(), 1)
@@ -1049,8 +1049,8 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_remove_tag_of_checked_changeset(self):
         """The user that checked the changeset can remove its tags."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.checked_changeset.tags.count(), 0)
@@ -1070,8 +1070,8 @@ class TestRemoveTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.checked_changeset.tags.count(), 1)
@@ -1090,8 +1090,8 @@ class TestRemoveTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
-        response = self.client.put(
-            reverse('changeset:remove-tag', args=[self.checked_changeset.id, self.tag.id])
+        response = self.client.delete(
+            reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.checked_changeset.tags.count(), 0)

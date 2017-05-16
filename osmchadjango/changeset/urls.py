@@ -62,14 +62,11 @@ urlpatterns = [
         name='uncheck'
     ),
     url(
-        regex=r'^changesets/(?P<pk>\w+)/add-tag/(?P<tag_pk>\w+)/$',
-        view=views.AddRemoveChangesetTagsAPIView.as_view({'put': 'add_tag'}),
-        name='add-tag'
-    ),
-    url(
-        regex=r'^changesets/(?P<pk>\w+)/remove-tag/(?P<tag_pk>\w+)/$',
-        view=views.AddRemoveChangesetTagsAPIView.as_view({'put': 'remove_tag'}),
-        name='remove-tag'
+        regex=r'^changesets/(?P<pk>\w+)/tags/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveChangesetTagsAPIView.as_view(
+            {'post': 'add_tag', 'delete': 'remove_tag'}
+            ),
+        name='tags'
     ),
     url(
         regex=r'^whitelist-user/$',

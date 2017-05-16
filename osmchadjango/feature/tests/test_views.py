@@ -910,9 +910,9 @@ class TestAddTagToFeature(APITestCase):
         self.tag = TagFactory(name='Not verified', for_feature=True)
 
     def test_unauthenticated_can_not_add_tag(self):
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.feature.changeset, self.feature.url, self.tag.id]
                 )
             )
@@ -922,9 +922,9 @@ class TestAddTagToFeature(APITestCase):
     def test_can_not_add_invalid_tag_id(self):
         """When the tag id does not exist, it will return a 404 response."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, 876343]
                 )
             )
@@ -936,9 +936,9 @@ class TestAddTagToFeature(APITestCase):
         unchecked feature.
         """
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -947,9 +947,9 @@ class TestAddTagToFeature(APITestCase):
         self.assertIn(self.tag, self.feature.tags.all())
 
         # test add the same tag again
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -959,9 +959,9 @@ class TestAddTagToFeature(APITestCase):
     def test_add_tag_by_feature_owner(self):
         """The user that created the feature can not add tags to it."""
         self.client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -971,9 +971,9 @@ class TestAddTagToFeature(APITestCase):
     def test_add_tag_to_checked_feature(self):
         """The user that checked the feature can add tags to it."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )
@@ -996,9 +996,9 @@ class TestAddTagToFeature(APITestCase):
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )
@@ -1019,9 +1019,9 @@ class TestAddTagToFeature(APITestCase):
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
-        response = self.client.put(
+        response = self.client.post(
             reverse(
-                'feature:add-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )
@@ -1059,9 +1059,9 @@ class TestRemoveTagToChangeset(APITestCase):
         self.checked_feature.tags.add(self.tag)
 
     def test_unauthenticated_can_not_remove_tag(self):
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -1071,9 +1071,9 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_can_not_remove_invalid_tag_id(self):
         """When the tag id does not exist it will return a 404 response."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, 433232]
                 )
             )
@@ -1084,9 +1084,9 @@ class TestRemoveTagToChangeset(APITestCase):
         unchecked changeset.
         """
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -1096,9 +1096,9 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_remove_tag_by_changeset_owner(self):
         """The user that created the changeset can not remove its tags."""
         self.client.login(username=self.changeset_user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.feature.changeset.id, self.feature.url, self.tag.id]
                 )
             )
@@ -1108,9 +1108,9 @@ class TestRemoveTagToChangeset(APITestCase):
     def test_remove_tag_of_checked_changeset(self):
         """The user that checked the changeset can remove its tags."""
         self.client.login(username=self.user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )
@@ -1132,9 +1132,9 @@ class TestRemoveTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=other_user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )
@@ -1155,9 +1155,9 @@ class TestRemoveTagToChangeset(APITestCase):
             uid='28763',
             )
         self.client.login(username=staff_user.username, password='password')
-        response = self.client.put(
+        response = self.client.delete(
             reverse(
-                'feature:remove-tag',
+                'feature:tags',
                 args=[self.checked_feature.changeset.id, self.checked_feature.url, self.tag.id]
                 )
             )

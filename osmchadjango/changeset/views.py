@@ -275,7 +275,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
 
-    @detail_route(methods=['put'])
+    @detail_route(methods=['post'])
     def add_tag(self, request, pk, tag_pk):
         """Add a tag to a changeset. If the changeset is unchecked, any user can
         add and remove tags. After the changeset got checked, only staff users
@@ -303,7 +303,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['put'])
+    @detail_route(methods=['delete'])
     def remove_tag(self, request, pk, tag_pk):
         """Remove a tag from a changeset. If the changeset is unchecked, any user can
         add and remove tags. After the changeset got checked, only staff users
