@@ -369,14 +369,14 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     # The serializer is not used in this view. It's here only to avoid errors in
     # docs schema generation.
-    serializer_class = ChangesetTagsSerializer
+    serializer_class = ChangesetStatsSerializer
 
     @detail_route(methods=['post'])
     def add_tag(self, request, pk, tag_pk):
         """Add a tag to a changeset. If the changeset is unchecked, any user can
-        add and remove tags. After the changeset got checked, only staff users
-        and the user that checked it can add and remove tags. The user that
-        created the changeset can't add or remove tags.
+        add tags. After the changeset got checked, only staff users and the user
+        that checked it can add tags. The user that created the changeset can't
+        add tags to it.
         """
         changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.filter(for_changeset=True), pk=tag_pk)
@@ -401,10 +401,10 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
     @detail_route(methods=['delete'])
     def remove_tag(self, request, pk, tag_pk):
-        """Remove a tag from a changeset. If the changeset is unchecked, any user can
-        add and remove tags. After the changeset got checked, only staff users
-        and the user that checked it can add and remove tags. The user that
-        created the changeset can't add or remove tags.
+        """Remove a tag from a changeset. If the changeset is unchecked, any user
+        can remove tags. After the changeset got checked, only staff users and
+        the user that checked it can remove tags. The user that created the
+        changeset can't remove tags from it.
         """
         changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.all(), pk=tag_pk)

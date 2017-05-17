@@ -36,6 +36,9 @@ class BasicTagSerializer(ModelSerializer):
 
 
 class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
+    """Serializer with all the Changeset model fields, except the
+    'powerfull_editor'.
+    """
     check_user = ReadOnlyField(source='check_user.username')
     reasons = StringRelatedField(many=True, read_only=True)
     tags = StringRelatedField(many=True, read_only=True)
@@ -48,6 +51,10 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
 
 
 class ChangesetSerializer(ChangesetSerializerToStaff):
+    """Serializer with all the Changeset model fields, except the
+    'powerfull_editor'. It doesn't list the SuspicionReasons and Tags whose
+    'is_visible' field is False.
+    """
     reasons = SerializerMethodField()
     tags = SerializerMethodField()
     features = FeatureSimpleSerializer(many=True, read_only=True)
@@ -138,11 +145,12 @@ class UserStatsSerializer(BaseSerializer):
 
 
 # the following serializers are used only to validate input data in endpoints
-# that check features/changesets or add/remove SuspicionReasonsq
+# that check features/changesets or add/remove SuspicionReasons and Tags
 class SuspicionReasonsChangesetSerializer(ModelSerializer):
     changesets = PrimaryKeyRelatedField(
         many=True,
-        queryset=Changeset.objects.all()
+        queryset=Changeset.objects.all(),
+        help_text='List of changesets ids.'
         )
 
     class Meta:
@@ -154,7 +162,8 @@ class SuspicionReasonsFeatureSerializer(ModelSerializer):
     from osmchadjango.feature.models import Feature
     features = PrimaryKeyRelatedField(
         many=True,
-        queryset=Feature.objects.all()
+        queryset=Feature.objects.all(),
+        help_text='List of features ids.'
         )
 
     class Meta:
@@ -163,7 +172,11 @@ class SuspicionReasonsFeatureSerializer(ModelSerializer):
 
 
 class ChangesetTagsSerializer(ModelSerializer):
-    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+    tags = PrimaryKeyRelatedField(
+        many=True,
+        queryset=Tag.objects.all(),
+        help_text='List of tags ids'
+        )
 
     class Meta:
         model = Changeset

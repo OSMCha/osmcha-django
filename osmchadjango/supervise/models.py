@@ -19,14 +19,14 @@ class AreaOfInterest(models.Model):
         return '{} by {}'.format(self.name, self.user.username)
 
     def changesets(self):
-        """Returns the changesets that matches the filters and geometry of
-        the AreaOfInterest.
+        """Return the changesets that match the filters, including the geometry
+        area, of the AreaOfInterest.
         """
         return ChangesetFilter(self.filters).qs
 
     def features(self):
-        """Returns the features that matches the filters and geometry of
-        the AreaOfInterest.
+        """Return the features that match the filters, including the geometry
+        area, of the AreaOfInterest.
         """
         return FeatureFilter(self.filters).qs
 
