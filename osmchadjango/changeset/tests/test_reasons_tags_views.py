@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 
 from ...users.models import User
 from ..models import SuspicionReasons, Tag
+from .modelfactories import ChangesetFactory
 
 
 class TestSuspicionReasonsAPIListView(APITestCase):
@@ -94,3 +95,128 @@ class TestTagAPIListView(APITestCase):
         response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
+
+
+class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.changesets = ChangesetFactory.create_batch(4)
+
+    def test_unathenticated_request(self):
+        response = self.client.post(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.reason_1.changesets.count(), 0)
+
+    def test_normal_user_request(self):
+        """Only staff users can use this endpoint."""
+        user = User.objects.create_user(
+            username='test_3',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='99989',
+            )
+        self.client.login(username=user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.reason_1.changesets.count(), 0)
+
+    def test_staff_user_request(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.reason_1.changesets.count(), 4)
+
+    def test_bad_request(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"features": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 400)
+
+
+class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.changesets = ChangesetFactory.create_batch(4)
+        self.reason_1.changesets.set(self.changesets)
+
+    def test_unathenticated_request(self):
+        response = self.client.delete(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.reason_1.changesets.count(), 4)
+
+    def test_normal_user_request(self):
+        """Only staff users can use this endpoint."""
+        user = User.objects.create_user(
+            username='test_3',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='99989',
+            )
+        self.client.login(username=user.username, password='password')
+        response = self.client.delete(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.reason_1.changesets.count(), 4)
+
+    def test_staff_user_request(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.reason_1.changesets.count(), 0)
+
+    def test_bad_request(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"features": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 400)
