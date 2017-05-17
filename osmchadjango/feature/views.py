@@ -313,6 +313,9 @@ def uncheck_feature(request, changeset, slug):
 class AddRemoveFeatureTagsAPIView(ModelViewSet):
     queryset = Feature.objects.all()
     permission_classes = (IsAuthenticated,)
+    # The serializer is not used in this view. It's here only to avoid errors in
+    # docs schema generation.
+    serializer_class = FeatureTagsSerializer
 
     @detail_route(methods=['post'])
     def add_tag(self, request, changeset, slug, tag_pk):

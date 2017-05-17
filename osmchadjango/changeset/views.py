@@ -153,12 +153,16 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
 
     @detail_route(methods=['post'])
     def add_reason_to_changesets(self, request, pk):
+        """This endpoint allows us to add Suspicion Reasons to changesets in a
+        batch. The use of this endpoint is restricted to staff users. The ids of
+        the changesets must be sent as a list in the form data.
+        """
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.changesets.add(*serializer.data['changesets'])
             return Response(
-                {'message': 'Suspicion Reasons added to the changesets.'},
+                {'message': 'Suspicion Reasons added to changesets.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -169,12 +173,16 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
 
     @detail_route(methods=['delete'])
     def remove_reason_from_changesets(self, request, pk):
+        """This endpoint allows us to remove Suspicion Reasons from changesets
+        in a batch. The use of this endpoint is restricted to staff users. The
+        ids of the changesets must be sent as a list in the form data.
+        """
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.changesets.remove(*serializer.data['changesets'])
             return Response(
-                {'message': 'Suspicion Reasons removed from the changesets.'},
+                {'message': 'Suspicion Reasons removed from changesets.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -191,12 +199,16 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
 
     @detail_route(methods=['post'])
     def add_reason_to_features(self, request, pk):
+        """This endpoint allows us to add Suspicion Reasons to features in a
+        batch. The use of this endpoint is restricted to staff users. The ids of
+        the features need to be sent as a list in the data form.
+        """
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.features.add(*serializer.data['features'])
             return Response(
-                {'message': 'Suspicion Reasons added to the features.'},
+                {'message': 'Suspicion Reasons added to features.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -207,12 +219,16 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
 
     @detail_route(methods=['delete'])
     def remove_reason_from_features(self, request, pk):
+        """This endpoint allows us to remove Suspicion Reasons from features
+        in a batch. The use of this endpoint is restricted to staff users. The
+        ids of the features must be sent as a list in the form data.
+        """
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.features.remove(*serializer.data['features'])
             return Response(
-                {'message': 'Suspicion Reasons removed from the features.'},
+                {'message': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -351,6 +367,9 @@ def uncheck_changeset(request, pk):
 class AddRemoveChangesetTagsAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
+    # The serializer is not used in this view. It's here only to avoid errors in
+    # docs schema generation.
+    serializer_class = ChangesetTagsSerializer
 
     @detail_route(methods=['post'])
     def add_tag(self, request, pk, tag_pk):
