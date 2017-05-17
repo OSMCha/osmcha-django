@@ -109,14 +109,6 @@ class ChangesetListStatsSerializer(ListSerializer):
         return super(ListSerializer, self).data
 
 
-class ChangesetTagsSerializer(ModelSerializer):
-    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
-
-    class Meta:
-        model = Changeset
-        fields = ('tags',)
-
-
 class ChangesetStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = ChangesetListStatsSerializer
@@ -143,3 +135,24 @@ class UserStatsListSerializer(ListSerializer):
 class UserStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = UserStatsListSerializer
+
+
+# the following serializers are used only to validate input data in endpoints
+# that check features/changesets or add/remove SuspicionReasonsq
+class SuspicionReasonsChangesetSerializer(ModelSerializer):
+    changesets = PrimaryKeyRelatedField(
+        many=True,
+        queryset=Changeset.objects.all()
+        )
+
+    class Meta:
+        model = SuspicionReasons
+        fields = ('changesets',)
+
+
+class ChangesetTagsSerializer(ModelSerializer):
+    tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
+
+    class Meta:
+        model = Changeset
+        fields = ('tags',)

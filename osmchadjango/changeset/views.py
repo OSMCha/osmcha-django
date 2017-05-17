@@ -11,7 +11,7 @@ from rest_framework.generics import (
     DestroyAPIView
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
 from rest_framework.viewsets import ModelViewSet
@@ -24,7 +24,7 @@ from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
-    UserStatsSerializer, ChangesetTagsSerializer
+    UserStatsSerializer, ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer
     )
 from .throttling import NonStaffUserThrottle
 
@@ -143,6 +143,44 @@ class SuspicionReasonsListAPIView(ListAPIView):
             return SuspicionReasons.objects.all()
         else:
             return SuspicionReasons.objects.filter(is_visible=True)
+
+
+class AddRemoveSuspicionReasonsAPIView(ModelViewSet):
+    queryset = SuspicionReasons.objects.all()
+    serializer_class = SuspicionReasonsChangesetSerializer
+    permission_classes = (IsAdminUser,)
+
+    @detail_route(methods=['post'])
+    def add_reason_to_changesets(self, request, pk):
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.changesets.add(*serializer.data['changesets'])
+            return Response(
+                {'message': 'Tag added to the changesets.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+    @detail_route(methods=['delete'])
+    def remove_reason_from_changesets(self, request, pk):
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.changesets.add(*serializer.data['changesets'])
+            return Response(
+                {'message': 'Tag added to the changesets.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
 
 class TagListAPIView(ListAPIView):

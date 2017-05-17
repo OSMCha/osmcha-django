@@ -84,6 +84,13 @@ urlpatterns = [
         name='suspicion-reasons-list'
     ),
     url(
+        regex=r'^suspicion-reasons/(?P<pk>\w+)/changesets/$',
+        view=views.AddRemoveSuspicionReasonsAPIView.as_view(
+            {'post': 'add_reason_to_changesets', 'delete': 'remove_reason_from_changesets'}
+            ),
+        name='changeset-reasons'
+    ),
+    url(
         regex=r'^tags/$',
         view=views.TagListAPIView.as_view(),
         name='tags-list'
