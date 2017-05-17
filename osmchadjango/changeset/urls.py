@@ -85,10 +85,17 @@ urlpatterns = [
     ),
     url(
         regex=r'^suspicion-reasons/(?P<pk>\w+)/changesets/$',
-        view=views.AddRemoveSuspicionReasonsAPIView.as_view(
+        view=views.AddRemoveChangesetReasonsAPIView.as_view(
             {'post': 'add_reason_to_changesets', 'delete': 'remove_reason_from_changesets'}
             ),
         name='changeset-reasons'
+    ),
+    url(
+        regex=r'^suspicion-reasons/(?P<pk>\w+)/features/$',
+        view=views.AddRemoveFeatureReasonsAPIView.as_view(
+            {'post': 'add_reason_to_features', 'delete': 'remove_reason_from_features'}
+            ),
+        name='feature-reasons'
     ),
     url(
         regex=r'^tags/$',

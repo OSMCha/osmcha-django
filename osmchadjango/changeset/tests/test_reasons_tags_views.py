@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 
 from ...users.models import User
 from ..models import SuspicionReasons, Tag
+from ...feature.tests.modelfactories import FeatureFactory
 from .modelfactories import ChangesetFactory
 
 
@@ -97,7 +98,7 @@ class TestTagAPIListView(APITestCase):
         self.assertEqual(len(response.data), 2)
 
 
-class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
+class TestBatchAddSuspicionReasons(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='test',
@@ -112,8 +113,11 @@ class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.changesets = ChangesetFactory.create_batch(4)
+        self.features = FeatureFactory.create_batch(4)
 
     def test_unathenticated_request(self):
+        """Unauthenticated users can not access these endpoints."""
+        # test add to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -121,8 +125,16 @@ class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(self.reason_1.changesets.count(), 0)
 
+        # test add to features
+        response = self.client.post(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.reason_1.features.count(), 0)
+
     def test_normal_user_request(self):
-        """Only staff users can use this endpoint."""
+        """Only staff users can use these endpoints."""
         user = User.objects.create_user(
             username='test_3',
             password='password',
@@ -134,6 +146,8 @@ class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
             uid='99989',
             )
         self.client.login(username=user.username, password='password')
+
+        # test add to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -141,8 +155,17 @@ class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.reason_1.changesets.count(), 0)
 
+        # test add to features
+        response = self.client.post(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.reason_1.features.count(), 0)
+
     def test_staff_user_request(self):
         self.client.login(username=self.user.username, password='password')
+        # test add to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -150,11 +173,27 @@ class TestBatchAddSuspicionReasonsToChangesets(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.reason_1.changesets.count(), 4)
 
+        # test add to features
+        response = self.client.post(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.reason_1.features.count(), 4)
+
     def test_bad_request(self):
         self.client.login(username=self.user.username, password='password')
+        # test add to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"features": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 400)
+
+        # test add to features
+        response = self.client.post(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"changesets": [f.id for f in self.features]}
             )
         self.assertEqual(response.status_code, 400)
 
@@ -173,10 +212,16 @@ class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
             uid='123123',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+
         self.changesets = ChangesetFactory.create_batch(4)
         self.reason_1.changesets.set(self.changesets)
 
+        self.features = FeatureFactory.create_batch(4)
+        self.reason_1.features.set(self.features)
+
     def test_unathenticated_request(self):
+        """Unauthenticated users can not access these endpoints."""
+        # test remove from changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -184,8 +229,16 @@ class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(self.reason_1.changesets.count(), 4)
 
+        # test remove from features
+        response = self.client.delete(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(self.reason_1.features.count(), 4)
+
     def test_normal_user_request(self):
-        """Only staff users can use this endpoint."""
+        """Only staff users can use these endpoints."""
         user = User.objects.create_user(
             username='test_3',
             password='password',
@@ -197,6 +250,8 @@ class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
             uid='99989',
             )
         self.client.login(username=user.username, password='password')
+
+        # test remove from the changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -204,8 +259,17 @@ class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.reason_1.changesets.count(), 4)
 
+        # test remove from the features
+        response = self.client.delete(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(self.reason_1.features.count(), 4)
+
     def test_staff_user_request(self):
         self.client.login(username=self.user.username, password='password')
+        # test remove from the changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -213,10 +277,26 @@ class TestBatchRemoveSuspicionReasonsFromChangesets(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.reason_1.changesets.count(), 0)
 
+        # test remove from the features
+        response = self.client.delete(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"features": [f.id for f in self.features]}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.reason_1.changesets.count(), 0)
+
     def test_bad_request(self):
         self.client.login(username=self.user.username, password='password')
+        # test remove from the changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"features": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 400)
+
+        # test remove from the features
+        response = self.client.delete(
+            reverse('changeset:feature-reasons', args=[self.reason_1.id]),
+            data={"changesets": [f.id for f in self.features]}
             )
         self.assertEqual(response.status_code, 400)

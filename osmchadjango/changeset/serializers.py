@@ -150,6 +150,18 @@ class SuspicionReasonsChangesetSerializer(ModelSerializer):
         fields = ('changesets',)
 
 
+class SuspicionReasonsFeatureSerializer(ModelSerializer):
+    from osmchadjango.feature.models import Feature
+    features = PrimaryKeyRelatedField(
+        many=True,
+        queryset=Feature.objects.all()
+        )
+
+    class Meta:
+        model = SuspicionReasons
+        fields = ('features',)
+
+
 class ChangesetTagsSerializer(ModelSerializer):
     tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
 

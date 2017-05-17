@@ -24,7 +24,8 @@ from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
-    UserStatsSerializer, ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer
+    UserStatsSerializer, ChangesetTagsSerializer, SuspicionReasonsFeatureSerializer,
+    SuspicionReasonsChangesetSerializer
     )
 from .throttling import NonStaffUserThrottle
 
@@ -145,7 +146,7 @@ class SuspicionReasonsListAPIView(ListAPIView):
             return SuspicionReasons.objects.filter(is_visible=True)
 
 
-class AddRemoveSuspicionReasonsAPIView(ModelViewSet):
+class AddRemoveChangesetReasonsAPIView(ModelViewSet):
     queryset = SuspicionReasons.objects.all()
     serializer_class = SuspicionReasonsChangesetSerializer
     permission_classes = (IsAdminUser,)
@@ -157,7 +158,7 @@ class AddRemoveSuspicionReasonsAPIView(ModelViewSet):
         if serializer.is_valid():
             reason.changesets.add(*serializer.data['changesets'])
             return Response(
-                {'message': 'Tag added to the changesets.'},
+                {'message': 'Suspicion Reasons added to the changesets.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -173,7 +174,45 @@ class AddRemoveSuspicionReasonsAPIView(ModelViewSet):
         if serializer.is_valid():
             reason.changesets.remove(*serializer.data['changesets'])
             return Response(
-                {'message': 'Tag added to the changesets.'},
+                {'message': 'Suspicion Reasons removed from the changesets.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+
+class AddRemoveFeatureReasonsAPIView(ModelViewSet):
+    queryset = SuspicionReasons.objects.all()
+    serializer_class = SuspicionReasonsFeatureSerializer
+    permission_classes = (IsAdminUser,)
+
+    @detail_route(methods=['post'])
+    def add_reason_to_features(self, request, pk):
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.features.add(*serializer.data['features'])
+            return Response(
+                {'message': 'Suspicion Reasons added to the features.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+    @detail_route(methods=['delete'])
+    def remove_reason_from_features(self, request, pk):
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.features.remove(*serializer.data['features'])
+            return Response(
+                {'message': 'Suspicion Reasons removed from the features.'},
                 status=status.HTTP_200_OK
                 )
         else:
