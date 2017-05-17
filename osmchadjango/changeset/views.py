@@ -171,7 +171,7 @@ class AddRemoveSuspicionReasonsAPIView(ModelViewSet):
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            reason.changesets.add(*serializer.data['changesets'])
+            reason.changesets.remove(*serializer.data['changesets'])
             return Response(
                 {'message': 'Tag added to the changesets.'},
                 status=status.HTTP_200_OK
