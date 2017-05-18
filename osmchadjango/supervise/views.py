@@ -1,19 +1,21 @@
-from django.contrib.gis.geos import GEOSGeometry, MultiPolygon, Polygon
+from django.contrib.gis.geos import GEOSGeometry, Polygon
 
 from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
+    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView,
+    RetrieveDestroyAPIView
     )
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import (
+    IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
+    )
 
 from ..changeset.serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
     )
 from ..feature.serializers import FeatureSerializer, FeatureSerializerToStaff
 from ..changeset.views import StandardResultsSetPagination
-from .models import AreaOfInterest
-from .serializers import AreaOfInterestSerializer
+from .models import AreaOfInterest, BlacklistedUser
+from .serializers import AreaOfInterestSerializer, BlacklistSerializer
 
 
 def get_geometry_from_filters(data):
@@ -161,3 +163,30 @@ class AOIStatsAPIView(ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+
+class BlacklistedUserListCreateAPIView(ListCreateAPIView):
+    """
+    get:
+    List BlacklistedUsers. Only staff users can access this endpoint.
+    post:
+    Add a user to the Blacklist. Only staff users can add users to the blacklist.
+    """
+    queryset = BlacklistedUser.objects.all()
+    serializer_class = BlacklistSerializer
+    permission_classes = (IsAdminUser,)
+
+    def perform_create(self, serializer):
+        serializer.save(added_by=self.request.user)
+
+
+class BlacklistedUserDetailAPIView(RetrieveDestroyAPIView):
+    """
+    get:
+    Get details about a BlacklistedUser.
+    delete:
+    Delete a User from the Blacklist.
+    """
+    queryset = BlacklistedUser.objects.all()
+    serializer_class = BlacklistSerializer
+    permission_classes = (IsAdminUser,)

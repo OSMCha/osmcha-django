@@ -13,7 +13,7 @@ from ...changeset.tests.modelfactories import (
     )
 from ...feature.tests.modelfactories import FeatureFactory, CheckedFeatureFactory
 from ...users.models import User
-from ..models import AreaOfInterest
+from ..models import AreaOfInterest, BlacklistedUser
 
 
 class TestAoIListView(APITestCase):
@@ -661,3 +661,161 @@ class TestAoIStatsAPIViews(APITestCase):
             {'name': 'Big buildings', 'checked_changesets': 5, 'harmful_changesets': 0},
             response.data.get('tags')
             )
+
+
+class TestBlacklistedUserListAPIView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.staff_user = User.objects.create_user(
+            username='staff_user',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.staff_user,
+            provider='openstreetmap',
+            uid='999898',
+            )
+        BlacklistedUser.objects.create(
+            username='Bad User',
+            added_by=self.staff_user,
+            )
+        BlacklistedUser.objects.create(
+            username='Vandal',
+            added_by=self.staff_user,
+            )
+        self.url = reverse('supervise:blacklist-list-create')
+
+    def test_list_view_unauthenticated(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_list_view_normal_user(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_list_view_staff_user(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 2)
+
+
+class TestBlacklistedUserCreateAPIView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.staff_user = User.objects.create_user(
+            username='staff_user',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.staff_user,
+            provider='openstreetmap',
+            uid='999898',
+            )
+        self.url = reverse('supervise:blacklist-list-create')
+        self.data = {'username': 'Bad User'}
+
+    def test_create_view_unauthenticated(self):
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(BlacklistedUser.objects.count(), 0)
+
+    def test_create_view_normal_user(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(BlacklistedUser.objects.count(), 0)
+
+    def test_create_view_staff_user(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+
+
+class TestBlacklistedUserDetailAPIViews(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.staff_user = User.objects.create_user(
+            username='staff_user',
+            email='b@a.com',
+            password='password',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.staff_user,
+            provider='openstreetmap',
+            uid='999898',
+            )
+
+        self.blacklisted = BlacklistedUser.objects.create(
+            username='Bad User',
+            added_by=self.staff_user,
+            )
+        self.url = reverse('supervise:blacklist-detail', args=[self.blacklisted.id])
+
+    def test_unauthenticated_get(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_normal_user_get(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+
+    def test_staff_user_get(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('username'), 'Bad User')
+        self.assertEqual(response.data.get('added_by'), 'staff_user')
+        self.assertIn('date', response.data.keys())
+
+    def test_unauthenticated_delete(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+
+    def test_normal_user_delete(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+
+    def test_staff_user_delete(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(BlacklistedUser.objects.count(), 0)

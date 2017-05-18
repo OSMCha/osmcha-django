@@ -24,7 +24,7 @@ api_urls = [
         include("osmchadjango.feature.urls", namespace="feature")
         ),
     url(
-        r'^{}aoi/'.format(API_BASE_URL),
+        r'^{}'.format(API_BASE_URL),
         include("osmchadjango.supervise.urls", namespace="supervise")
         ),
     url(
@@ -50,7 +50,6 @@ urlpatterns = [
     # api docs
     url(r'^api-docs/$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
     url(r'^$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
-
     # include api_urls
     url(
         r'^',
