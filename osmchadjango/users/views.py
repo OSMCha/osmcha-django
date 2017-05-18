@@ -10,8 +10,15 @@ from .serializers import UserSerializer
 
 
 class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
-    """Get or update details of the current logged user. It's allowed only to
-    update the email address.
+    """
+    get:
+    Get details of the current logged user.
+    patch:
+    Update details of the current logged user. It's allowed only to update the
+    email address.
+    put:
+    Update details of the current logged user. It's allowed only to update the
+    email address.
     """
     permission_classes = IsAuthenticated,
     serializer_class = UserSerializer
