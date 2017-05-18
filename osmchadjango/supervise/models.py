@@ -6,6 +6,8 @@ from django.contrib.postgres.fields import JSONField
 from osmchadjango.changeset.filters import ChangesetFilter
 from osmchadjango.feature.filters import FeatureFilter
 
+from ..users.models import User
+
 
 class AreaOfInterest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -34,3 +36,16 @@ class AreaOfInterest(models.Model):
         unique_together = ('user', 'name',)
         verbose_name = 'Area of Interest'
         verbose_name_plural = 'Areas of Interest'
+
+
+class BlacklistedUser(models.Model):
+    username = models.CharField(max_length=1000, unique=True)
+    added_by = models.ForeignKey(User)
+    date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.username
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super(BlacklistedUser, self).save(*args, **kwargs)

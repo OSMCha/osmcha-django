@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from django.test import TestCase
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
+from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from ...changeset.tests.modelfactories import ChangesetFactory, UserFactory
-from ..models import AreaOfInterest
+from ..models import AreaOfInterest, BlacklistedUser
 
 
 class TestAreaOfInterestModel(TestCase):
@@ -131,3 +134,31 @@ class TestAreaOfInterestModel(TestCase):
         self.assertEqual(polygon_aoi.changesets().count(), 1)
 
         self.assertEqual(AreaOfInterest.objects.count(), 6)
+
+
+class TestBlacklistedUserModel(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_staff=True)
+        self.blacklisted = BlacklistedUser.objects.create(
+            username='Bad User',
+            added_by=self.user,
+            )
+
+    def test_creation(self):
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+        self.assertIsInstance(self.blacklisted.date, datetime)
+
+    def test_validation(self):
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                added_by=self.user,
+                )
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                username='Other User',
+                )
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                username='Bad User',
+                added_by=self.user,
+                )
