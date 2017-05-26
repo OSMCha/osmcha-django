@@ -68,6 +68,7 @@ LOCAL_APPS = (
     'osmchadjango.changeset',
     'osmchadjango.feature',
     'osmchadjango.supervise',
+    'osmchadjango.frontend',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -109,6 +110,8 @@ FIXTURE_DIRS = (
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+
+FRONTEND_JS_URL = env('FRONTEND_JS_URL', default='foobar.js')
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------

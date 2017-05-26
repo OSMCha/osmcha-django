@@ -9,6 +9,7 @@ from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django.views import defaults
 from django.views import static as static_views
+from osmchadjango.frontend import urls as frontend_urls
 
 from .docs import SwaggerSchemaView
 
@@ -46,12 +47,13 @@ urlpatterns = [
         ),
     # api docs
     url(r'^api-docs/$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
-    url(r'^$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
+    # url(r'^$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
     # include api_urls
     url(
         r'^',
         include(api_urls)
         ),
+    url(r'^', include(frontend_urls)),
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
