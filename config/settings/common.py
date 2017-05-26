@@ -55,7 +55,6 @@ THIRD_PARTY_APPS = (
     'rest_framework_gis',
     'rest_framework.authtoken',
     'social_django',
-    'rest_social_auth',
     'rest_framework_swagger',
     'corsheaders',
     'coreapi',
@@ -192,6 +191,8 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
                 # Your stuff: custom template context processors go here
             ],
         },
@@ -270,13 +271,13 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
     'social_core.pipeline.social_auth.social_user',
-    'social_core.pipeline.social_auth.associate_by_email',
     'social_core.pipeline.user.get_username',
     'social_core.pipeline.user.create_user',
     'osmchadjango.users.utils.save_real_username',
     'social_core.pipeline.social_auth.associate_user',
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details'
+    # 'social_core.pipeline.social_auth.associate_by_email',
 )
 
 # LOGGING CONFIGURATION
@@ -301,7 +302,7 @@ LOGGING = {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
-        'rest_social_auth': {
+        'osmchadjango.users': {
             'handlers': ['console', ],
             'level': "DEBUG",
         },

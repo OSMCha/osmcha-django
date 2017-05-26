@@ -28,11 +28,8 @@ api_urls = [
         include("osmchadjango.supervise.urls", namespace="supervise")
         ),
     url(
-        r'^{}users/'.format(API_BASE_URL),
+        r'^{}'.format(API_BASE_URL),
         include("osmchadjango.users.urls", namespace="users")
-        ),
-    url(r'^{}login/'.format(API_BASE_URL),
-        include('rest_social_auth.urls_token', namespace='social_auth')
         ),
     ]
 
