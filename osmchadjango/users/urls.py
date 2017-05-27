@@ -11,5 +11,5 @@ urlpatterns = [
         view=views.CurrentUserDetailAPIView.as_view(),
         name='detail'
         ),
-    url(r'^social-auth/$', views.SocialAuthView.as_view(), name="social-auth"),
+    url(r'^social-auth/$', views.SocialAuthAPIView.as_view(), name="social-auth"),
     ]

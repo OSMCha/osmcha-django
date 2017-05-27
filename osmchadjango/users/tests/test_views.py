@@ -40,3 +40,18 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('email'), 'admin@a.com')
         self.assertEqual(response.data.get('username'), 'test')
         self.assertEqual(response.data.get('is_staff'), False)
+
+
+class TestSocialAuthAPIView(APITestCase):
+    def setUp(self):
+        self.url = reverse('users:social-auth')
+
+    def test_get_response(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 405)
+
+    def test_receive_oauth_token(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('oauth_token', response.data.keys())
+        self.assertIn('oauth_token_secret', response.data.keys())

@@ -37,7 +37,14 @@ class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
         return self.request.user
 
 
-class SocialAuthView(GenericAPIView):
+class SocialAuthAPIView(GenericAPIView):
+    """View that allows to authenticate in OSMCHA with an OpenStreetMap account.
+    Send an empty `POST` request to receive the `oauth_token` and the
+    `oauth_token_secret`. After authenticate in the OSM website, make another
+    `POST` request sending the `oauth_token`, `oauth_token_secret` and the
+    `oauth_verifier` to receive the `token` that you need to make authenticated
+    requests in all OSMCHA endpoints.
+    """
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
@@ -61,8 +68,11 @@ class SocialAuthView(GenericAPIView):
         return parse_qs(content)
 
     def get_user_token(self, request, access_token):
-        strategy = load_strategy(request)
-        backend = load_backend(strategy=strategy, name='openstreetmap', redirect_uri=None)
+        backend = load_backend(
+            strategy=load_strategy(request),
+            name='openstreetmap',
+            redirect_uri=None
+            )
         authed_user = request.user if not request.user.is_anonymous() else None
         user = backend.do_auth(access_token, user=authed_user)
         token, created = Token.objects.get_or_create(user=user)
