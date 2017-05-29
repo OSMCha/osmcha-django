@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='feature',
             name='geometry',
-            field=django.contrib.gis.db.models.fields.GeometryField(blank=True, db_index=True, null=True, srid=4326),
+            field=django.contrib.gis.db.models.fields.GeometryField(blank=True, null=True, srid=4326),
         ),
         migrations.AlterField(
             model_name='feature',

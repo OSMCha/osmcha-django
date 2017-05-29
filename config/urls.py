@@ -57,13 +57,14 @@ urlpatterns = [
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
+    import debug_toolbar
     urlpatterns += [
         url(r'^400/$', defaults.bad_request),
         url(r'^403/$', defaults.permission_denied),
         url(r'^404/$', defaults.page_not_found),
         url(r'^500/$', defaults.server_error),
+        url(r'^__debug__/', include(debug_toolbar.urls)),
         ]
-
 
 # If static files are not intercepted by the web-server, serve them with the dev-server:
 if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
