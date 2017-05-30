@@ -46,12 +46,13 @@ class PaginatedCSVRenderer (CSVRenderer):
 
 
 class ChangesetListAPIView(ListAPIView):
-    """List changesets. The data can be filtered by any field, except 'id' and
-    'uuid'. There are two ways of filtering changesets by geolocation. The first
-    option is to use the 'geometry' filter field, which can receive any
-    type of geometry. The other is the 'in_bbox' parameter, which needs to
-    receive the min Lat, min Lon, max Lat, max Lon values. CSV and JSON are the
-    accepted formats. The default pagination return 50 objects by page.
+    """List changesets. The data can be filtered by any field, except 'uuid'.
+    There are two ways of filtering changesets by geolocation. The first
+    option is to use the 'geometry' filter field, which can receive any type of
+    geometry as a GeoJson geometry string. The other is the 'in_bbox' parameter,
+    which needs to receive the min Lat, min Lon, max Lat, max Lon values. The
+    accepted response formats are CSV and JSON. The default pagination return
+    50 objects by page.
     """
 
     queryset = Changeset.objects.all().select_related(
