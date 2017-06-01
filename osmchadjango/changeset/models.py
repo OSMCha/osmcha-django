@@ -64,7 +64,7 @@ class Changeset(models.Model):
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)
-    bbox = models.PolygonField(null=True, db_index=True)
+    bbox = models.PolygonField(null=True)
     area = models.FloatField(blank=True, null=True)
     is_suspect = models.BooleanField(db_index=True)
     harmful = models.NullBooleanField(db_index=True)

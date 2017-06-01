@@ -11,7 +11,7 @@ class Feature(models.Model):
     osm_id = models.BigIntegerField()
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()
-    geometry = models.GeometryField(null=True, blank=True, db_index=True)
+    geometry = models.GeometryField(null=True, blank=True)
     old_geometry = models.GeometryField(null=True, blank=True)
     geojson = JSONField()
     old_geojson = JSONField(null=True, blank=True)
