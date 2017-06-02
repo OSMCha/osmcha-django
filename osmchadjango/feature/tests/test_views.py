@@ -834,8 +834,8 @@ class TestUncheckFeatureView(APITestCase):
         self.assertFalse(self.harmful_feature.checked)
         self.assertIsNone(self.harmful_feature.check_user)
         self.assertIsNone(self.harmful_feature.check_date)
-        self.assertEqual(self.harmful_feature.tags.count(), 0)
-        self.assertNotIn(self.harmful_feature, self.tag.changesets.all())
+        self.assertEqual(self.harmful_feature.tags.count(), 1)
+        self.assertIn(self.harmful_feature, self.tag.features.all())
 
     def test_uncheck_good_feature(self):
         self.client.login(username=self.user.username, password='password')
@@ -851,7 +851,7 @@ class TestUncheckFeatureView(APITestCase):
         self.assertFalse(self.good_feature.checked)
         self.assertIsNone(self.good_feature.check_user)
         self.assertIsNone(self.good_feature.check_date)
-        self.assertEqual(self.good_feature.tags.count(), 0)
+        self.assertEqual(self.good_feature.tags.count(), 1)
 
     def test_user_uncheck_permission(self):
         """User can only uncheck features that he checked."""
@@ -869,7 +869,6 @@ class TestUncheckFeatureView(APITestCase):
         self.assertTrue(self.harmful_feature_2.checked)
         self.assertIsNotNone(self.harmful_feature_2.check_user)
         self.assertIsNotNone(self.harmful_feature_2.check_date)
-        self.assertIn(self.tag, self.harmful_feature_2.tags.all())
 
     def test_try_to_uncheck_unchecked_feature(self):
         """It's not possible to uncheck an unchecked feature!"""

@@ -298,7 +298,6 @@ def uncheck_feature(request, changeset, slug):
         instance.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
-        instance.tags.clear()
         return Response(
             {'message': 'Feature marked as unchecked.'},
             status=status.HTTP_200_OK
