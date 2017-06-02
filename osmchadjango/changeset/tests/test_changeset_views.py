@@ -551,6 +551,8 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_user)
         self.assertIsNone(self.changeset.check_date)
 
+        # test using P
+
     def test_set_good_changeset_unlogged(self):
         """Anonymous users can't mark a changeset as good."""
         response = self.client.put(
@@ -820,8 +822,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertFalse(self.harmful_changeset.checked)
         self.assertIsNone(self.harmful_changeset.check_user)
         self.assertIsNone(self.harmful_changeset.check_date)
-        self.assertEqual(self.harmful_changeset.tags.count(), 0)
-        self.assertNotIn(self.harmful_changeset, self.tag.changesets.all())
+        self.assertEqual(self.harmful_changeset.tags.count(), 1)
 
     def test_uncheck_good_changeset(self):
         self.client.login(username=self.user.username, password='password')
@@ -834,7 +835,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertFalse(self.good_changeset.checked)
         self.assertIsNone(self.good_changeset.check_user)
         self.assertIsNone(self.good_changeset.check_date)
-        self.assertEqual(self.good_changeset.tags.count(), 0)
+        self.assertEqual(self.good_changeset.tags.count(), 1)
 
     def test_user_uncheck_permission(self):
         """User can only uncheck changesets that he checked."""
@@ -849,7 +850,6 @@ class TestUncheckChangesetView(APITestCase):
         self.assertTrue(self.harmful_changeset_2.checked)
         self.assertIsNotNone(self.harmful_changeset_2.check_user)
         self.assertIsNotNone(self.harmful_changeset_2.check_date)
-        self.assertIn(self.tag, self.harmful_changeset_2.tags.all())
 
     def test_try_to_uncheck_unchecked_changeset(self):
         """It's not possible to uncheck an unchecked changeset!"""

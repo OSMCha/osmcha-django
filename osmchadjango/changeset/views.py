@@ -353,7 +353,6 @@ def uncheck_changeset(request, pk):
         instance.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
-        instance.tags.clear()
         return Response(
             {'message': 'Changeset marked as unchecked.'},
             status=status.HTTP_200_OK
