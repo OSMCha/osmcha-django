@@ -1,7 +1,6 @@
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import (
-    ModelSerializer, StringRelatedField, ListSerializer, BaseSerializer,
-    PrimaryKeyRelatedField
+    ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -40,8 +39,8 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     'powerfull_editor'.
     """
     check_user = ReadOnlyField(source='check_user.username')
-    reasons = StringRelatedField(many=True, read_only=True)
-    tags = StringRelatedField(many=True, read_only=True)
+    reasons = PrimaryKeyRelatedField(many=True, read_only=True)
+    tags = PrimaryKeyRelatedField(many=True, read_only=True)
     features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
 
     class Meta:
@@ -60,10 +59,10 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
     features = FeatureSimpleSerializer(many=True, read_only=True)
 
     def get_reasons(self, obj):
-        return [i.name for i in obj.reasons.all() if i.is_visible is True]
+        return [i.id for i in obj.reasons.all() if i.is_visible is True]
 
     def get_tags(self, obj):
-        return [i.name for i in obj.tags.all() if i.is_visible is True]
+        return [i.id for i in obj.tags.all() if i.is_visible is True]
 
 
 class UserWhitelistSerializer(ModelSerializer):

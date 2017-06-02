@@ -390,22 +390,22 @@ class TestFeatureDetailAPIView(APITestCase):
 class TestReasonsAndTagsFields(APITestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
-        tag = Tag.objects.create(name='Vandalism')
-        tag.features.add(self.feature)
-        private_tag = Tag.objects.create(
+        self.tag = Tag.objects.create(name='Vandalism')
+        self.tag.features.add(self.feature)
+        self.private_tag = Tag.objects.create(
             name='Bad feature in my city',
             is_visible=False
             )
-        private_tag.features.add(self.feature)
+        self.private_tag.features.add(self.feature)
         self.reason = SuspicionReasons.objects.create(
             name='new mapper edits'
             )
         self.reason.features.add(self.feature)
-        private_reason = SuspicionReasons.objects.create(
+        self.private_reason = SuspicionReasons.objects.create(
             name='Suspicious Feature in my city',
             is_visible=False
             )
-        private_reason.features.add(self.feature)
+        self.private_reason.features.add(self.feature)
         self.user = User.objects.create_user(
             username='test',
             password='password',
@@ -426,38 +426,38 @@ class TestReasonsAndTagsFields(APITestCase):
                 )
             )
         self.assertIn(
-            'new mapper edits',
+            self.reason.id,
             response.data['properties']['reasons']
             )
         self.assertIn(
-            'Vandalism',
+            self.tag.id,
             response.data['properties']['tags']
             )
         self.assertNotIn(
-            'Suspicious Feature in my city',
+            self.private_reason.id,
             response.data['properties']['reasons']
             )
         self.assertNotIn(
-            'Bad feature in my city',
+            self.private_tag.id,
             response.data['properties']['tags']
             )
 
     def test_list_view_with_normal_user(self):
         response = self.client.get(reverse('feature:list'))
         self.assertIn(
-            'new mapper edits',
+            self.reason.id,
             response.data['features'][0]['properties']['reasons']
             )
         self.assertIn(
-            'Vandalism',
+            self.tag.id,
             response.data['features'][0]['properties']['tags']
             )
         self.assertNotIn(
-            'Suspicious Feature in my city',
+            self.private_reason.id,
             response.data['features'][0]['properties']['reasons']
             )
         self.assertNotIn(
-            'Bad feature in my city',
+            self.private_tag.id,
             response.data['features'][0]['properties']['tags']
             )
 
@@ -470,19 +470,19 @@ class TestReasonsAndTagsFields(APITestCase):
                 )
             )
         self.assertIn(
-            'Suspicious Feature in my city',
+            self.private_reason.id,
             response.data['properties']['reasons']
             )
         self.assertIn(
-            'new mapper edits',
+            self.reason.id,
             response.data['properties']['reasons']
             )
         self.assertIn(
-            'Bad feature in my city',
+            self.private_tag.id,
             response.data['properties']['tags']
             )
         self.assertIn(
-            'Vandalism',
+            self.tag.id,
             response.data['properties']['tags']
             )
 
@@ -490,19 +490,19 @@ class TestReasonsAndTagsFields(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('feature:list'))
         self.assertIn(
-            'Suspicious Feature in my city',
+            self.private_reason.id,
             response.data['features'][0]['properties']['reasons']
             )
         self.assertIn(
-            'new mapper edits',
+            self.reason.id,
             response.data['features'][0]['properties']['reasons']
             )
         self.assertIn(
-            'Bad feature in my city',
+            self.private_tag.id,
             response.data['features'][0]['properties']['tags']
             )
         self.assertIn(
-            'Vandalism',
+            self.tag.id,
             response.data['features'][0]['properties']['tags']
             )
 

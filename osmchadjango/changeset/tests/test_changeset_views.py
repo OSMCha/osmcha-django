@@ -274,8 +274,8 @@ class TestChangesetDetailView(APITestCase):
         self.reason_2.features.add(self.feature)
         self.reason_3.features.add(self.feature)
         self.reason_3.changesets.add(self.changeset)
-        tag = Tag.objects.create(name='Vandalism')
-        tag.changesets.add(self.changeset)
+        self.tag = Tag.objects.create(name='Vandalism')
+        self.tag.changesets.add(self.changeset)
 
     def test_changeset_detail_response(self):
         response = self.client.get(
@@ -342,7 +342,7 @@ class TestChangesetDetailView(APITestCase):
             1
             )
         self.assertIn(
-            'suspect word',
+            self.reason_2.id,
             response.data['properties']['features'][0]['reasons']
             )
 
@@ -369,11 +369,11 @@ class TestChangesetDetailView(APITestCase):
             2
             )
         self.assertIn(
-            'suspect word',
+            self.reason_2.id,
             response.data['properties']['features'][0]['reasons']
             )
         self.assertIn(
-            'Big edit in my city',
+            self.reason_3.id,
             response.data['properties']['features'][0]['reasons']
             )
 
@@ -425,10 +425,10 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
         self.assertEqual(len(response.data['properties']['tags']), 1)
-        self.assertIn('possible import', response.data['properties']['reasons'])
-        self.assertIn('suspect word', response.data['properties']['reasons'])
+        self.assertIn(self.reason_1.id, response.data['properties']['reasons'])
+        self.assertIn(self.reason_2.id, response.data['properties']['reasons'])
         self.assertIn(
-            'Vandalism',
+            self.tag_1.id,
             response.data['properties']['tags']
             )
 
@@ -437,13 +437,13 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            'Big edit in my city',
+            self.reason_3.id,
             response.data['properties']['reasons']
             )
         self.assertEqual(len(response.data['properties']['reasons']), 3)
         self.assertEqual(len(response.data['properties']['tags']), 2)
         self.assertIn(
-            'Vandalism in my city',
+            self.tag_2.id,
             response.data['properties']['tags']
             )
         self.assertEqual(response.data.get('id'), 31982803)
@@ -497,9 +497,9 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 2)
         self.assertEqual(len(tags), 1)
-        self.assertIn('possible import', reasons)
-        self.assertIn('suspect word', reasons)
-        self.assertIn('Vandalism', tags)
+        self.assertIn(self.reason_1.id, reasons)
+        self.assertIn(self.reason_2.id, reasons)
+        self.assertIn(self.tag_1.id, tags)
 
     def test_list_view_by_admin(self):
         self.client.login(username=self.user.username, password='password')
@@ -509,8 +509,8 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 3)
         self.assertEqual(len(tags), 2)
-        self.assertIn('Big edit in my city', reasons)
-        self.assertIn('Vandalism in my city', tags)
+        self.assertIn(self.reason_3.id, reasons)
+        self.assertIn(self.tag_2.id, tags)
 
 
 class TestCheckChangesetViews(APITestCase):
@@ -550,8 +550,6 @@ class TestCheckChangesetViews(APITestCase):
         self.assertFalse(self.changeset.checked)
         self.assertIsNone(self.changeset.check_user)
         self.assertIsNone(self.changeset.check_date)
-
-        # test using P
 
     def test_set_good_changeset_unlogged(self):
         """Anonymous users can't mark a changeset as good."""

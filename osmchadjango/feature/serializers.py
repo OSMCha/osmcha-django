@@ -2,7 +2,7 @@ import json
 
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import (
-    StringRelatedField, ModelSerializer, PrimaryKeyRelatedField
+    ModelSerializer, PrimaryKeyRelatedField
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -18,8 +18,8 @@ class FeatureSerializerToStaff(GeoFeatureModelSerializer):
     imagery_used = ReadOnlyField(source='changeset.imagery_used')
     editor = ReadOnlyField(source='changeset.editor')
     comment = ReadOnlyField(source='changeset.comment')
-    reasons = StringRelatedField(many=True, read_only=True)
-    tags = StringRelatedField(many=True, read_only=True)
+    reasons = PrimaryKeyRelatedField(many=True, read_only=True)
+    tags = PrimaryKeyRelatedField(many=True, read_only=True)
     osm_link = SerializerMethodField()
 
     class Meta:
@@ -36,15 +36,15 @@ class FeatureSerializer(FeatureSerializerToStaff):
     tags = SerializerMethodField()
 
     def get_reasons(self, obj):
-        return [i.name for i in obj.reasons.all() if i.is_visible is True]
+        return [i.id for i in obj.reasons.all() if i.is_visible is True]
 
     def get_tags(self, obj):
-        return [i.name for i in obj.tags.all() if i.is_visible is True]
+        return [i.id for i in obj.tags.all() if i.is_visible is True]
 
 
 class FeatureSimpleSerializerToStaff(ModelSerializer):
     name = SerializerMethodField()
-    reasons = StringRelatedField(many=True, read_only=True)
+    reasons = PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = Feature
@@ -66,7 +66,7 @@ class FeatureSimpleSerializer(FeatureSimpleSerializerToStaff):
     reasons = SerializerMethodField()
 
     def get_reasons(self, obj):
-        return [i.name for i in obj.reasons.all() if i.is_visible is True]
+        return [i.id for i in obj.reasons.all() if i.is_visible is True]
 
 
 class FeatureTagsSerializer(ModelSerializer):
