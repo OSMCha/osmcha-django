@@ -426,38 +426,38 @@ class TestReasonsAndTagsFields(APITestCase):
                 )
             )
         self.assertIn(
-            self.reason.id,
+            {'id': self.reason.id, 'name': 'new mapper edits'},
             response.data['properties']['reasons']
             )
         self.assertIn(
-            self.tag.id,
+            {'id': self.tag.id, 'name': 'Vandalism'},
             response.data['properties']['tags']
             )
         self.assertNotIn(
-            self.private_reason.id,
+            {'id': self.private_reason.id, 'name': 'Suspicious Feature in my city'},
             response.data['properties']['reasons']
             )
         self.assertNotIn(
-            self.private_tag.id,
+            {'id': self.private_tag.id, 'name': 'Bad feature in my city'},
             response.data['properties']['tags']
             )
 
     def test_list_view_with_normal_user(self):
         response = self.client.get(reverse('feature:list'))
         self.assertIn(
-            self.reason.id,
+            {'id': self.reason.id, 'name': 'new mapper edits'},
             response.data['features'][0]['properties']['reasons']
             )
         self.assertIn(
-            self.tag.id,
+            {'id': self.tag.id, 'name': 'Vandalism'},
             response.data['features'][0]['properties']['tags']
             )
         self.assertNotIn(
-            self.private_reason.id,
+            {'id': self.private_reason.id, 'name': 'Suspicious Feature in my city'},
             response.data['features'][0]['properties']['reasons']
             )
         self.assertNotIn(
-            self.private_tag.id,
+            {'id': self.private_tag.id, 'name': 'Bad feature in my city'},
             response.data['features'][0]['properties']['tags']
             )
 
@@ -470,19 +470,19 @@ class TestReasonsAndTagsFields(APITestCase):
                 )
             )
         self.assertIn(
-            self.private_reason.id,
+            {'id': self.reason.id, 'name': 'new mapper edits'},
             response.data['properties']['reasons']
             )
         self.assertIn(
-            self.reason.id,
-            response.data['properties']['reasons']
-            )
-        self.assertIn(
-            self.private_tag.id,
+            {'id': self.tag.id, 'name': 'Vandalism'},
             response.data['properties']['tags']
             )
         self.assertIn(
-            self.tag.id,
+            {'id': self.private_reason.id, 'name': 'Suspicious Feature in my city'},
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'id': self.private_tag.id, 'name': 'Bad feature in my city'},
             response.data['properties']['tags']
             )
 
@@ -490,19 +490,19 @@ class TestReasonsAndTagsFields(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('feature:list'))
         self.assertIn(
-            self.private_reason.id,
+            {'id': self.reason.id, 'name': 'new mapper edits'},
             response.data['features'][0]['properties']['reasons']
             )
         self.assertIn(
-            self.reason.id,
-            response.data['features'][0]['properties']['reasons']
-            )
-        self.assertIn(
-            self.private_tag.id,
+            {'id': self.tag.id, 'name': 'Vandalism'},
             response.data['features'][0]['properties']['tags']
             )
         self.assertIn(
-            self.tag.id,
+            {'id': self.private_reason.id, 'name': 'Suspicious Feature in my city'},
+            response.data['features'][0]['properties']['reasons']
+            )
+        self.assertIn(
+            {'id': self.private_tag.id, 'name': 'Bad feature in my city'},
             response.data['features'][0]['properties']['tags']
             )
 

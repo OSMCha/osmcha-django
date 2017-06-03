@@ -342,7 +342,7 @@ class TestChangesetDetailView(APITestCase):
             1
             )
         self.assertIn(
-            self.reason_2.id,
+            {'id': self.reason_2.id, 'name': 'suspect word'},
             response.data['properties']['features'][0]['reasons']
             )
 
@@ -369,11 +369,11 @@ class TestChangesetDetailView(APITestCase):
             2
             )
         self.assertIn(
-            self.reason_2.id,
+            {'id': self.reason_2.id, 'name': 'suspect word'},
             response.data['properties']['features'][0]['reasons']
             )
         self.assertIn(
-            self.reason_3.id,
+            {'id': self.reason_3.id, 'name': 'Big edit in my city'},
             response.data['properties']['features'][0]['reasons']
             )
 
@@ -425,10 +425,16 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
         self.assertEqual(len(response.data['properties']['tags']), 1)
-        self.assertIn(self.reason_1.id, response.data['properties']['reasons'])
-        self.assertIn(self.reason_2.id, response.data['properties']['reasons'])
         self.assertIn(
-            self.tag_1.id,
+            {'id': self.reason_1.id, 'name': 'possible import'},
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'id': self.reason_2.id, 'name': 'suspect word'},
+            response.data['properties']['reasons']
+            )
+        self.assertIn(
+            {'id': self.tag_1.id, 'name': 'Vandalism'},
             response.data['properties']['tags']
             )
 
@@ -437,13 +443,13 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(
-            self.reason_3.id,
+            {'id': self.reason_3.id, 'name': 'Big edit in my city'},
             response.data['properties']['reasons']
             )
         self.assertEqual(len(response.data['properties']['reasons']), 3)
         self.assertEqual(len(response.data['properties']['tags']), 2)
         self.assertIn(
-            self.tag_2.id,
+            {'id': self.tag_2.id, 'name': 'Vandalism in my city'},
             response.data['properties']['tags']
             )
         self.assertEqual(response.data.get('id'), 31982803)
@@ -497,9 +503,12 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 2)
         self.assertEqual(len(tags), 1)
-        self.assertIn(self.reason_1.id, reasons)
-        self.assertIn(self.reason_2.id, reasons)
-        self.assertIn(self.tag_1.id, tags)
+        self.assertIn(
+            {'id': self.reason_1.id, 'name': 'possible import'},
+            reasons
+            )
+        self.assertIn({'id': self.reason_2.id, 'name': 'suspect word'}, reasons)
+        self.assertIn({'id': self.tag_1.id, 'name': 'Vandalism'}, tags)
 
     def test_list_view_by_admin(self):
         self.client.login(username=self.user.username, password='password')
@@ -509,8 +518,14 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         tags = response.data['features'][0]['properties']['tags']
         self.assertEqual(len(reasons), 3)
         self.assertEqual(len(tags), 2)
-        self.assertIn(self.reason_3.id, reasons)
-        self.assertIn(self.tag_2.id, tags)
+        self.assertIn(
+            {'id': self.reason_3.id, 'name': 'Big edit in my city'},
+            reasons
+            )
+        self.assertIn(
+            {'id': self.tag_2.id, 'name': 'Vandalism in my city'},
+            tags
+            )
 
 
 class TestCheckChangesetViews(APITestCase):

@@ -1,12 +1,12 @@
+import json
+
 from rest_framework.fields import ReadOnlyField, SerializerMethodField
 from rest_framework.serializers import (
     ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from ..feature.serializers import (
-    FeatureSimpleSerializer, FeatureSimpleSerializerToStaff
-    )
+from osmchadjango.feature.models import Feature
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 
@@ -19,7 +19,7 @@ class SuspicionReasonsSerializer(ModelSerializer):
 class BasicSuspicionReasonsSerializer(ModelSerializer):
     class Meta:
         model = SuspicionReasons
-        fields = ('name', 'is_visible')
+        fields = ('id', 'name')
 
 
 class TagSerializer(ModelSerializer):
@@ -31,7 +31,38 @@ class TagSerializer(ModelSerializer):
 class BasicTagSerializer(ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('name', 'is_visible')
+        fields = ('id', 'name')
+
+
+class FeatureSimpleSerializerToStaff(ModelSerializer):
+    name = SerializerMethodField()
+    reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Feature
+        fields = ('osm_id', 'url', 'name', 'reasons')
+
+    def get_name(self, obj):
+        try:
+            return obj.geojson['properties']['name']
+        except TypeError:
+            try:
+                return json.loads(obj.geojson)['properties']['name']
+            except KeyError:
+                return None
+        except KeyError:
+            return None
+
+
+class FeatureSimpleSerializer(FeatureSimpleSerializerToStaff):
+    reasons = SerializerMethodField()
+
+    def get_reasons(self, obj):
+        return BasicSuspicionReasonsSerializer(
+            obj.reasons.filter(is_visible=True),
+            many=True,
+            read_only=True
+            ).data
 
 
 class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
@@ -39,8 +70,8 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     'powerfull_editor'.
     """
     check_user = ReadOnlyField(source='check_user.username')
-    reasons = PrimaryKeyRelatedField(many=True, read_only=True)
-    tags = PrimaryKeyRelatedField(many=True, read_only=True)
+    reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
+    tags = BasicTagSerializer(many=True, read_only=True)
     features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
 
     class Meta:
@@ -59,10 +90,18 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
     features = FeatureSimpleSerializer(many=True, read_only=True)
 
     def get_reasons(self, obj):
-        return [i.id for i in obj.reasons.all() if i.is_visible is True]
+        return BasicSuspicionReasonsSerializer(
+            obj.reasons.filter(is_visible=True),
+            many=True,
+            read_only=True
+            ).data
 
     def get_tags(self, obj):
-        return [i.id for i in obj.tags.all() if i.is_visible is True]
+        return BasicTagSerializer(
+            obj.tags.filter(is_visible=True),
+            many=True,
+            read_only=True
+            ).data
 
 
 class UserWhitelistSerializer(ModelSerializer):
@@ -158,7 +197,6 @@ class SuspicionReasonsChangesetSerializer(ModelSerializer):
 
 
 class SuspicionReasonsFeatureSerializer(ModelSerializer):
-    from osmchadjango.feature.models import Feature
     features = PrimaryKeyRelatedField(
         many=True,
         queryset=Feature.objects.all(),
