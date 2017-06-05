@@ -571,6 +571,35 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
         self.assertEqual(response.data['count'], 51)
         self.assertEqual(len(response.data['features']), 1)
 
+    def test_aoi_with_in_bbox_filter(self):
+        aoi_with_in_bbox = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            geometry=self.m_polygon,
+            filters={
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'in_bbox': '0,0,2,2'
+                },
+            )
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        ChangesetFactory.create_batch(
+            51,
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi_with_in_bbox.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 50)
+
 
 class TestAoIStatsAPIViews(APITestCase):
     def setUp(self):
