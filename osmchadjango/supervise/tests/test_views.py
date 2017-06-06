@@ -11,7 +11,7 @@ from ...changeset.tests.modelfactories import (
     ChangesetFactory, HarmfulChangesetFactory, GoodChangesetFactory,
     SuspicionReasonsFactory, TagFactory
     )
-from ...feature.tests.modelfactories import FeatureFactory, CheckedFeatureFactory
+from ...feature.tests.modelfactories import CheckedFeatureFactory
 from ...users.models import User
 from ..models import AreaOfInterest, BlacklistedUser
 
