@@ -13,11 +13,12 @@ class TestCurrentUserDetailAPIView(APITestCase):
             password='password',
             email='a@a.com'
             )
-        UserSocialAuth.objects.create(
+        self.social_auth = UserSocialAuth.objects.create(
             user=self.user,
             provider='openstreetmap',
             uid='123123',
             )
+        self.social_auth.set_extra_data({'avatar': 'http://theurl.org/pic.jpg'})
         self.url = reverse('users:detail')
 
     def test_view_unauthenticated(self):
@@ -34,6 +35,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('uid'), '123123')
         self.assertEqual(response.data.get('is_staff'), False)
         self.assertEqual(response.data.get('is_active'), True)
+        self.assertEqual(response.data.get('avatar'), 'http://theurl.org/pic.jpg')
         self.assertFalse('password' in response.data.keys())
 
     def test_update_view(self):
@@ -59,6 +61,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.client.login(username='test_2', password='password')
         response = self.client.get(self.url)
         self.assertEqual(response.data.get('uid'), None)
+        self.assertEqual(response.data.get('avatar'), None)
 
 
 class TestSocialAuthAPIView(APITestCase):

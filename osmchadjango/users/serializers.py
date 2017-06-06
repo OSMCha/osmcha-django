@@ -8,6 +8,7 @@ from rest_framework.fields import SerializerMethodField
 
 class UserSerializer(ModelSerializer):
     uid = SerializerMethodField()
+    avatar = SerializerMethodField()
 
     def get_uid(self, obj):
         try:
@@ -15,9 +16,19 @@ class UserSerializer(ModelSerializer):
         except AttributeError:
             return None
 
+    def get_avatar(self, obj):
+        try:
+            return obj.social_auth.filter(
+                provider='openstreetmap'
+                ).last().extra_data.get('avatar')
+        except AttributeError:
+            return None
+
     class Meta:
         model = get_user_model()
-        fields = ('id', 'username', 'is_staff', 'is_active', 'uid', 'email')
+        fields = (
+            'id', 'uid', 'username', 'is_staff', 'is_active',  'email', 'avatar'
+            )
         read_only_fields = ('username', 'is_staff', 'is_active', 'id', 'uid')
 
 
