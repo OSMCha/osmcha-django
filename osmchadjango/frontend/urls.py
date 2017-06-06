@@ -13,9 +13,4 @@ urlpatterns = [
         view=views.changeset_view
     ),
 
-    # Catch-all URL to render the front-end if nothing else matches
-    url(
-        regex=r'^',
-        view=views.filter_view
-    )
 ]
