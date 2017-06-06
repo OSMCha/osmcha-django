@@ -1,6 +1,7 @@
 from django.core.urlresolvers import reverse
 
 from rest_framework.test import APITestCase
+from social_django.models import UserSocialAuth
 
 from ..models import User
 
@@ -11,6 +12,11 @@ class TestCurrentUserDetailAPIView(APITestCase):
             username='test',
             password='password',
             email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
             )
         self.url = reverse('users:detail')
 
@@ -25,6 +31,9 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('id'), self.user.id)
         self.assertEqual(response.data.get('username'), 'test')
         self.assertEqual(response.data.get('email'), 'a@a.com')
+        self.assertEqual(response.data.get('uid'), '123123')
+        self.assertEqual(response.data.get('is_staff'), False)
+        self.assertEqual(response.data.get('is_active'), True)
         self.assertFalse('password' in response.data.keys())
 
     def test_update_view(self):
@@ -40,6 +49,16 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('email'), 'admin@a.com')
         self.assertEqual(response.data.get('username'), 'test')
         self.assertEqual(response.data.get('is_staff'), False)
+
+    def test_uid_field_of_non_social_user(self):
+        self.user_2 = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='b@a.com'
+            )
+        self.client.login(username='test_2', password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.data.get('uid'), None)
 
 
 class TestSocialAuthAPIView(APITestCase):
