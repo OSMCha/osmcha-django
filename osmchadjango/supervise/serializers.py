@@ -7,7 +7,7 @@ from rest_framework.fields import (
     ReadOnlyField
     )
 from rest_framework.validators import ValidationError, UniqueTogetherValidator
-from rest_framework.serializers import ModelSerializer, SlugRelatedField
+from rest_framework.serializers import ModelSerializer
 
 from .models import AreaOfInterest, BlacklistedUser
 
