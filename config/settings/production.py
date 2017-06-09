@@ -81,13 +81,6 @@ DATABASES = {
 # ------------------------------------------------------------------------------
 # Configured to use Redis, if you prefer another method, comment the REDIS and
 # set up your prefered way.
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-#         'LOCATION': 'cache_table',
-#         'TIMEOUT': 60
-#     }
-# }
 
 REDIS_LOCATION = '{0}/{1}'.format(env('REDIS_URL', default='redis://127.0.0.1:6379'), 0)
 CACHES = {
@@ -101,6 +94,12 @@ CACHES = {
         }
     }
 }
+
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 180
+CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 # Your production stuff: Below this line define 3rd party library settings
 
