@@ -12,6 +12,14 @@ from __future__ import absolute_import, unicode_literals
 
 import environ
 import os
+import json
+try:
+    from urllib.parse import urljoin
+    from urllib.request import urlopen
+except ImportError:
+    from urlparse import urljoin
+    from urllib import urlopen
+
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('osmchadjango')
@@ -347,4 +355,22 @@ REST_SOCIAL_DOMAIN_FROM_ORIGIN = False
 EXTERNAL_FRONTEND_URL = env(
     'FRONTEND_URL',
     default='https://mapbox.github.io/osmcha-frontend/oauth-landing.html'
+    )
+
+try:
+    asset = json.loads(
+        open('../../osmchadjango/static/asset-manifest.json', 'r').read()
+        )
+except FileNotFoundError:
+    asset = json.loads(
+        urlopen('https://raw.githubusercontent.com/mapbox/osmcha-frontend/gh-pages/asset-manifest.json').read()
+        )
+
+FRONTEND_CSS_URL = urljoin(
+    'https://mapbox.github.io/osmcha-frontend/',
+    asset.get('main.css')
+    )
+FRONTEND_JS_URL = urljoin(
+    'https://mapbox.github.io/osmcha-frontend/',
+    asset.get('main.js')
     )
