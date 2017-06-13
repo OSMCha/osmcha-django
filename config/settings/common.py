@@ -361,9 +361,11 @@ try:
     asset = json.loads(
         open('../../osmchadjango/static/asset-manifest.json', 'r').read()
         )
-except FileNotFoundError:
+except (IOError, OSError):
     asset = json.loads(
-        urlopen('https://raw.githubusercontent.com/mapbox/osmcha-frontend/gh-pages/asset-manifest.json').read()
+        urlopen(
+            'https://raw.githubusercontent.com/mapbox/osmcha-frontend/gh-pages/asset-manifest.json'
+            ).read().decode('utf-8')
         )
 
 FRONTEND_CSS_URL = urljoin(
