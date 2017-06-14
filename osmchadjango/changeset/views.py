@@ -59,7 +59,7 @@ class ChangesetListAPIView(ListAPIView):
         'check_user'
         ).prefetch_related(
         'tags', 'reasons', 'features', 'features__reasons'
-        ).exclude(user=None)
+        ).exclude(user="")
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'

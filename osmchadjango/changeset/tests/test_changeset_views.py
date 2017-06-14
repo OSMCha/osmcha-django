@@ -21,6 +21,8 @@ class TestChangesetListView(APITestCase):
     def setUp(self):
         SuspectChangesetFactory.create_batch(26)
         ChangesetFactory.create_batch(26)
+        # list endpoints will not list Changesets with user=""
+        ChangesetFactory(user="")
         self.url = reverse('changeset:list')
 
     def test_changeset_list_response(self):
