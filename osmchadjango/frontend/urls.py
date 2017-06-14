@@ -27,6 +27,11 @@ urlpatterns = [
         name='local-landing'
     ),
     url(
+        regex=r'^favicon.ico',
+        view=views.favicon_view,
+        name='favicon'
+    ),
+    url(
         regex=r'^changesets/(?P<pk>\d+)/$',
         view=TemplateView.as_view(template_name="frontend/index.html"),
         name='changeset-detail'
