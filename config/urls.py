@@ -5,7 +5,6 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic import TemplateView
 from django.views.generic.base import RedirectView
 from django.views import defaults
 from django.views import static as static_views
@@ -35,25 +34,21 @@ api_urls = [
     ]
 
 urlpatterns = [
-    url(r'^about/$', TemplateView.as_view(template_name='pages/about.html'), name="about"),
     # Django Admin
     url(r'^admin/', include(admin.site.urls)),
-    # redirect user to frontend url after OSM authentication
-    url(r'^frontend/$',
-        RedirectView.as_view(
-            url=settings.EXTERNAL_FRONTEND_URL,
-            query_string=True
-            )
-        ),
+
     # api docs
     url(r'^api-docs/$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
-    # url(r'^$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
+
     # include api_urls
     url(
         r'^',
         include(api_urls)
         ),
-    url(r'^', include(frontend_urls)),
+
+    # frontend urls
+    url(r'^', include(frontend_urls, namespace="frontend")),
+
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
