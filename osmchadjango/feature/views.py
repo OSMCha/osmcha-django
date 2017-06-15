@@ -92,7 +92,7 @@ def create_feature(request):
 
     if 'properties' not in feature.keys():
         return Response(
-            {'message': 'Expecting a single GeoJSON feature.'},
+            {'detail': 'Expecting a single GeoJSON feature.'},
             status=status.HTTP_400_BAD_REQUEST
             )
     properties = feature.get('properties', {})
@@ -100,7 +100,7 @@ def create_feature(request):
 
     if not changeset_id:
         return Response(
-            {'message': 'osm:changeset field is missing.'},
+            {'detail': 'osm:changeset field is missing.'},
             status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -116,7 +116,7 @@ def create_feature(request):
         defaults['geometry'] = GEOSGeometry(json.dumps(feature['geometry']))
     except (GDALException, ValueError, TypeError) as e:
         return Response(
-            {'message': '{} in geometry field of feature {}'.format(e, properties['osm:id'])},
+            {'detail': '{} in geometry field of feature {}'.format(e, properties['osm:id'])},
             status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -193,7 +193,7 @@ def create_feature(request):
         print('Value error with feature %s' % suspicious_feature.osm_id)
 
     return Response(
-        {'message': 'Feature created.'},
+        {'detail': 'Feature created.'},
         status=status.HTTP_201_CREATED
         )
 
@@ -214,7 +214,7 @@ class CheckFeature(ModelViewSet):
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
         return Response(
-            {'message': 'Feature marked as {}.'.format('harmful' if harmful else 'good')},
+            {'detail': 'Feature marked as {}.'.format('harmful' if harmful else 'good')},
             status=status.HTTP_200_OK
             )
 
@@ -228,12 +228,12 @@ class CheckFeature(ModelViewSet):
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:
             return Response(
-                {'message': 'Feature was already checked.'},
+                {'detail': 'Feature was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not check his own feature.'},
+                {'detail': 'User can not check his own feature.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -257,12 +257,12 @@ class CheckFeature(ModelViewSet):
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:
             return Response(
-                {'message': 'Feature was already checked.'},
+                {'detail': 'Feature was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not check his own feature.'},
+                {'detail': 'User can not check his own feature.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -287,7 +287,7 @@ def uncheck_feature(request, changeset, slug):
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     if instance.checked is False:
         return Response(
-            {'message': 'Feature is not checked.'},
+            {'detail': 'Feature is not checked.'},
             status=status.HTTP_403_FORBIDDEN
             )
     elif request.user == instance.check_user:
@@ -299,12 +299,12 @@ def uncheck_feature(request, changeset, slug):
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
         return Response(
-            {'message': 'Feature marked as unchecked.'},
+            {'detail': 'Feature marked as unchecked.'},
             status=status.HTTP_200_OK
             )
     else:
         return Response(
-            {'message': 'User does not have permission to uncheck this feature.'},
+            {'detail': 'User does not have permission to uncheck this feature.'},
             status=status.HTTP_403_FORBIDDEN
             )
 
@@ -335,19 +335,19 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
 
         if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not add tags to his own feature.'},
+                {'detail': 'User can not add tags to his own feature.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if feature.checked and (
             request.user != feature.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not add tags to a feature checked by another user.'},
+                {'detail': 'User can not add tags to a feature checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
         feature.tags.add(tag)
         return Response(
-            {'message': 'Tag added to the feature.'},
+            {'detail': 'Tag added to the feature.'},
             status=status.HTTP_200_OK
             )
 
@@ -367,18 +367,18 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
 
         if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not remove tags from his own feature.'},
+                {'detail': 'User can not remove tags from his own feature.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if feature.checked and (
             request.user != feature.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not remove tags of a feature checked by another user.'},
+                {'detail': 'User can not remove tags of a feature checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
         feature.tags.remove(tag)
         return Response(
-            {'message': 'Tag removed from the feature.'},
+            {'detail': 'Tag removed from the feature.'},
             status=status.HTTP_200_OK
             )

@@ -165,7 +165,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
         if serializer.is_valid():
             reason.changesets.add(*serializer.data['changesets'])
             return Response(
-                {'message': 'Suspicion Reasons added to changesets.'},
+                {'detail': 'Suspicion Reasons added to changesets.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -185,7 +185,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
         if serializer.is_valid():
             reason.changesets.remove(*serializer.data['changesets'])
             return Response(
-                {'message': 'Suspicion Reasons removed from changesets.'},
+                {'detail': 'Suspicion Reasons removed from changesets.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -215,7 +215,7 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
                 )
             reason.changesets.add(*changesets)
             return Response(
-                {'message': 'Suspicion Reasons added to features.'},
+                {'detail': 'Suspicion Reasons added to features.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -241,7 +241,7 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
                 )
             reason.changesets.remove(*changesets)
             return Response(
-                {'message': 'Suspicion Reasons removed from features.'},
+                {'detail': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -279,7 +279,7 @@ class CheckChangeset(ModelViewSet):
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
         return Response(
-            {'message': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
+            {'detail': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
             status=status.HTTP_200_OK
             )
 
@@ -293,12 +293,12 @@ class CheckChangeset(ModelViewSet):
         changeset = self.get_object()
         if changeset.checked:
             return Response(
-                {'message': 'Changeset was already checked.'},
+                {'detail': 'Changeset was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not check his own changeset.'},
+                {'detail': 'User can not check his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -322,12 +322,12 @@ class CheckChangeset(ModelViewSet):
         changeset = self.get_object()
         if changeset.checked:
             return Response(
-                {'message': 'Changeset was already checked.'},
+                {'detail': 'Changeset was already checked.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not check his own changeset.'},
+                {'detail': 'User can not check his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -354,7 +354,7 @@ def uncheck_changeset(request, pk):
         )
     if instance.checked is False:
         return Response(
-            {'message': 'Changeset is not checked.'},
+            {'detail': 'Changeset is not checked.'},
             status=status.HTTP_403_FORBIDDEN
             )
     elif request.user == instance.check_user:
@@ -366,12 +366,12 @@ def uncheck_changeset(request, pk):
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
         return Response(
-            {'message': 'Changeset marked as unchecked.'},
+            {'detail': 'Changeset marked as unchecked.'},
             status=status.HTTP_200_OK
             )
     else:
         return Response(
-            {'message': 'User does not have permission to uncheck this changeset.'},
+            {'detail': 'User does not have permission to uncheck this changeset.'},
             status=status.HTTP_403_FORBIDDEN
             )
 
@@ -395,19 +395,19 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not add tags to his own changeset.'},
+                {'detail': 'User can not add tags to his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
             request.user != changeset.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not add tags to a changeset checked by another user.'},
+                {'detail': 'User can not add tags to a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
         changeset.tags.add(tag)
         return Response(
-            {'message': 'Tag added to the changeset.'},
+            {'detail': 'Tag added to the changeset.'},
             status=status.HTTP_200_OK
             )
 
@@ -423,19 +423,19 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'message': 'User can not remove tags from his own changeset.'},
+                {'detail': 'User can not remove tags from his own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
             request.user != changeset.check_user and not request.user.is_staff):
             return Response(
-                {'message': 'User can not remove tags from a changeset checked by another user.'},
+                {'detail': 'User can not remove tags from a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
         changeset.tags.remove(tag)
         return Response(
-            {'message': 'Tag removed from the changeset.'},
+            {'detail': 'Tag removed from the changeset.'},
             status=status.HTTP_200_OK
             )
 
