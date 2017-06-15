@@ -41,7 +41,7 @@ api_urls = [
         ),
     ]
 
-urlpatterns = [
+urlpatterns += [
     # Django Admin
     url(r'^admin/', include(admin.site.urls)),
 
