@@ -14,6 +14,14 @@ from .docs import SwaggerSchemaView
 
 API_BASE_URL = 'api/v1/'
 
+urlpatterns = []
+
+# If static files are not intercepted by the web-server, serve them with the dev-server:
+if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
+    urlpatterns += [
+        url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
+        ]
+
 api_urls = [
     url(
         r'^{}'.format(API_BASE_URL),
@@ -63,8 +71,4 @@ if settings.DEBUG:
         url(r'^__debug__/', include(debug_toolbar.urls)),
         ]
 
-# If static files are not intercepted by the web-server, serve them with the dev-server:
-if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
-    urlpatterns += [
-        url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
-        ]
+
