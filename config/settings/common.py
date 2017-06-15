@@ -12,13 +12,6 @@ from __future__ import absolute_import, unicode_literals
 
 import environ
 import os
-import json
-try:
-    from urllib.parse import urljoin
-    from urllib.request import urlopen
-except ImportError:
-    from urlparse import urljoin
-    from urllib import urlopen
 
 
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
@@ -350,5 +343,9 @@ REST_FRAMEWORK = {
 # Allow cross domain requests
 CORS_ORIGIN_ALLOW_ALL = True
 
-REST_SOCIAL_OAUTH_REDIRECT_URI = '/oauth-landing.html'
-REST_SOCIAL_DOMAIN_FROM_ORIGIN = False
+# Define the URL to where the user will be redirected after the authentication
+# in OSM website
+OAUTH_REDIRECT_URI = env(
+    'OAUTH_REDIRECT_URI',
+    default='http://localhost:8000/oauth-landing.html'
+    )

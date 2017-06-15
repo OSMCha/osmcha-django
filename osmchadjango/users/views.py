@@ -51,7 +51,7 @@ class SocialAuthAPIView(GenericAPIView):
     base_url = 'https://www.openstreetmap.org/oauth'
     request_token_url = '{}/request_token?oauth_callback={}'.format(
         base_url,
-        'oauth-landing.html'
+        settings.OAUTH_REDIRECT_URI
         )
     access_token_url = '{}/access_token'.format(base_url)
 

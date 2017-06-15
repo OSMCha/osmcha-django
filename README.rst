@@ -51,10 +51,8 @@ OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https:
 DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
 DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
 DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
-EXTERNAL_FRONTEND_URL                   FRONTEND_URL                      *                                         *
+OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
 ======================================= ================================= ========================================= ===========================================
-
-* = https://mapbox.github.io/osmcha-frontend/oauth_landing.html
 
 You can set each of these variables with:
 
