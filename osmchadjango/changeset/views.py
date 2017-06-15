@@ -210,6 +210,10 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.features.add(*serializer.data['features'])
+            changesets = Changeset.objects.filter(
+                features__in=serializer.data['features']
+                )
+            reason.changesets.add(*changesets)
             return Response(
                 {'message': 'Suspicion Reasons added to features.'},
                 status=status.HTTP_200_OK
@@ -230,6 +234,12 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             reason.features.remove(*serializer.data['features'])
+            changesets = Changeset.objects.filter(
+                features__id__in=serializer.data['features']
+                ).exclude(
+                    features__reasons=reason
+                )
+            reason.changesets.remove(*changesets)
             return Response(
                 {'message': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK
