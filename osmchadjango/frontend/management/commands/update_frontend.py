@@ -23,7 +23,7 @@ class Command(BaseCommand):
         repo = git.Repo.clone_from(
             'https://github.com/mapbox/osmcha-frontend.git',
             temp_dir,
-            branch='oh-pages'
+            branch=settings.OSMCHA_FRONTEND_VERSION
             )
         print('Cloned osmcha-frontend ({}) to {}'.format(repo.commit().hexsha, temp_dir))
 
