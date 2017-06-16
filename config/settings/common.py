@@ -113,7 +113,10 @@ FIXTURE_DIRS = (
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
-FRONTEND_JS_URL = env('FRONTEND_JS_URL', default='foobar.js')
+# FRONTEND SETTINGS
+# -----------------------------------------------------------------------------
+# Version or any valid git branch tag of front-end code
+OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
