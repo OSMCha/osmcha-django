@@ -1,5 +1,5 @@
 osmcha-django
-==============================
+==============
 
 .. image:: https://travis-ci.org/willemarcel/osmcha-django.svg
     :target: https://travis-ci.org/willemarcel/osmcha-django
@@ -8,9 +8,12 @@ osmcha-django
     :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
 
-A database and frontend to `OSMCHA <https://github.com/willemarcel/osmcha>`_. The aim of OSMCHA is to help find harmful
-edits in the OpenStreetMap.
+The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
+It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
+This project provides a Django application that get the changesets from the
+OpenStreetMap API, analyses and store it in the database and finally provides a
+REST API to interact with the changeset data.
 
 License: GPLv3
 
@@ -52,6 +55,7 @@ DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None  
 DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
 DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
 OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
+OSMCHA_FRONTEND_VERSION                 OSMCHA_FRONTEND_VERSION           oh-pages                                  oh-pages
 ======================================= ================================= ========================================= ===========================================
 
 You can set each of these variables with:
@@ -130,6 +134,18 @@ How to login using the OAuth api
 We have a development instance running in https://osmcha-django-api-test.tilestream.net
 
 The API documentation is available at https://osmcha-django-api-test.tilestream.net/api-docs/
+
+Frontend
+^^^^^^^^
+
+`osmcha-frontend https://github.com/mapbox/osmcha-frontend`_ is one web interface
+that you can use to interact with the API. We have a django management command
+to get the last version of osmcha-frontend and serve it with the API.
+
+    $ python manage.py update_frontend
+
+After that, if you have set all the environment variables properly, you can start
+the server and have the frontend in your root url.
 
 Feature creation endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -113,11 +113,6 @@ FIXTURE_DIRS = (
 # ------------------------------------------------------------------------------
 EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 
-# FRONTEND SETTINGS
-# -----------------------------------------------------------------------------
-# Version or any valid git branch tag of front-end code
-OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
-
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
@@ -345,6 +340,11 @@ REST_FRAMEWORK = {
 
 # Allow cross domain requests
 CORS_ORIGIN_ALLOW_ALL = True
+
+# FRONTEND SETTINGS
+# -----------------------------------------------------------------------------
+# Version or any valid git branch tag of front-end code
+OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website
