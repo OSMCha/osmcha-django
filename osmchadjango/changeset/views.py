@@ -20,6 +20,7 @@ from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
+from ..feature.models import Feature
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
@@ -239,6 +240,15 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
                 ).exclude(
                     features__reasons=reason
                 )
+
+            features = Feature.objects.filter(
+                id__in=serializer.data['features']
+                )
+
+            for feature in features:
+                if feature.reasons.count() == 0:
+                    feature.delete()
+
             reason.changesets.remove(*changesets)
             return Response(
                 {'detail': 'Suspicion Reasons removed from features.'},
