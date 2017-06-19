@@ -134,6 +134,11 @@ def create_feature(request):
         defaults['old_geojson'] = feature['properties'].pop('oldVersion')
 
     # Each changed feature should have a 'suspicions' array of objects in its properties
+    print(
+        'Creating feature {} of changeset {}.'.format(
+            properties['osm:id'], changeset_id
+            )
+        )
     suspicions = feature['properties'].pop('suspicions')
     has_visible_features = False
     if suspicions:
@@ -165,6 +170,10 @@ def create_feature(request):
         changeset.is_suspect = True
         changeset.save(update_fields=['is_suspect'])
 
+    print(
+        'Changeset {} {}'.format(changeset_id, 'created' if created else 'updated')
+        )
+
     try:
         changeset.reasons.add(*reasons)
     except IntegrityError:
@@ -182,6 +191,11 @@ def create_feature(request):
         osm_id=properties['osm:id'],
         changeset=changeset,
         defaults=defaults
+        )
+    print(
+        'Feature {} {}.'.format(
+            properties['osm:id'], 'created' if created else 'updated'
+            )
         )
 
     try:
