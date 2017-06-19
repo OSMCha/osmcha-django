@@ -58,3 +58,4 @@ osmcha==0.3.8
 
 # git python is required by the frontend management command
 GitPython==2.1.5
+
