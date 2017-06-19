@@ -169,6 +169,30 @@ class TestCreateFeature(APITestCase):
             )
         self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 0)
 
+    def test_create_feature_two_times_with_different_reasons(self):
+        response = self.client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 201)
+
+        response = self.client.post(
+            reverse('feature:create'),
+            data=json.dumps(self.unvisible_fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(Feature.objects.count(), 1)
+        self.assertEqual(Feature.objects.get(osm_id=169218447).reasons.count(), 3)
+        self.assertEqual(SuspicionReasons.objects.count(), 3)
+        self.assertEqual(
+            SuspicionReasons.objects.filter(is_visible=False).count(), 1
+            )
+        self.assertEqual(Changeset.objects.filter(is_suspect=True).count(), 1)
+
     def test_create_feature_with_is_visible_false_and_suspect_changeset(self):
         Changeset.objects.create(
             id=self.unvisible_fixture['properties'].get('osm:changeset'),
