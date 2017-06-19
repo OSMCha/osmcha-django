@@ -1029,7 +1029,7 @@ class TestAddTagToFeature(APITestCase):
         self.assertIn(self.tag, self.checked_feature.tags.all())
 
 
-class TestRemoveTagToChangeset(APITestCase):
+class TestRemoveTagFromFeature(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(
             username='user',
