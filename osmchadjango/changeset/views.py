@@ -240,16 +240,15 @@ class AddRemoveFeatureReasonsAPIView(ModelViewSet):
                 ).exclude(
                     features__reasons=reason
                 )
+            reason.changesets.remove(*changesets)
 
             features = Feature.objects.filter(
                 id__in=serializer.data['features']
                 )
-
             for feature in features:
                 if feature.reasons.count() == 0:
                     feature.delete()
 
-            reason.changesets.remove(*changesets)
             return Response(
                 {'detail': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK

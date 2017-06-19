@@ -5,7 +5,7 @@ from rest_framework.test import APITestCase
 
 from ...users.models import User
 from ..models import SuspicionReasons, Tag
-from ...feature.tests.modelfactories import FeatureFactory
+from ...feature.tests.modelfactories import FeatureFactory, Feature
 from .modelfactories import ChangesetFactory
 
 
@@ -227,11 +227,9 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
         self.feature_2 = FeatureFactory(changeset=self.changeset_1)
         self.features = [self.feature_1, self.feature_2]
         self.feature_3 = FeatureFactory(changeset=self.changeset_1)
-        self.reason_2.features.add(self.feature_1)
-        self.reason_2.features.add(self.feature_2)
-        self.reason_2.features.add(self.feature_3)
-        self.reason_2.changesets.add(self.feature_1.changeset)
-        self.reason_2.changesets.add(self.feature_2.changeset)
+        self.reason_1.features.set([self.feature_1, self.feature_2])
+        self.reason_2.features.set([self.feature_1, self.feature_2, self.feature_3])
+        self.reason_2.changesets.set([self.feature_1.changeset, self.feature_2.changeset])
 
     def test_unathenticated_request(self):
         """Unauthenticated users can not access these endpoints."""
@@ -299,14 +297,27 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             data={"features": [f.id for f in self.features]}
             )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(self.feature_1.reasons.count(), 0)
-        self.assertEqual(self.feature_2.reasons.count(), 0)
+        self.assertEqual(self.feature_1.reasons.count(), 1)
+        self.assertEqual(self.feature_2.reasons.count(), 1)
+        self.assertEqual(Feature.objects.count(), 3)
 
         # test if the reason is removed also from the feature_1 changeset
         self.assertNotIn(self.reason_2, self.feature_1.changeset.reasons.all())
         # the feature_2 changeset must continue with the reason_2 because one of
         # its features also has the reason_2
         self.assertIn(self.reason_2, self.feature_2.changeset.reasons.all())
+
+        # remove reason from feature_3, so this feature must be deleted because
+        # the features must only remain in the database if it has at least one
+        # reason
+        response = self.client.delete(
+            reverse('changeset:feature-reasons', args=[self.reason_2.id]),
+            data={"features": [self.feature_3.id]}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Feature.objects.count(), 2)
+        self.assertIn(self.feature_1, Feature.objects.all())
+        self.assertIn(self.feature_2, Feature.objects.all())
 
     def test_bad_request(self):
         self.client.login(username=self.user.username, password='password')
