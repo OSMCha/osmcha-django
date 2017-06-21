@@ -131,10 +131,6 @@ How to login using the OAuth api
 * Make another POST request to ``<your_base_url>/api/v1/social-auth/`` and send the ``oauth_token``, ``oauth_token_secret`` and ``oauth_verifier`` as the data. You'll receive a token that you can use to make authenticated requests.
 * The token key should be included in the Authorization HTTP header. The key should be prefixed by the string literal "Token", with whitespace separating the two strings. For example: ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``.
 
-We have a development instance running in https://osmcha-django-api-test.tilestream.net
-
-The API documentation is available at https://osmcha-django-api-test.tilestream.net/api-docs/
-
 Frontend
 ^^^^^^^^
 
@@ -152,6 +148,16 @@ Feature creation endpoint
 
 The feature creation endpoint allows only admin users to create features. You can
 use the admin site to create a token to the user.
+
+Instances
+---------
+
+We have some instances running ``osmcha-django``:
+
+The main instance is https://http://osmcha.mapbox.com/. You can see the API
+documentation at https://osmcha.mapbox.com/api-docs/.
+
+Furthermore, we have a test instance running at https://osmcha-django-api-test.tilestream.net/.
 
 Deployment
 ------------
