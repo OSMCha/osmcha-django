@@ -366,7 +366,7 @@ def uncheck_changeset(request, pk):
             {'detail': 'Changeset is not checked.'},
             status=status.HTTP_403_FORBIDDEN
             )
-    elif request.user == instance.check_user:
+    elif request.user == instance.check_user or request.user.is_staff:
         instance.checked = False
         instance.harmful = None
         instance.check_user = None

@@ -852,8 +852,8 @@ class TestUncheckChangesetView(APITestCase):
         self.assertIsNone(self.good_changeset.check_date)
         self.assertEqual(self.good_changeset.tags.count(), 1)
 
-    def test_user_uncheck_permission(self):
-        """User can only uncheck changesets that he checked."""
+    def test_common_user_uncheck_permission(self):
+        """Common user can only uncheck changesets that he checked."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.harmful_changeset_2.pk]),
@@ -873,6 +873,35 @@ class TestUncheckChangesetView(APITestCase):
             reverse('changeset:uncheck', args=[self.suspect_changeset.pk]),
             )
         self.assertEqual(response.status_code, 403)
+
+    def test_staff_user_uncheck_any_changeset(self):
+        """A staff user can uncheck changesets checked by any user."""
+        staff_user = User.objects.create_user(
+            username='staff_test',
+            password='password',
+            email='s@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=staff_user,
+            provider='openstreetmap',
+            uid='87873',
+            )
+        self.client.login(username=staff_user.username, password='password')
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.good_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.harmful_changeset.pk]),
+            )
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(
+            reverse('changeset:uncheck', args=[self.harmful_changeset_2.pk]),
+            )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(Changeset.objects.filter(checked=True).count(), 0)
 
 
 class TestAddTagToChangeset(APITestCase):

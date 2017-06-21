@@ -125,7 +125,7 @@ def create_feature(request):
             defaults['old_geometry'] = GEOSGeometry(
                 json.dumps(properties['oldVersion']['geometry'])
                 )
-        except (GDALException, ValueError, TypeError) as e:
+        except (GDALException, ValueError, TypeError, KeyError) as e:
             print(
                 '{} in oldVersion.geometry field of feature {}'.format(
                     e, properties['osm:id']
@@ -304,7 +304,7 @@ def uncheck_feature(request, changeset, slug):
             {'detail': 'Feature is not checked.'},
             status=status.HTTP_403_FORBIDDEN
             )
-    elif request.user == instance.check_user:
+    elif request.user == instance.check_user or request.user.is_staff:
         instance.checked = False
         instance.harmful = None
         instance.check_user = None

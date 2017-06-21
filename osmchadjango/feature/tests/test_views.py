@@ -905,6 +905,45 @@ class TestUncheckFeatureView(APITestCase):
             )
         self.assertEqual(response.status_code, 403)
 
+    def test_staff_user_can_uncheck_any_feature(self):
+        """A staff user can uncheck feature checked by any user"""
+        staff_user = User.objects.create_user(
+            username='staff_test',
+            password='password',
+            email='s@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=staff_user,
+            provider='openstreetmap',
+            uid='87873',
+            )
+        self.client.login(username=staff_user.username, password='password')
+
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.good_feature.changeset, self.good_feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.harmful_feature_2.changeset, self.harmful_feature_2.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+        response = self.client.put(
+            reverse(
+                'feature:uncheck',
+                args=[self.harmful_feature.changeset, self.harmful_feature.url]
+                )
+            )
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(Feature.objects.filter(checked=True).count(), 0)
+
 
 class TestAddTagToFeature(APITestCase):
     def setUp(self):
