@@ -1,56 +1,98 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.core.urlresolvers import reverse
-from django.views.generic import DetailView, ListView, RedirectView, UpdateView
+from django.contrib.auth import get_user_model
+from django.conf import settings
 
-from braces.views import LoginRequiredMixin
+from rest_framework.authtoken.models import Token
+from rest_framework.generics import RetrieveUpdateAPIView, GenericAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from social_django.utils import load_strategy, load_backend
+from social_core.utils import parse_qs
+import oauth2 as oauth
 
-from osmchadjango.changeset.models import UserWhitelist
-from .forms import UserForm
-from .models import User
+from .serializers import UserSerializer, SocialSignUpSerializer
 
-
-class UserDetailView(LoginRequiredMixin, DetailView):
-    model = User
-    # These next two lines tell the view to index lookups by username
-    slug_field = "username"
-    slug_url_kwarg = "username"
-
-    def get_context_data(self, **kwargs):
-        context = super(UserDetailView, self).get_context_data(**kwargs)
-        whitelisted_users = UserWhitelist.objects.filter(user=self.object)
-        context['whitelist'] = whitelisted_users
-        return context
+User = get_user_model()
 
 
-class UserRedirectView(LoginRequiredMixin, RedirectView):
-    permanent = False
+class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
+    """
+    get:
+    Get details of the current logged user.
+    patch:
+    Update details of the current logged user. It's allowed only to update the
+    email address.
+    put:
+    Update details of the current logged user. It's allowed only to update the
+    email address.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = UserSerializer
+    model = get_user_model()
+    queryset = model.objects.all()
 
-    def get_redirect_url(self):
-        return reverse("users:detail",
-                       kwargs={"username": self.request.user.username})
-
-
-class UserUpdateView(LoginRequiredMixin, UpdateView):
-
-    form_class = UserForm
-
-    # we already imported User in the view code above, remember?
-    model = User
-
-    # send the user back to their own page after a successful update
-    def get_success_url(self):
-        return reverse("users:detail",
-                       kwargs={"username": self.request.user.username})
-
-    def get_object(self):
-        # Only get the User record for the user making the request
-        return User.objects.get(username=self.request.user.username)
+    def get_object(self, queryset=None):
+        return self.request.user
 
 
-class UserListView(LoginRequiredMixin, ListView):
-    model = User
-    # These next two lines tell the view to index lookups by username
-    slug_field = "username"
-    slug_url_kwarg = "username"
+class SocialAuthAPIView(GenericAPIView):
+    """View that allows to authenticate in OSMCHA with an OpenStreetMap account.
+    Send an empty `POST` request to receive the `oauth_token` and the
+    `oauth_token_secret`. After authenticate in the OSM website, make another
+    `POST` request sending the `oauth_token`, `oauth_token_secret` and the
+    `oauth_verifier` to receive the `token` that you need to make authenticated
+    requests in all OSMCHA endpoints.
+    """
+    queryset = User.objects.all()
+    serializer_class = SocialSignUpSerializer
+
+    base_url = 'https://www.openstreetmap.org/oauth'
+    request_token_url = '{}/request_token?oauth_callback={}'.format(
+        base_url,
+        settings.OAUTH_REDIRECT_URI
+        )
+    access_token_url = '{}/access_token'.format(base_url)
+
+    consumer = oauth.Consumer(
+        settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+        settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
+        )
+
+    def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
+        token = oauth.Token(oauth_token, oauth_token_secret)
+        token.set_verifier(oauth_verifier)
+        client = oauth.Client(self.consumer, token)
+        resp, content = client.request(self.access_token_url, "POST")
+        return parse_qs(content)
+
+    def get_user_token(self, request, access_token):
+        backend = load_backend(
+            strategy=load_strategy(request),
+            name='openstreetmap',
+            redirect_uri=None
+            )
+        authed_user = request.user if not request.user.is_anonymous() else None
+        user = backend.do_auth(access_token, user=authed_user)
+        token, created = Token.objects.get_or_create(user=user)
+        return {'token': token.key}
+
+    def post(self, request, *args, **kwargs):
+        if 'oauth_token' not in request.data.keys() or not request.data['oauth_token']:
+            client = oauth.Client(self.consumer)
+            resp, content = client.request(self.request_token_url, "GET")
+            request_token = parse_qs(content)
+            return Response({
+                'oauth_token': request_token['oauth_token'],
+                'oauth_token_secret': request_token['oauth_token_secret']
+                })
+        else:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            access_token = self.get_access_token(
+                request.data['oauth_token'],
+                request.data['oauth_token_secret'],
+                request.data['oauth_verifier']
+                )
+            return Response(self.get_user_token(request, access_token))

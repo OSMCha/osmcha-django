@@ -1,45 +1,46 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 
 from . import views
 
 urlpatterns = [
     url(
-        regex=r'^features$',
-        view=views.FeatureListView.as_view(),
-        name='features'
+        regex=r'^features/$',
+        view=views.FeatureListAPIView.as_view(),
+        name='list'
     ),
     url(
-        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=views.FeatureDetailView.as_view(),
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/$',
+        view=views.FeatureDetailAPIView.as_view(),
         name='detail'
     ),
     url(
-        regex=r'^features/api/suspicion/$',
-        view=views.suspicion_create,
-        name='create_suspicion'
+        regex=r'^features/create/$',
+        view=views.create_feature,
+        name='create'
     ),
     url(
-        regex=r'^(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/geojson$',
-        view=views.get_geojson,
-        name='get_geojson'
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-harmful/$',
+        view=views.CheckFeature.as_view({'put': 'set_harmful'}),
+        name='set-harmful'
     ),
     url(
-        regex=r'^set-harmful/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=login_required(views.SetHarmfulFeature.as_view()),
-        name='set_harmful'
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-good/$',
+        view=views.CheckFeature.as_view({'put': 'set_good'}),
+        name='set-good'
     ),
     url(
-        regex=r'^set-good/(?P<changeset>\d+)/features/(?P<slug>[a-zA-Z0-9-]+)/$',
-        view=login_required(views.SetGoodFeature.as_view()),
-        name='set_good'
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/uncheck/$',
+        view=views.uncheck_feature,
+        name='uncheck'
     ),
     url(
-        regex=r'^features/whitelist-user$',
-        view=views.whitelist_user,
-        name='whitelist_user'
+        regex=r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/tags/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveFeatureTagsAPIView.as_view(
+            {'post': 'add_tag', 'delete': 'remove_tag'}
+            ),
+        name='tags'
     ),
 ]

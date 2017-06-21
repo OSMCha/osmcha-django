@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from django.test import TestCase
-from django.contrib.gis.geos import MultiPolygon, Polygon
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
+from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 
 from ...changeset.tests.modelfactories import ChangesetFactory, UserFactory
-from ..models import AreaOfInterest
+from ..models import AreaOfInterest, BlacklistedUser
 
 
 class TestAreaOfInterestModel(TestCase):
@@ -20,12 +23,17 @@ class TestAreaOfInterestModel(TestCase):
         self.area = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            filters={'editor__icontains': 'Potlatch 2', 'harmful': 'False'},
-            place=self.m_polygon
+            filters={
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'geometry': self.m_polygon.geojson
+                },
+            geometry=self.m_polygon
             )
         self.area_2 = AreaOfInterest.objects.create(
             user=self.user,
-            place=self.m_polygon_2
+            filters={'geometry': self.m_polygon_2.geojson},
+            geometry=self.m_polygon_2
             )
         self.area_3 = AreaOfInterest.objects.create(
             user=self.user,
@@ -37,7 +45,7 @@ class TestAreaOfInterestModel(TestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 3)
         self.assertEqual(
             self.area.__str__(),
-            '{} - {}'.format(self.area.id, self.area.name)
+            '{} by {}'.format(self.area.name, self.area.user.username)
             )
 
     def test_unique_name_for_user(self):
@@ -45,18 +53,25 @@ class TestAreaOfInterestModel(TestCase):
             AreaOfInterest.objects.create(
                 user=self.user,
                 name='Best place in the world',
-                place=self.m_polygon
+                geometry=self.m_polygon
                 )
 
     def test_required_user_field(self):
         with self.assertRaises(IntegrityError):
             AreaOfInterest.objects.create(
-                place=self.m_polygon
+                filters={'geometry': self.m_polygon.geojson},
+                geometry=self.m_polygon
+                )
+
+    def test_required_filters_field(self):
+        with self.assertRaises(IntegrityError):
+            AreaOfInterest.objects.create(
+                user=self.user,
+                name='New filter'
                 )
 
     def test_changesets_method(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
-        # changeset created by the same user of the AreaOfInterest
         ChangesetFactory(
             editor='JOSM 1.5',
             harmful=False,
@@ -76,3 +91,74 @@ class TestAreaOfInterestModel(TestCase):
         self.assertIn(changeset, self.area.changesets())
         self.assertEqual(self.area_2.changesets().count(), 0)
         self.assertEqual(self.area_3.changesets().count(), 2)
+
+    def test_other_geometry_types(self):
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+
+        point = Point((0.5, 0.5))
+        point_aoi = AreaOfInterest.objects.create(
+            name='Point filter',
+            user=self.user,
+            filters={
+                'geometry': point.geojson
+                },
+            geometry=point
+            )
+        self.assertEqual(point_aoi.changesets().count(), 1)
+
+        line = LineString(((0.5, 0.5), (1, 1)))
+        line_aoi = AreaOfInterest.objects.create(
+            name='Line filter',
+            user=self.user,
+            filters={
+                'geometry': line.geojson
+                },
+            geometry=line
+            )
+        self.assertEqual(line_aoi.changesets().count(), 1)
+
+        polygon = Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
+        polygon_aoi = AreaOfInterest.objects.create(
+            name='Polygon filter',
+            user=self.user,
+            filters={
+                'geometry': polygon.geojson
+                },
+            geometry=polygon
+            )
+        self.assertEqual(polygon_aoi.changesets().count(), 1)
+
+        self.assertEqual(AreaOfInterest.objects.count(), 6)
+
+
+class TestBlacklistedUserModel(TestCase):
+    def setUp(self):
+        self.user = UserFactory(is_staff=True)
+        self.blacklisted = BlacklistedUser.objects.create(
+            username='Bad User',
+            added_by=self.user,
+            )
+
+    def test_creation(self):
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+        self.assertIsInstance(self.blacklisted.date, datetime)
+
+    def test_validation(self):
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                added_by=self.user,
+                )
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                username='Other User',
+                )
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                username='Bad User',
+                added_by=self.user,
+                )

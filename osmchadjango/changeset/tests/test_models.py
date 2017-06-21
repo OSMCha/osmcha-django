@@ -5,7 +5,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 
 from ..models import (
-    Changeset, SuspicionReasons, Import, UserWhitelist, HarmfulReason
+    Changeset, SuspicionReasons, Import, UserWhitelist, Tag
     )
 from .modelfactories import ChangesetFactory, UserFactory
 
@@ -38,31 +38,31 @@ class TestSuspicionReasonsModel(TestCase):
             SuspicionReasons.objects.create(name='possible import')
 
 
-class TestHarmfulReasonModel(TestCase):
+class TestTagModel(TestCase):
     def setUp(self):
-        self.reason = HarmfulReason.objects.create(name='Illegal import')
+        self.tag = Tag.objects.create(name='Illegal import')
 
     def test_creation(self):
-        self.assertEqual(HarmfulReason.objects.count(), 1)
-        self.assertEqual(self.reason.__str__(), 'Illegal import')
-        self.assertTrue(self.reason.is_visible)
-        self.assertTrue(self.reason.for_changeset)
-        self.assertTrue(self.reason.for_feature)
-        self.reason_2 = HarmfulReason.objects.create(
+        self.assertEqual(Tag.objects.count(), 1)
+        self.assertEqual(self.tag.__str__(), 'Illegal import')
+        self.assertTrue(self.tag.is_visible)
+        self.assertTrue(self.tag.for_changeset)
+        self.assertTrue(self.tag.for_feature)
+        self.tag_2 = Tag.objects.create(
             name='Vandalism',
             description='The changeset is an act of vandalism.',
             is_visible=False,
             for_changeset=False,
             for_feature=True,
             )
-        self.assertEqual(HarmfulReason.objects.count(), 2)
-        self.assertFalse(self.reason_2.is_visible)
-        self.assertFalse(self.reason_2.for_changeset)
-        self.assertTrue(self.reason_2.for_feature)
+        self.assertEqual(Tag.objects.count(), 2)
+        self.assertFalse(self.tag_2.is_visible)
+        self.assertFalse(self.tag_2.for_changeset)
+        self.assertTrue(self.tag_2.for_feature)
 
     def test_validation(self):
         with self.assertRaises(ValidationError):
-            HarmfulReason.objects.create(name='Illegal import')
+            Tag.objects.create(name='Illegal import')
 
 
 class TestWhitelistUserModel(TestCase):
@@ -93,6 +93,7 @@ class TestChangesetModel(TestCase):
 
     def test_changeset_creation(self):
         self.assertIsInstance(self.changeset, Changeset)
+        self.assertGreater(self.changeset.area, 0)
         self.assertEqual(Changeset.objects.all().count(), 1)
 
         self.assertFalse(self.changeset.checked)
@@ -122,12 +123,25 @@ class TestChangesetModel(TestCase):
         reason_2.changesets.add(self.changeset)
         self.assertEqual(self.changeset.reasons.all().count(), 2)
 
-    def test_harmful_reason(self):
-        harmful_reason = HarmfulReason.objects.create(name='Illegal import')
-        harmful_reason_2 = HarmfulReason.objects.create(name='Vandalism')
-        harmful_reason.changesets.add(self.changeset)
-        harmful_reason_2.changesets.add(self.changeset)
-        self.assertEqual(self.changeset.harmful_reasons.all().count(), 2)
+    def test_tag(self):
+        tag = Tag.objects.create(name='Illegal import')
+        tag_2 = Tag.objects.create(name='Vandalism')
+        tag.changesets.add(self.changeset)
+        tag_2.changesets.add(self.changeset)
+        self.assertEqual(self.changeset.tags.all().count(), 2)
+
+
+class TestChangesetModelOrdering(TestCase):
+    def setUp(self):
+        ChangesetFactory.create_batch(10)
+        self.last_id = Changeset.objects.all()[0].id
+        self.first_id = self.last_id - Changeset.objects.count()
+
+    def test_changeset_ordering(self):
+        self.assertEqual(
+            [i.id for i in Changeset.objects.all()],
+            list(range(self.last_id, self.first_id, -1))
+            )
 
 
 class TestImportModel(TestCase):

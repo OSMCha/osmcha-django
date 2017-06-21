@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='changeset',
             name='bbox',
-            field=django.contrib.gis.db.models.fields.PolygonField(db_index=True, null=True, srid=4326),
+            field=django.contrib.gis.db.models.fields.PolygonField(null=True, srid=4326),
         ),
         migrations.AlterField(
             model_name='changeset',

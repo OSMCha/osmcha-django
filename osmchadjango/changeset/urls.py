@@ -1,71 +1,115 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.contrib.auth.decorators import login_required
 from django.conf.urls import url
 
 from . import views
 
 urlpatterns = [
-    # URL pattern for the UserListView
     url(
-        regex=r'^$',
-        view=views.ChangesetListView.as_view(),
-        name='home'
+        regex=r'^changesets/$',
+        view=views.ChangesetListAPIView.as_view(),
+        name='list'
     ),
     url(
-        regex=r'^(?P<pk>\d+)/$',
-        view=views.ChangesetDetailView.as_view(),
+        regex=r'^changesets/suspect/$',
+        view=views.SuspectChangesetListAPIView.as_view(),
+        name='suspect-list'
+    ),
+    url(
+        regex=r'^changesets/no-suspect/$',
+        view=views.NoSuspectChangesetListAPIView.as_view(),
+        name='no-suspect-list'
+    ),
+    url(
+        regex=r'^changesets/harmful/$',
+        view=views.HarmfulChangesetListAPIView.as_view(),
+        name='harmful-list'
+    ),
+    url(
+        regex=r'^changesets/no-harmful/$',
+        view=views.NoHarmfulChangesetListAPIView.as_view(),
+        name='no-harmful-list'
+    ),
+    url(
+        regex=r'^changesets/checked/$',
+        view=views.CheckedChangesetListAPIView.as_view(),
+        name='checked-list'
+    ),
+    url(
+        regex=r'^changesets/unchecked/$',
+        view=views.UncheckedChangesetListAPIView.as_view(),
+        name='unchecked-list'
+    ),
+    url(
+        regex=r'^changesets/(?P<pk>\d+)/$',
+        view=views.ChangesetDetailAPIView.as_view(),
         name='detail'
     ),
     url(
-        regex=r'^set-harmful/(?P<pk>\w+)/$',
-        view=login_required(views.SetHarmfulChangeset.as_view()),
-        name='set_harmful'
+        regex=r'^changesets/(?P<pk>\w+)/set-harmful/$',
+        view=views.CheckChangeset.as_view({'put': 'set_harmful'}),
+        name='set-harmful'
     ),
     url(
-        regex=r'^set-good/(?P<pk>\w+)/$',
-        view=login_required(views.SetGoodChangeset.as_view()),
-        name='set_good'
+        regex=r'^changesets/(?P<pk>\w+)/set-good/$',
+        view=views.CheckChangeset.as_view({'put': 'set_good'}),
+        name='set-good'
     ),
     url(
-        regex=r'^whitelist-user$',
-        view=views.whitelist_user,
-        name='whitelist_user'
+        regex=r'^changesets/(?P<pk>\w+)/uncheck/$',
+        view=views.uncheck_changeset,
+        name='uncheck'
     ),
     url(
-        regex=r'^remove-from-whitelist$',
-        view=views.remove_from_whitelist,
-        name='remove_from_whitelist'
+        regex=r'^changesets/(?P<pk>\w+)/tags/(?P<tag_pk>\w+)/$',
+        view=views.AddRemoveChangesetTagsAPIView.as_view(
+            {'post': 'add_tag', 'delete': 'remove_tag'}
+            ),
+        name='tags'
     ),
     url(
-        regex=r'^stats$',
-        view=views.stats,
+        regex=r'^whitelist-user/$',
+        view=views.UserWhitelistListCreateAPIView.as_view(),
+        name='whitelist-user'
+    ),
+    url(
+        regex=r'^whitelist-user/(?P<whitelist_user>\w+)/$',
+        view=views.UserWhitelistDestroyAPIView.as_view(),
+        name='delete-whitelist-user'
+    ),
+    url(
+        regex=r'^suspicion-reasons/$',
+        view=views.SuspicionReasonsListAPIView.as_view(),
+        name='suspicion-reasons-list'
+    ),
+    url(
+        regex=r'^suspicion-reasons/(?P<pk>\w+)/changesets/$',
+        view=views.AddRemoveChangesetReasonsAPIView.as_view(
+            {'post': 'add_reason_to_changesets', 'delete': 'remove_reason_from_changesets'}
+            ),
+        name='changeset-reasons'
+    ),
+    url(
+        regex=r'^suspicion-reasons/(?P<pk>\w+)/features/$',
+        view=views.AddRemoveFeatureReasonsAPIView.as_view(
+            {'post': 'add_reason_to_features', 'delete': 'remove_reason_from_features'}
+            ),
+        name='feature-reasons'
+    ),
+    url(
+        regex=r'^tags/$',
+        view=views.TagListAPIView.as_view(),
+        name='tags-list'
+    ),
+    url(
+        regex=r'^stats/$',
+        view=views.ChangesetStatsAPIView.as_view(),
         name='stats'
     ),
     url(
-        regex=r'^all-whitelist-users$',
-        view=views.all_whitelist_users,
-        name='all_whitelist_users'
+        regex=r'^user-stats/(?P<uid>\w+)/$',
+        view=views.UserStatsAPIView.as_view(),
+        name='user-stats'
     ),
-    url(
-        regex=r'^all-blacklist-users$',
-        view=views.all_blacklist_users,
-        name='all_blacklist_users'
-    ),
-    url(
-        regex=r'^checked-changesets$',
-        view=views.CheckedChangesetsView.as_view(),
-        name='checked_changesets'
-    ),
-    url(
-        regex=r'^harmful-changesets$',
-        view=views.HarmfulChangesetsView.as_view(),
-        name='harmful_changesets'
-    ),
-    url(
-        regex=r'^undo-changeset-marking/(?P<pk>\w+)/$',
-        view=views.undo_changeset_marking,
-        name='undo_changeset_marking'
-    )
 ]

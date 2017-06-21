@@ -81,13 +81,6 @@ DATABASES = {
 # ------------------------------------------------------------------------------
 # Configured to use Redis, if you prefer another method, comment the REDIS and
 # set up your prefered way.
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
-#         'LOCATION': 'cache_table',
-#         'TIMEOUT': 60
-#     }
-# }
 
 REDIS_LOCATION = '{0}/{1}'.format(env('REDIS_URL', default='redis://127.0.0.1:6379'), 0)
 CACHES = {
@@ -102,6 +95,12 @@ CACHES = {
     }
 }
 
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
+CACHE_MIDDLEWARE_ALIAS = 'default'
+CACHE_MIDDLEWARE_SECONDS = 180
+CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
 # Your production stuff: Below this line define 3rd party library settings
 
 CELERYBEAT_SCHEDULE = {
@@ -110,3 +109,23 @@ CELERYBEAT_SCHEDULE = {
         'schedule': 60 #Run every 60 seconds
     },
 }
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+        ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': env('ANON_USER_THROTTLE_RATE', default='30/min'),
+        'user': env('COMMON_USER_THROTTLE_RATE', default='180/min'),
+        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        },
+    }

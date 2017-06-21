@@ -13,6 +13,7 @@ from __future__ import absolute_import, unicode_literals
 import environ
 import os
 
+
 ROOT_DIR = environ.Path(__file__) - 3  # (/a/b/myfile.py - 3 = /)
 APPS_DIR = ROOT_DIR.path('osmchadjango')
 
@@ -51,11 +52,16 @@ DJANGO_APPS = (
 )
 THIRD_PARTY_APPS = (
     'crispy_forms',  # Form layouts
-    'allauth',  # registration
-    'allauth.account',  # registration
-    'allauth.socialaccount',  # registration
-    'social.apps.django_app.default',
-    'query_parameters',  # django-query-parameters
+    'rest_framework',
+    'rest_framework_gis',
+    'rest_framework.authtoken',
+    'social_django',
+    'rest_framework_swagger',
+    'corsheaders',
+    'coreapi',
+    'coreschema',
+    'django_filters',
+    'cachalot',
 )
 
 # Apps specific for this project go here.
@@ -64,6 +70,7 @@ LOCAL_APPS = (
     'osmchadjango.changeset',
     'osmchadjango.feature',
     'osmchadjango.supervise',
+    'osmchadjango.frontend',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -74,8 +81,11 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -185,6 +195,8 @@ TEMPLATES = [
                 'django.template.context_processors.static',
                 'django.template.context_processors.tz',
                 'django.contrib.messages.context_processors.messages',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
                 # Your stuff: custom template context processors go here
             ],
         },
@@ -229,25 +241,16 @@ ROOT_URLCONF = 'config.urls'
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # CELERY CONFIGURATION
-BROKER_URL = env('CELERY_BROKER_URL', default='amqp://guest:guest@localhost:5672//')
-
-# AUTHENTICATION CONFIGURATION
-# ------------------------------------------------------------------------------
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
+BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 
 # Some really nice defaults
-ACCOUNT_AUTHENTICATION_METHOD = 'username'
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+# ACCOUNT_AUTHENTICATION_METHOD = 'username'
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 # Custom user app defaults
 # Select the correct user model
 AUTH_USER_MODEL = 'users.User'
-LOGIN_REDIRECT_URL = 'users:redirect'
-LOGIN_URL = '/social/login/openstreetmap/'
 
 # SLUGLIFIER
 AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
@@ -255,22 +258,30 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 # SOCIAL AUTH CONFIGURATION
 SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
+
 SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
 SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
-SOCIAL_AUTH_PIPELINE = (
-    'social.pipeline.social_auth.social_details',
-    'social.pipeline.social_auth.social_uid',
-    'social.pipeline.social_auth.auth_allowed',
-    'social.pipeline.social_auth.social_user',
-    'social.pipeline.social_auth.associate_by_email',
-    'social.pipeline.user.get_username',
-    'social.pipeline.user.create_user',
-    'osmchadjango.users.utils.save_real_username',
-    'social.pipeline.social_auth.associate_user',
-    'social.pipeline.social_auth.load_extra_data',
-    'social.pipeline.user.user_details'
+
+# AUTHENTICATION CONFIGURATION
+# ------------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.openstreetmap.OpenStreetMapOAuth',
+    'django.contrib.auth.backends.ModelBackend',
 )
 
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.auth_allowed',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'osmchadjango.users.utils.save_real_username',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details'
+    # 'social_core.pipeline.social_auth.associate_by_email',
+)
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -294,6 +305,10 @@ LOGGING = {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
+        'osmchadjango.users': {
+            'handlers': ['console', ],
+            'level': "DEBUG",
+        },
     },
 }
 
@@ -307,7 +322,34 @@ CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 # Some options are 'https://nrenner.github.io/achavi/?changeset=',
 # https://overpass-api.de/achavi/?changeset=
 OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/changeset-map/#')
-FEATURE_CREATION_KEYS = env('DJANGO_FEATURE_CREATION_KEYS', default=[])
-
 
 # Your common stuff: Below this line define 3rd party library settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        ),
+    'DEFAULT_FILTER_BACKENDS': (
+        'django_filters.rest_framework.DjangoFilterBackend',
+        ),
+    'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_THROTTLE_RATES': {
+        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        },
+    }
+
+# Allow cross domain requests
+CORS_ORIGIN_ALLOW_ALL = True
+
+# FRONTEND SETTINGS
+# -----------------------------------------------------------------------------
+# Version or any valid git branch tag of front-end code
+OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
+
+# Define the URL to where the user will be redirected after the authentication
+# in OSM website
+OAUTH_REDIRECT_URI = env(
+    'OAUTH_REDIRECT_URI',
+    default='http://localhost:8000/oauth-landing.html'
+    )

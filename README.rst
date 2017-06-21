@@ -1,5 +1,5 @@
 osmcha-django
-==============================
+==============
 
 .. image:: https://travis-ci.org/willemarcel/osmcha-django.svg
     :target: https://travis-ci.org/willemarcel/osmcha-django
@@ -8,9 +8,12 @@ osmcha-django
     :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
 
-A database and frontend to `OSMCHA<https://github.com/willemarcel/osmcha>`_. The aim of OSMCHA is to help find harmful
-edits in the OpenStreetMap.
+The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
+It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
+This project provides a Django application that get the changesets from the
+OpenStreetMap API, analyses and store it in the database and finally provides a
+REST API to interact with the changeset data.
 
 License: GPLv3
 
@@ -48,9 +51,12 @@ PGHOST                                  PGHOST                            localh
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
-DJANGO_FEATURE_CREATION_KEYS            CREATION_KEYS                     []                                        None
+DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
+DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
+DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
+OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
+OSMCHA_FRONTEND_VERSION                 OSMCHA_FRONTEND_VERSION           oh-pages                                  oh-pages
 ======================================= ================================= ========================================= ===========================================
-
 
 You can set each of these variables with:
 
@@ -115,6 +121,43 @@ To create an **superuser account**, use this command::
     $ python manage.py createsuperuser
 
 For convenience, you can keep your normal user logged in on Chrome and your superuser logged in on Firefox (or similar), so that you can see how the site behaves for both kinds of users.
+
+How to login using the OAuth api
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Make a POST request to ``<your_base_url>/api/v1/social-auth/`` to receive the ``oauth_token``, ``oauth_token_secret`` keys.
+* Take the ``oauth_token`` and redirect the user to ``https://www.openstreetmap.org/oauth/authorize?oauth_token=<oauth_token>``.
+* You'll be redirected to the URL that you configured in your OSM OAuth key settings. That redirect url will contain the ``oauth_verifier`` param.
+* Make another POST request to ``<your_base_url>/api/v1/social-auth/`` and send the ``oauth_token``, ``oauth_token_secret`` and ``oauth_verifier`` as the data. You'll receive a token that you can use to make authenticated requests.
+* The token key should be included in the Authorization HTTP header. The key should be prefixed by the string literal "Token", with whitespace separating the two strings. For example: ``Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b``.
+
+Frontend
+^^^^^^^^
+
+`osmcha-frontend https://github.com/mapbox/osmcha-frontend`_ is one web interface
+that you can use to interact with the API. We have a django management command
+to get the last version of osmcha-frontend and serve it with the API.
+
+    $ python manage.py update_frontend
+
+After that, if you have set all the environment variables properly, you can start
+the server and have the frontend in your root url.
+
+Feature creation endpoint
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The feature creation endpoint allows only admin users to create features. You can
+use the admin site to create a token to the user.
+
+Instances
+---------
+
+We have some instances running ``osmcha-django``:
+
+The main instance is https://http://osmcha.mapbox.com/. You can see the API
+documentation at https://osmcha.mapbox.com/api-docs/.
+
+Furthermore, we have a test instance running at https://osmcha-django-api-test.tilestream.net/.
 
 Deployment
 ------------

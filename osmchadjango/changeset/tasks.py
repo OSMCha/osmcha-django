@@ -26,20 +26,11 @@ def create_changeset(changeset_id):
     if ch.bbox == 'GEOMETRYCOLLECTION EMPTY':
         ch_dict.pop('bbox')
 
-    # save changeset. In the versions of osmcha > 0.3.6 we have a area field in
-    # the ch_dict, so this try/except avoids error if someone uses it without
-    # apply the migration that adds the area field to Changeset model
-    try:
-        changeset, created = Changeset.objects.update_or_create(
-            id=ch_dict['id'],
-            defaults=ch_dict
-            )
-    except TypeError:
-        ch_dict.pop('area')
-        changeset, created = Changeset.objects.update_or_create(
-            id=ch_dict['id'],
-            defaults=ch_dict
-            )
+    # save changeset.
+    changeset, created = Changeset.objects.update_or_create(
+        id=ch_dict['id'],
+        defaults=ch_dict
+        )
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:

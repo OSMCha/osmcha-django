@@ -1,324 +1,511 @@
-import datetime
-
-from django.views.generic import View, ListView, DetailView
-from django.views.generic.detail import SingleObjectMixin
-from django.views.decorators.csrf import csrf_exempt
-from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse, HttpResponse
-from django.core.urlresolvers import reverse
-from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django.db.models import Q
-from django.contrib.gis.geos import Polygon
 
-from djqscsv import render_to_csv_response
+import django_filters.rest_framework
+from rest_framework import status
+from rest_framework.decorators import (
+    api_view, parser_classes, permission_classes, detail_route
+    )
+from rest_framework.generics import (
+    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
+    DestroyAPIView
+    )
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_gis.filters import InBBoxFilter
+from rest_framework_gis.pagination import GeoJsonPagination
+from rest_framework_csv.renderers import CSVRenderer
 
-from .models import Changeset, UserWhitelist, SuspicionReasons
+from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
+from ..feature.models import Feature
 from .filters import ChangesetFilter
+from .serializers import (
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
+    SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
+    UserStatsSerializer, ChangesetTagsSerializer, SuspicionReasonsFeatureSerializer,
+    SuspicionReasonsChangesetSerializer
+    )
+from .throttling import NonStaffUserThrottle
 
 
-class CheckedChangesetsView(ListView):
-    context_object_name = 'changesets'
-    paginate_by = 15
-    template_name = 'changeset/changeset_list.html'
+class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
 
-    def get_context_data(self, **kwargs):
-        context = super(CheckedChangesetsView, self).get_context_data(**kwargs)
-        context.update({
-            'hide_filters': True,
-            'search_title': _('Checked Changesets')
-            })
-        return context
+
+class PaginatedCSVRenderer (CSVRenderer):
+    results_field = 'features'
+
+    def render(self, data, *args, **kwargs):
+        if not isinstance(data, list):
+            data = data.get(self.results_field, [])
+        return super(PaginatedCSVRenderer, self).render(data, *args, **kwargs)
+
+
+class ChangesetListAPIView(ListAPIView):
+    """List changesets. The data can be filtered by any field, except 'uuid'.
+    There are two ways of filtering changesets by geolocation. The first
+    option is to use the 'geometry' filter field, which can receive any type of
+    geometry as a GeoJson geometry string. The other is the 'in_bbox' parameter,
+    which needs to receive the min Lat, min Lon, max Lat, max Lon values. The
+    accepted response formats are CSV and JSON. The default pagination return
+    50 objects by page.
+    """
+
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related(
+        'tags', 'reasons', 'features', 'features__reasons'
+        ).exclude(user="")
+    pagination_class = StandardResultsSetPagination
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    bbox_filter_field = 'bbox'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = ChangesetFilter
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return ChangesetSerializerToStaff
+        else:
+            return ChangesetSerializer
+
+
+class ChangesetDetailAPIView(RetrieveAPIView):
+    """Return details of a Changeset."""
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related('tags', 'reasons')
+
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return ChangesetSerializerToStaff
+        else:
+            return ChangesetSerializer
+
+
+class SuspectChangesetListAPIView(ChangesetListAPIView):
+    """Return the suspect changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(is_suspect=True)
+
+
+class NoSuspectChangesetListAPIView(ChangesetListAPIView):
+    """Return the not suspect changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(is_suspect=False)
+
+
+class HarmfulChangesetListAPIView(ChangesetListAPIView):
+    """Return the harmful changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(harmful=True)
+
+
+class NoHarmfulChangesetListAPIView(ChangesetListAPIView):
+    """Return the not harmful changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(harmful=False)
+
+
+class CheckedChangesetListAPIView(ChangesetListAPIView):
+    """Return the checked changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(checked=True)
+
+
+class UncheckedChangesetListAPIView(ChangesetListAPIView):
+    """Return the unchecked changesets. Accepts the same filter and pagination
+    parameters of ChangesetListAPIView.
+    """
+    def get_queryset(self):
+        return self.queryset.filter(checked=False)
+
+
+class SuspicionReasonsListAPIView(ListAPIView):
+    """List SuspicionReasons."""
+    serializer_class = SuspicionReasonsSerializer
 
     def get_queryset(self):
-        from_date = self.request.GET.get('from', '')
-        to_date = self.request.GET.get('to', datetime.datetime.now())
-        if from_date and from_date != '':
-            qset = Changeset.objects.filter(
-                check_date__gte=from_date,
-                check_date__lte=to_date
+        if self.request and self.request.user.is_staff:
+            return SuspicionReasons.objects.all()
+        else:
+            return SuspicionReasons.objects.filter(is_visible=True)
+
+
+class AddRemoveChangesetReasonsAPIView(ModelViewSet):
+    queryset = SuspicionReasons.objects.all()
+    serializer_class = SuspicionReasonsChangesetSerializer
+    permission_classes = (IsAdminUser,)
+
+    @detail_route(methods=['post'])
+    def add_reason_to_changesets(self, request, pk):
+        """This endpoint allows us to add Suspicion Reasons to changesets in a
+        batch. The use of this endpoint is restricted to staff users. The ids of
+        the changesets must be sent as a list in the form data.
+        """
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.changesets.add(*serializer.data['changesets'])
+            return Response(
+                {'detail': 'Suspicion Reasons added to changesets.'},
+                status=status.HTTP_200_OK
                 )
         else:
-            qset = Changeset.objects.all()
-        return qset.filter(checked=True)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
-
-class HarmfulChangesetsView(ListView):
-    context_object_name = 'changesets'
-    paginate_by = 15
-    template_name = 'changeset/changeset_list.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(HarmfulChangesetsView, self).get_context_data(**kwargs)
-        context.update({
-            'hide_filters': True,
-            'search_title': _('Harmful Changesets')
-            })
-        return context
-
-    def get_queryset(self):
-        from_date = self.request.GET.get('from', '')
-        to_date = self.request.GET.get('to', datetime.datetime.now())
-        if from_date and from_date != '':
-            qset = Changeset.objects.filter(
-                check_date__gte=from_date,
-                check_date__lte=to_date
+    @detail_route(methods=['delete'])
+    def remove_reason_from_changesets(self, request, pk):
+        """This endpoint allows us to remove Suspicion Reasons from changesets
+        in a batch. The use of this endpoint is restricted to staff users. The
+        ids of the changesets must be sent as a list in the form data.
+        """
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.changesets.remove(*serializer.data['changesets'])
+            return Response(
+                {'detail': 'Suspicion Reasons removed from changesets.'},
+                status=status.HTTP_200_OK
                 )
         else:
-            qset = Changeset.objects.all()
-        return qset.filter(harmful=True)
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
 
 
-class ChangesetListView(ListView):
-    """List Changesets"""
-    # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-    context_object_name = 'changesets'
-    paginate_by = 15
+class AddRemoveFeatureReasonsAPIView(ModelViewSet):
+    queryset = SuspicionReasons.objects.all()
+    serializer_class = SuspicionReasonsFeatureSerializer
+    permission_classes = (IsAdminUser,)
 
-    def get_context_data(self, **kwargs):
-        context = super(ChangesetListView, self).get_context_data(**kwargs)
-        suspicion_reasons = SuspicionReasons.objects.all()
-        get = self.request.GET.dict()
-        if 'is_suspect' not in get:
-            get['is_suspect'] = 'True'
-        if 'is_whitelisted' not in get:
-            get['is_whitelisted'] = 'True'
-        if 'harmful' not in get:
-            get['harmful'] = 'False'
-        if 'checked' not in get:
-            get['checked'] = 'All'
-        sorts = {
-            '-date': 'Recent First',
-            '-delete': 'Most Deletions First',
-            '-modify': 'Most Modifications First',
-            '-create': 'Most Creations First'
-            }
-        context.update({
-            'suspicion_reasons': suspicion_reasons,
-            'get': get,
-            'sorts': sorts
-            })
-        return context
+    @detail_route(methods=['post'])
+    def add_reason_to_features(self, request, pk):
+        """This endpoint allows us to add Suspicion Reasons to features in a
+        batch. The use of this endpoint is restricted to staff users. The ids of
+        the features need to be sent as a list in the data form.
+        """
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.features.add(*serializer.data['features'])
+            changesets = Changeset.objects.filter(
+                features__in=serializer.data['features']
+                )
+            reason.changesets.add(*changesets)
+            return Response(
+                {'detail': 'Suspicion Reasons added to features.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+    @detail_route(methods=['delete'])
+    def remove_reason_from_features(self, request, pk):
+        """This endpoint allows us to remove Suspicion Reasons from features
+        in a batch. The use of this endpoint is restricted to staff users. The
+        ids of the features must be sent as a list in the form data.
+        """
+        reason = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            reason.features.remove(*serializer.data['features'])
+            changesets = Changeset.objects.filter(
+                features__id__in=serializer.data['features']
+                ).exclude(
+                    features__reasons=reason
+                )
+            reason.changesets.remove(*changesets)
+
+            features = Feature.objects.filter(
+                id__in=serializer.data['features']
+                )
+            for feature in features:
+                if feature.reasons.count() == 0:
+                    feature.delete()
+
+            return Response(
+                {'detail': 'Suspicion Reasons removed from features.'},
+                status=status.HTTP_200_OK
+                )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+
+class TagListAPIView(ListAPIView):
+    """List Tags."""
+    serializer_class = TagSerializer
 
     def get_queryset(self):
-        # queryset = Changeset.objects.filter(is_suspect=True).order_by('-date')
-        queryset = Changeset.objects.all()
-        params = {}
-        GET_dict = self.request.GET.dict()
-        for key in GET_dict:
-            if key in GET_dict and GET_dict[key] != '':
-                params[key] = GET_dict[key]
-        self.validate_params(params)
+        if self.request and self.request.user.is_staff:
+            return Tag.objects.all()
+        else:
+            return Tag.objects.filter(is_visible=True)
 
-        if 'is_suspect' not in params:
-            params['is_suspect'] = 'True'
-        if 'is_whitelisted' not in params:
-            params['is_whitelisted'] = 'True'
-        if 'harmful' not in params:
-            params['harmful'] = "All"
-        if 'checked' not in params:
-            params['checked'] = 'All'
-        queryset = ChangesetFilter(params, queryset=queryset).qs
-        if 'reasons' in params:
-            if params['reasons'] == 'None':
-                queryset = queryset.filter(reasons=None)
+
+class CheckChangeset(ModelViewSet):
+    queryset = Changeset.objects.all()
+    serializer_class = ChangesetTagsSerializer
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = [NonStaffUserThrottle]
+
+    def update_changeset(self, changeset, request, harmful):
+        """Update 'checked', 'harmful', 'check_user', 'check_date' fields of the
+        changeset and return a 200 response"""
+        changeset.checked = True
+        changeset.harmful = harmful
+        changeset.check_user = request.user
+        changeset.check_date = timezone.now()
+        changeset.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
+        return Response(
+            {'detail': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
+            status=status.HTTP_200_OK
+            )
+
+    @detail_route(methods=['put'])
+    def set_harmful(self, request, pk):
+        """Mark a changeset as harmful. You can set the tags of the changeset by
+        sending a list of tag ids inside a field named 'tags' in the request data.
+        If you don't want to set the 'tags', you don't need to send data, just make
+        an empty PUT request.
+        """
+        changeset = self.get_object()
+        if changeset.checked:
+            return Response(
+                {'detail': 'Changeset was already checked.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'detail': 'User can not check his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if request.data:
+            serializer = ChangesetTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                changeset.tags.set(serializer.data['tags'])
             else:
-                queryset = queryset.filter(reasons=int(params['reasons']))
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
+        return self.update_changeset(changeset, request, harmful=True)
 
-        user = self.request.user
-
-        if params['is_whitelisted'] == 'True' and user.is_authenticated():
-            whitelisted_users = UserWhitelist.objects.filter(user=user).values('whitelist_user')
-            queryset = queryset.exclude(Q(user__in=whitelisted_users))
-        elif params['is_whitelisted'] == 'False' and user.is_authenticated():
-            blacklisted_users = Changeset.objects.filter(harmful=True).values('user').distinct()
-            queryset = queryset.filter(user__in=blacklisted_users)
-
-        if 'sort' in GET_dict and GET_dict['sort'] != '':
-            queryset = queryset.order_by(GET_dict['sort'])
-        else:
-            queryset = queryset.order_by('-date')
-        return queryset
-
-    def validate_params(self, params):
-        """FIXME: define error in except lines."""
-        if 'reasons' in params.keys() and params['reasons'] != '':
-            try:
-                s = str(int(params['reasons']))
-            except:
-                raise ValidationError('reasons param must be a number')
-        if 'bbox' in params.keys() and params['bbox'] != '':
-            print(params['bbox'])
-            try:
-                bbox = Polygon.from_bbox((float(b) for b in params['bbox'].split(',')))
-            except:
-                raise ValidationError('bbox param is invalid')
-
-    def render_to_response(self, context, **response_kwargs):
-        get_params = self.request.GET.dict()
-        if 'render_csv' in get_params.keys() and get_params['render_csv'] == 'True':
-            queryset = self.get_queryset()
-            queryset = queryset.values(
-                'id', 'user', 'editor', 'powerfull_editor', 'comment', 'source',
-                'imagery_used', 'date', 'reasons', 'reasons__name', 'create',
-                'modify', 'delete', 'bbox', 'is_suspect', 'harmful', 'checked',
-                'check_user', 'check_date'
+    @detail_route(methods=['put'])
+    def set_good(self, request, pk):
+        """Mark a changeset as good. You can set the tags of the changeset by
+        sending a list of tag ids inside a field named 'tags' in the request data.
+        If you don't want to set the 'tags', you don't need to send data, just make
+        an empty PUT request.
+        """
+        changeset = self.get_object()
+        if changeset.checked:
+            return Response(
+                {'detail': 'Changeset was already checked.'},
+                status=status.HTTP_403_FORBIDDEN
                 )
-            return render_to_csv_response(queryset)
-        else:
-            return super(ChangesetListView, self).render_to_response(context, **response_kwargs)
-
-
-class ChangesetDetailView(DetailView):
-    """DetailView of Changeset Model"""
-    model = Changeset
-    context_object_name = 'changeset'
-
-
-class SetHarmfulChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = True
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
-
-class SetGoodChangeset(SingleObjectMixin, View):
-    model = Changeset
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        if self.object.uid not in [i.uid for i in request.user.social_auth.all()]:
-            self.object.checked = True
-            self.object.harmful = False
-            self.object.check_user = request.user
-            self.object.check_date = timezone.now()
-            self.object.save()
-            return HttpResponseRedirect(reverse('changeset:detail', args=[self.object.pk]))
-        else:
-            return render(request, 'changeset/not_allowed.html')
-
-
-def undo_changeset_marking(request, pk):
-    changeset_qs = Changeset.objects.filter(id=pk)
-    changeset = changeset_qs[0]
-    if request.user != changeset.check_user:
-        return render(request, 'changeset/not_allowed.html')
-
-    changeset.checked = False
-    changeset.check_user = None
-    changeset.check_date = None
-    changeset.harmful = None
-    changeset.save()
-    return HttpResponseRedirect(reverse('changeset:detail', args=[pk]))
-
-
-@csrf_exempt
-def whitelist_user(request):
-    '''
-        View to mark a user as whitelisted.
-        Accepts a single post parameter with the 'name' of the user to be white-listed.
-        Whitelists that user for the currently logged in user.
-        TODO: can this be converted to a CBV?
-    '''
-    name = request.POST.get('name', None)
-    user = request.user
-    if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    if not name:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    uw = UserWhitelist(user=user, whitelist_user=name)
-    uw.save()
-    return JsonResponse({'success': 'User %s has been white-listed' % name})
-
-
-@csrf_exempt
-def remove_from_whitelist(request):
-    names = request.POST.get('names', None)
-    user = request.user
-    if not user.is_authenticated():
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    if not names:
-        return JsonResponse({'error': 'Needs name parameter'}, status=403)
-    names_array = names.split(',')
-    UserWhitelist.objects.filter(user=user).filter(whitelist_user__in=names_array).delete()
-    return JsonResponse({'success': 'Users removed from whitelist'})
-
-
-def stats(request):
-    from_date = request.GET.get('from', None)
-    to_date = request.GET.get('to', datetime.datetime.now())
-    reviewer = request.GET.get('reviewer', '')
-    if from_date:
-        try:
-            changesets_qset = Changeset.objects.filter(
-                check_date__gte=from_date, check_date__lte=to_date
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'detail': 'User can not check his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
                 )
-        except:
-            return HttpResponse('Bad query parameters', status=400)
+        if request.data:
+            serializer = ChangesetTagsSerializer(data=request.data)
+            if serializer.is_valid():
+                changeset.tags.set(serializer.data['tags'])
+            else:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
+        return self.update_changeset(changeset, request, harmful=False)
+
+
+@api_view(['PUT'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated,))
+def uncheck_changeset(request, pk):
+    """Mark a changeset as unchecked. You don't need to send data, just an empty
+    PUT request."""
+    instance = get_object_or_404(
+        Changeset.objects.all().select_related('check_user'),
+        pk=pk
+        )
+    if instance.checked is False:
+        return Response(
+            {'detail': 'Changeset is not checked.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
+    elif request.user == instance.check_user or request.user.is_staff:
+        instance.checked = False
+        instance.harmful = None
+        instance.check_user = None
+        instance.check_date = None
+        instance.save(
+            update_fields=['checked', 'harmful', 'check_user', 'check_date']
+            )
+        return Response(
+            {'detail': 'Changeset marked as unchecked.'},
+            status=status.HTTP_200_OK
+            )
     else:
-        changesets_qset = Changeset.objects.all()
-
-    changesets_qset = ChangesetFilter(request.GET, queryset=changesets_qset).qs
-
-    total_checked = changesets_qset.filter(checked=True).count()
-    total_harmful = changesets_qset.filter(harmful=True).count()
-    users_whitelisted = UserWhitelist.objects.values('whitelist_user').distinct().count()
-    users_blacklisted = changesets_qset.filter(harmful=True).values('user').distinct().count()
-
-    counts = {}
-    for reason in SuspicionReasons.objects.all():
-        counts[reason.name] = {}
-        counts[reason.name]['id'] = reason.id
-        counts[reason.name]['checked'] = changesets_qset.filter(reasons=reason, checked=True).count()
-        counts[reason.name]['harmful'] = changesets_qset.filter(reasons=reason, harmful=True).count()
-
-    counts['None'] = {}
-    counts['None']['id'] = 'None'
-    counts['None']['checked'] = changesets_qset.filter(reasons=None, checked=True).count()
-    counts['None']['harmful'] = changesets_qset.filter(reasons=None, harmful=True).count()
-
-    context = {
-        'checked': total_checked,
-        'harmful': total_harmful,
-        'users_whitelisted': users_whitelisted,
-        'users_blacklisted': users_blacklisted,
-        'counts': counts,
-        'get': request.GET.dict()
-        }
-    return render(request, 'changeset/stats.html', context=context)
+        return Response(
+            {'detail': 'User does not have permission to uncheck this changeset.'},
+            status=status.HTTP_403_FORBIDDEN
+            )
 
 
-def all_whitelist_users(request):
-    """View that lists all whitelisted users."""
-    all_users = UserWhitelist.objects.values('whitelist_user').distinct()
-    context = {
-        'users': all_users
-        }
-    return render(request, 'changeset/all_whitelist_users.html', context=context)
+class AddRemoveChangesetTagsAPIView(ModelViewSet):
+    queryset = Changeset.objects.all()
+    permission_classes = (IsAuthenticated,)
+    # The serializer is not used in this view. It's here only to avoid errors in
+    # docs schema generation.
+    serializer_class = ChangesetStatsSerializer
+
+    @detail_route(methods=['post'])
+    def add_tag(self, request, pk, tag_pk):
+        """Add a tag to a changeset. If the changeset is unchecked, any user can
+        add tags. After the changeset got checked, only staff users and the user
+        that checked it can add tags. The user that created the changeset can't
+        add tags to it.
+        """
+        changeset = self.get_object()
+        tag = get_object_or_404(Tag.objects.filter(for_changeset=True), pk=tag_pk)
+
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'detail': 'User can not add tags to his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if changeset.checked and (
+            request.user != changeset.check_user and not request.user.is_staff):
+            return Response(
+                {'detail': 'User can not add tags to a changeset checked by another user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
+        changeset.tags.add(tag)
+        return Response(
+            {'detail': 'Tag added to the changeset.'},
+            status=status.HTTP_200_OK
+            )
+
+    @detail_route(methods=['delete'])
+    def remove_tag(self, request, pk, tag_pk):
+        """Remove a tag from a changeset. If the changeset is unchecked, any user
+        can remove tags. After the changeset got checked, only staff users and
+        the user that checked it can remove tags. The user that created the
+        changeset can't remove tags from it.
+        """
+        changeset = self.get_object()
+        tag = get_object_or_404(Tag.objects.all(), pk=tag_pk)
+
+        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'detail': 'User can not remove tags from his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        if changeset.checked and (
+            request.user != changeset.check_user and not request.user.is_staff):
+            return Response(
+                {'detail': 'User can not remove tags from a changeset checked by another user.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
+        changeset.tags.remove(tag)
+        return Response(
+            {'detail': 'Tag removed from the changeset.'},
+            status=status.HTTP_200_OK
+            )
 
 
-def all_blacklist_users(request):
-    """View that lists all users that have made a harmful changeset."""
-    blacklist_users = Changeset.objects.filter(harmful=True).values('user').distinct()
-    context = {
-        'users': blacklist_users
-        }
-    return render(request, 'changeset/all_blacklist_users.html', context=context)
+class UserWhitelistListCreateAPIView(ListCreateAPIView):
+    """
+    get:
+    List your whitelisted users.
+
+    post:
+    Add a user to your whitelist.
+    """
+    serializer_class = UserWhitelistSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        if self.request:
+            return UserWhitelist.objects.filter(user=self.request.user)
+        else:
+            return UserWhitelist.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class UserWhitelistDestroyAPIView(DestroyAPIView):
+    """Delete a user from your whitelist."""
+    serializer_class = UserWhitelistSerializer
+    permission_classes = (IsAuthenticated,)
+    lookup_field = 'whitelist_user'
+
+    def get_queryset(self):
+        return UserWhitelist.objects.filter(user=self.request.user)
+
+
+class ChangesetStatsAPIView(ListAPIView):
+    """Get stats about Changesets. It will return the total number of checked
+    and harmful changesets, the number of users with harmful changesets and the
+    number of checked and harmful changesets by Suspicion Reason and by Tag.
+    It's possible to filter the changesets using the same filter parameters of
+    the changeset list endpoint.
+    """
+    queryset = Changeset.objects.all().select_related(
+        'check_user'
+        ).prefetch_related('tags', 'reasons')
+    serializer_class = ChangesetStatsSerializer
+    renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
+    bbox_filter_field = 'bbox'
+    filter_backends = (
+        InBBoxFilter,
+        django_filters.rest_framework.DjangoFilterBackend,
+        )
+    bbox_filter_include_overlapping = True
+    filter_class = ChangesetFilter
+
+
+class UserStatsAPIView(ListAPIView):
+    """Get stats about a user in OSMCHA. You need to inform the uid of the user,
+    so we can get the stats of all usernames he have used.
+    """
+    serializer_class = UserStatsSerializer
+
+    def get_queryset(self):
+        return Changeset.objects.filter(uid=self.kwargs['uid'])

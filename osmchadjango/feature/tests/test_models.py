@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 
 from ...changeset.tests.modelfactories import ChangesetFactory
-from ...changeset.models import SuspicionReasons, HarmfulReason
+from ...changeset.models import SuspicionReasons, Tag
 from ..models import Feature
 
 
@@ -51,10 +51,10 @@ class TestFeatureModel(TestCase):
         self.reason.features.add(self.feature)
         self.assertEqual(self.feature.reasons.count(), 1)
 
-    def test_harmful_reason(self):
-        harmful_reason = HarmfulReason.objects.create(name='Vandalism')
-        harmful_reason.features.add(self.feature)
-        self.assertEqual(self.feature.harmful_reasons.count(), 1)
+    def test_tags(self):
+        tag = Tag.objects.create(name='Vandalism')
+        tag.features.add(self.feature)
+        self.assertEqual(self.feature.tags.count(), 1)
 
     def test_forbid_duplicated(self):
         with self.assertRaises(IntegrityError):

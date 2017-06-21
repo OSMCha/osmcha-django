@@ -1,11 +1,10 @@
-from datetime import datetime
-
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 import factory
 
-from ..models import Changeset, SuspicionReasons, UserWhitelist
+from ..models import Changeset, SuspicionReasons, UserWhitelist, Tag
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -30,8 +29,9 @@ class ChangesetFactory(factory.django.DjangoModelFactory):
     uid = '123123'
     user = 'test'
     editor = 'Potlatch 2'
+    imagery_used = 'Mapbox'
     powerfull_editor = False
-    date = factory.LazyFunction(datetime.now)
+    date = factory.LazyFunction(timezone.now)
     is_suspect = False
     bbox = Polygon([
         (-71.0646843, 44.2371354), (-71.0048652, 44.2371354),
@@ -50,17 +50,25 @@ class SuspectChangesetFactory(ChangesetFactory):
 class HarmfulChangesetFactory(SuspectChangesetFactory):
     checked = True
     check_user = factory.SubFactory(UserFactory)
-    check_date = factory.LazyFunction(datetime.now)
+    check_date = factory.LazyFunction(timezone.now)
     harmful = True
 
 
 class GoodChangesetFactory(HarmfulChangesetFactory):
     harmful = False
+    checked = True
+    check_user = factory.SubFactory(UserFactory)
+    check_date = factory.LazyFunction(timezone.now)
 
 
 class SuspicionReasonsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = SuspicionReasons
+
+
+class TagFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Tag
 
 
 class UserWhitelistFactory(factory.django.DjangoModelFactory):
