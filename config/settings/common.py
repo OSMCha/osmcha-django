@@ -342,6 +342,18 @@ REST_FRAMEWORK = {
 # Allow cross domain requests
 CORS_ORIGIN_ALLOW_ALL = True
 
+# SWAGGER SETTINGS
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+            }
+        },
+    }
+
 # FRONTEND SETTINGS
 # -----------------------------------------------------------------------------
 # Version or any valid git branch tag of front-end code
