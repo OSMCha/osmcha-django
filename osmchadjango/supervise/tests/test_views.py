@@ -121,6 +121,13 @@ class TestAoICreateView(APITestCase):
                 'in_bbox': '2,0,5,2'
                 },
             }
+        self.without_geo_aoi = {
+            'name': 'Unchecked suspect changesets',
+            'filters': {
+                'is_suspect': 'True',
+                'checked': 'False'
+                },
+            }
 
     def test_create_AOI_unauthenticated(self):
         response = self.client.post(self.url, self.data)
@@ -141,6 +148,15 @@ class TestAoICreateView(APITestCase):
                 Polygon([[2, 0], [5, 0], [5, 2], [2, 2], [2, 0]])
                 )
             )
+
+    def test_create_without_geometry_and_bbox(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, self.without_geo_aoi)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(AreaOfInterest.objects.count(), 1)
+        aoi = AreaOfInterest.objects.get(name='Unchecked suspect changesets')
+        self.assertEqual(aoi.user, self.user)
+        self.assertEqual(aoi.filters, self.without_geo_aoi.get('filters'))
 
     def test_create_with_bbox(self):
         self.client.login(username=self.user.username, password='password')
@@ -575,14 +591,17 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
         aoi_with_in_bbox = AreaOfInterest.objects.create(
             name='Another place in the world',
             user=self.user,
-            geometry=self.m_polygon,
+            geometry=Polygon(((0, 0), (0, 2), (2, 2), (2, 0), (0, 0))),
             filters={
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
                 'in_bbox': '0,0,2,2'
                 },
             )
-        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            harmful=False,
+            bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10)))
+            )
         ChangesetFactory(
             editor='JOSM 1.5',
             harmful=False,
@@ -591,10 +610,30 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
         ChangesetFactory.create_batch(
             51,
             harmful=False,
+            bbox=Polygon(((10, 10), (10, 10.5), (10.7, 10.5), (10, 10))),
+            )
+        ChangesetFactory.create_batch(
+            51,
+            harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
+
+        # first test with changesets
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi_with_in_bbox.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 51)
+        self.assertEqual(len(response.data['features']), 50)
+
+        CheckedFeatureFactory(harmful=False)
+        CheckedFeatureFactory(geometry=Point(0.5, 0.5))
+        CheckedFeatureFactory.create_batch(
+            51, geometry=Point(0.5, 0.5), harmful=False
+            )
+        # now test with features
+        response = self.client.get(
+            reverse('supervise:aoi-list-features', args=[aoi_with_in_bbox.pk])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 51)
