@@ -24,13 +24,25 @@ class AreaOfInterest(models.Model):
         """Return the changesets that match the filters, including the geometry
         area, of the AreaOfInterest.
         """
-        return ChangesetFilter(self.filters).qs
+        qs = ChangesetFilter(self.filters).qs
+        if self.geometry is not None:
+            return qs.filter(
+                bbox__intersects=self.geometry
+                )
+        else:
+            return qs
 
     def features(self):
         """Return the features that match the filters, including the geometry
         area, of the AreaOfInterest.
         """
-        return FeatureFilter(self.filters).qs
+        qs = FeatureFilter(self.filters).qs
+        if self.geometry is not None:
+            return qs.filter(
+                geometry__intersects=self.geometry
+                )
+        else:
+            return qs
 
     class Meta:
         unique_together = ('user', 'name',)
