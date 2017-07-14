@@ -695,14 +695,20 @@ class TestAoIStatsAPIViews(APITestCase):
         self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
         self.assertEqual(len(response.data.get('reasons')), 1)
         self.assertEqual(len(response.data.get('tags')), 1)
-        self.assertIn(
-            {'name': 'possible import', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Vandalism', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
+        possible_import = {
+            'name': 'possible import',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(possible_import, response.data.get('reasons'))
+        vandalism = {
+            'name': 'Vandalism',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(vandalism, response.data.get('tags'))
 
     def test_stats_with_staff_user(self):
         self.client.login(username=self.user.username, password='password')
@@ -713,22 +719,38 @@ class TestAoIStatsAPIViews(APITestCase):
         self.assertEqual(response.data.get('users_with_harmful_changesets'), 0)
         self.assertEqual(len(response.data.get('reasons')), 2)
         self.assertEqual(len(response.data.get('tags')), 2)
-        self.assertIn(
-            {'name': 'possible import', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Mass Deletion', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('reasons')
-            )
-        self.assertIn(
-            {'name': 'Vandalism', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
-        self.assertIn(
-            {'name': 'Big buildings', 'checked_changesets': 5, 'harmful_changesets': 0},
-            response.data.get('tags')
-            )
+
+        possible_import = {
+            'name': 'possible import',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(possible_import, response.data.get('reasons'))
+
+        vandalism = {
+            'name': 'Vandalism',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(vandalism, response.data.get('tags'))
+
+        mass_deletion = {
+            'name': 'Mass Deletion',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(mass_deletion, response.data.get('reasons'))
+
+        big_buildings = {
+            'name': 'Big buildings',
+            'changesets': 5,
+            'checked_changesets': 5,
+            'harmful_changesets': 0
+            }
+        self.assertIn(big_buildings, response.data.get('tags'))
 
 
 class TestBlacklistedUserListAPIView(APITestCase):
