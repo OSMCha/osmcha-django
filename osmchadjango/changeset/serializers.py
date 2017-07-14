@@ -126,6 +126,7 @@ class ChangesetListStatsSerializer(ListSerializer):
 
         reasons_list = [
             {'name': reason.name,
+            'changesets': data.filter(reasons=reason).count(),
             'checked_changesets': checked_changesets.filter(reasons=reason).count(),
             'harmful_changesets': harmful_changesets.filter(reasons=reason).count(),
             }
@@ -133,6 +134,7 @@ class ChangesetListStatsSerializer(ListSerializer):
             ]
         tags_list = [
             {'name': tag.name,
+            'changesets': data.filter(tags=tag).count(),
             'checked_changesets': checked_changesets.filter(tags=tag).count(),
             'harmful_changesets': harmful_changesets.filter(tags=tag).count(),
             }
@@ -140,6 +142,7 @@ class ChangesetListStatsSerializer(ListSerializer):
             ]
 
         return {
+            'changesets': data.count(),
             'checked_changesets': checked_changesets.count(),
             'harmful_changesets': harmful_changesets.count(),
             'users_with_harmful_changesets': harmful_changesets.values_list(
