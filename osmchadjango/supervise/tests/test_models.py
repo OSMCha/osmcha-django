@@ -48,6 +48,17 @@ class TestAreaOfInterestModel(TestCase):
             '{} by {}'.format(self.area.name, self.area.user.username)
             )
 
+    def test_auto_date_field(self):
+        self.assertIsNotNone(self.area.date)
+        self.assertIsNotNone(self.area_2.date)
+        self.assertIsNotNone(self.area_3.date)
+
+    def test_ordering(self):
+        areas = AreaOfInterest.objects.all()
+        self.assertEqual(areas[0], self.area_3)
+        self.assertEqual(areas[1], self.area_2)
+        self.assertEqual(areas[2], self.area)
+
     def test_unique_name_for_user(self):
         with self.assertRaises(IntegrityError):
             AreaOfInterest.objects.create(

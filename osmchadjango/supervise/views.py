@@ -5,6 +5,7 @@ from rest_framework.generics import (
     RetrieveDestroyAPIView
     )
 from rest_framework.response import Response
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import (
     IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
     )
@@ -55,6 +56,9 @@ class AOIListCreateAPIView(ListCreateAPIView):
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = AreaOfInterestSerializer
+    filter_backends = (OrderingFilter,)
+    ordering_fields = ('date', 'name')
+    ordering = '-date'
 
     def get_queryset(self):
         if self.request:
