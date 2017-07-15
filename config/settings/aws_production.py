@@ -81,4 +81,5 @@ REST_FRAMEWORK = {
         'user': env('COMMON_USER_THROTTLE_RATE', default='180/min'),
         'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
         },
+    'ORDERING_PARAM': 'order_by',
     }

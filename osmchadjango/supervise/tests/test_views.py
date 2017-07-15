@@ -57,6 +57,7 @@ class TestAoIListView(APITestCase):
                 },
             )
         self.area_2 = AreaOfInterest.objects.create(
+            name='Another AOI',
             user=self.user,
             filters={'geometry': self.m_polygon_2.geojson},
             geometry=self.m_polygon_2
@@ -77,6 +78,28 @@ class TestAoIListView(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 2)
+
+    def test_ordering(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        # test default ordering is -date
+        self.assertEqual(
+            response.data.get('features')[0]['properties']['name'],
+            'Another AOI'
+            )
+        # test ordering by date
+        response = self.client.get(self.url, {'order_by': 'date'})
+        self.assertEqual(
+            response.data.get('features')[0]['properties']['name'],
+            'Best place in the world'
+            )
+        # test ordering by name
+        response = self.client.get(self.url, {'order_by': '-name'})
+        self.assertEqual(
+            response.data.get('features')[0]['properties']['name'],
+            'Best place in the world'
+            )
 
     def test_list_view_with_user_2(self):
         self.client.login(username=self.user_2.username, password='password')
