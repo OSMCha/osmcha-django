@@ -11,9 +11,9 @@ from .models import Changeset
 
 class ChangesetFilter(GeoFilterSet):
     """Allows to filter Changesets by any of its fields, except 'uuid' (id of
-    OSM user). The 'reasons' and the 'harmful_reasons' fields can be filtered by
-    the exact match (filter changesets that have all the search reasons) or by
-    contains match (filter changesets that have any of the reasons).
+    OSM user). The 'reasons' and the 'harmful_reasons' fields can be filtered
+    by the exact match (filter changesets that have all the search reasons) or
+    by contains match (filter changesets that have any of the reasons).
     """
     geometry = GeometryFilter(
         name='bbox',
@@ -24,8 +24,8 @@ class ChangesetFilter(GeoFilterSet):
     checked_by = filters.CharFilter(
         name='check_user',
         method='filter_checked_by',
-        help_text="""Filter changesets that were checked by a user. Use commas to
-            search for more than one user."""
+        help_text="""Filter changesets that were checked by a user. Use commas
+            to search for more than one user."""
         )
     users = filters.CharFilter(
         name='user',
@@ -143,22 +143,22 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets whose number of elements deleted are
             lower or equal a number."""
         )
-    date__gte = filters.CharFilter(
+    date__gte = filters.DateFilter(
         name='date',
         lookup_expr='gte',
         help_text='Filter changesets whose date is greater or equal a date.'
         )
-    date__lte = filters.CharFilter(
+    date__lte = filters.DateFilter(
         name='date',
         lookup_expr='lte',
         help_text='Filter changesets whose date is lower or equal a date.'
         )
-    check_date__gte = filters.CharFilter(
+    check_date__gte = filters.DateFilter(
         name='check_date',
         lookup_expr='gte',
         help_text='Filter changesets whose check_date is greater or equal a date.'
         )
-    check_date__lte = filters.CharFilter(
+    check_date__lte = filters.DateFilter(
         name='check_date',
         lookup_expr='lte',
         help_text='Filter changesets whose check_date is lower or equal a date.'
@@ -237,8 +237,8 @@ class ChangesetFilter(GeoFilterSet):
 
     def filter_area_lt(self, queryset, name, value):
         """This filter method was designed to exclude changesets that are much
-        bigger than the filter area. For example, if you want only changesets that
-        are lower than 5 times the filter area, you need to pass the value 5.
+        bigger than the filter area. For example, if you want only changesets
+        that are lower than 5 times the filter area, you need to pass the value 5.
         """
         if 'geometry' in self.data.keys():
             try:
