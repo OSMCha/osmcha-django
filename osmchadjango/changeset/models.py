@@ -56,10 +56,10 @@ class Changeset(models.Model):
     uid = models.CharField(_('User ID'), max_length=255, db_index=True)
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
-    comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
-    source = models.CharField(max_length=1000, blank=True, null=True,  db_index=True)
-    imagery_used = models.CharField(max_length=1000, blank=True, null=True,  db_index=True)
-    date = models.DateTimeField(null=True, db_index=True)
+    comment = models.CharField(max_length=1000, blank=True, null=True)
+    source = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    imagery_used = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    date = models.DateTimeField(null=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
@@ -94,7 +94,11 @@ class Changeset(models.Model):
     def josm_link(self):
         """Return link to open changeset in JOSM."""
         josm_base = "http://127.0.0.1:8111/import?url="
-        changeset_url = "http://www.openstreetmap.org/api/0.6/changeset/{}/download".format(self.id)
+        changeset_url = "{}/{}/{}".format(
+            "http://www.openstreetmap.org/api/0.6/changeset",
+            self.id,
+            "download"
+            )
         return "{}{}".format(josm_base, changeset_url)
 
     def id_link(self):
