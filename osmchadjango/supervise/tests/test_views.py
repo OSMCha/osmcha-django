@@ -914,6 +914,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
         self.assertEqual(response.data.get('added_by'), 'staff_user')
+        self.assertIsNotNone(response.data.get('id'))
         self.assertIn('date', response.data.keys())
 
     def test_unauthenticated_delete(self):
