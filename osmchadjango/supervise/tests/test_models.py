@@ -152,11 +152,13 @@ class TestBlacklistedUserModel(TestCase):
         self.user = UserFactory(is_staff=True)
         self.blacklisted = BlacklistedUser.objects.create(
             username='Bad User',
+            uid='3434',
             added_by=self.user,
             )
 
     def test_creation(self):
         self.assertEqual(BlacklistedUser.objects.count(), 1)
+        self.assertEqual(self.blacklisted.__str__(), '3434')
         self.assertIsInstance(self.blacklisted.date, datetime)
 
     def test_validation(self):
@@ -170,6 +172,19 @@ class TestBlacklistedUserModel(TestCase):
                 )
         with self.assertRaises(ValidationError):
             BlacklistedUser.objects.create(
-                username='Bad User',
+                username='Other User',
+                uid='3434',
                 added_by=self.user,
                 )
+        with self.assertRaises(ValidationError):
+            BlacklistedUser.objects.create(
+                uid='5643',
+                added_by=self.user,
+                )
+
+        BlacklistedUser.objects.create(
+            username='Bad User',
+            uid='5643',
+            added_by=self.user,
+            )
+        self.assertEqual(BlacklistedUser.objects.count(), 2)
