@@ -194,3 +194,4 @@ class BlacklistedUserDetailAPIView(RetrieveDestroyAPIView):
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
     permission_classes = (IsAdminUser,)
+    lookup_field = 'uid'

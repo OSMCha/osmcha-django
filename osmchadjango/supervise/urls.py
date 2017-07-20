@@ -37,7 +37,7 @@ urlpatterns = [
         name='blacklist-list-create'
         ),
     url(
-        regex=r'^blacklisted-users/(?P<pk>[0-9a-f-]+)/$',
+        regex=r'^blacklisted-users/(?P<uid>[0-9a-f-]+)/$',
         view=views.BlacklistedUserDetailAPIView.as_view(),
         name='blacklist-detail'
         ),

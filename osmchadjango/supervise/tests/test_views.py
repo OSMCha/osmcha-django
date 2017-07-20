@@ -801,10 +801,12 @@ class TestBlacklistedUserListAPIView(APITestCase):
             )
         BlacklistedUser.objects.create(
             username='Bad User',
+            uid='3434',
             added_by=self.staff_user,
             )
         BlacklistedUser.objects.create(
             username='Vandal',
+            uid='3435',
             added_by=self.staff_user,
             )
         self.url = reverse('supervise:blacklist-list-create')
@@ -849,7 +851,7 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
             uid='999898',
             )
         self.url = reverse('supervise:blacklist-list-create')
-        self.data = {'username': 'Bad User'}
+        self.data = {'username': 'Bad User', 'uid': '3434'}
 
     def test_create_view_unauthenticated(self):
         response = self.client.post(self.url, self.data)
@@ -895,9 +897,12 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
 
         self.blacklisted = BlacklistedUser.objects.create(
             username='Bad User',
+            uid='3434',
             added_by=self.staff_user,
             )
-        self.url = reverse('supervise:blacklist-detail', args=[self.blacklisted.id])
+        self.url = reverse(
+            'supervise:blacklist-detail', args=[self.blacklisted.uid]
+            )
 
     def test_unauthenticated_get(self):
         response = self.client.get(self.url)
@@ -914,7 +919,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
         self.assertEqual(response.data.get('added_by'), 'staff_user')
-        self.assertIsNotNone(response.data.get('id'))
+        self.assertIsNotNone(response.data.get('uid'))
         self.assertIn('date', response.data.keys())
 
     def test_unauthenticated_delete(self):
