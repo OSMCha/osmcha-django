@@ -1,8 +1,7 @@
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 
 from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView,
-    RetrieveDestroyAPIView
+    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
     )
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
@@ -184,14 +183,21 @@ class BlacklistedUserListCreateAPIView(ListCreateAPIView):
         serializer.save(added_by=self.request.user)
 
 
-class BlacklistedUserDetailAPIView(RetrieveDestroyAPIView):
+class BlacklistedUserDetailAPIView(RetrieveUpdateDestroyAPIView):
     """
     get:
     Get details about a BlacklistedUser.
     delete:
     Delete a User from the Blacklist.
+    patch:
+    Update a BlacklistedUser. It's useful if you need to update the username of a User.
+    put:
+    Update a BlacklistedUser. It's useful if you need to update the username of a User.
     """
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
     permission_classes = (IsAdminUser,)
     lookup_field = 'uid'
+
+    def perform_update(self, serializer):
+        serializer.save(added_by=self.request.user)
