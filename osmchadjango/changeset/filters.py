@@ -39,6 +39,12 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets by its ID. Use commas to search for more
             than one id."""
         )
+    uids = filters.CharFilter(
+        name='uid',
+        method='filter_uids',
+        help_text="""Filter changesets by its uid. The uid is a unique identifier
+        of each user in OSM. Use commas to search for more than one uid."""
+        )
     reasons = filters.CharFilter(
         name='reasons',
         method='filter_any_reasons',
@@ -211,6 +217,11 @@ class ChangesetFilter(GeoFilterSet):
     def filter_ids(self, queryset, name, value):
         lookup = '__'.join([name, 'in'])
         values = [int(n) for n in value.split(',')]
+        return queryset.filter(**{lookup: values})
+
+    def filter_uids(self, queryset, name, value):
+        lookup = '__'.join([name, 'in'])
+        values = [n for n in value.split(',')]
         return queryset.filter(**{lookup: values})
 
     def filter_any_reasons(self, queryset, name, value):
