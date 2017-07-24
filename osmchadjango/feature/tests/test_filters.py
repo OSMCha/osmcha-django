@@ -65,6 +65,7 @@ class TestFeatureFilter(TestCase):
         user_2 = User.objects.create(
             username='the_user_2', email='b@b.com', name="The User 2")
         CheckedFeatureFactory(check_user=user_2)
+        # test filter by checked_by
         self.assertEqual(
             FeatureFilter({'checked_by': 'The User'}).qs.count(), 1
             )
@@ -75,11 +76,22 @@ class TestFeatureFilter(TestCase):
         self.assertEqual(
             FeatureFilter({'checked_by': 'the_user_3,another'}).qs.count(), 0
             )
+        # test filter by users
         self.assertEqual(
             FeatureFilter({'users': 'test, user'}).qs.count(), 4
             )
         self.assertEqual(
             FeatureFilter({'users': 'bad_user, user'}).qs.count(), 0
+            )
+        # test filter by uid
+        self.assertEqual(
+            FeatureFilter({'uids': '123123'}).qs.count(), 4
+            )
+        self.assertEqual(
+            FeatureFilter({'uids': '123123, 7873'}).qs.count(), 4
+            )
+        self.assertEqual(
+            FeatureFilter({'uids': '4132'}).qs.count(), 0
             )
 
     def test_geometry_filter(self):
