@@ -355,6 +355,10 @@ SWAGGER_SETTINGS = {
         },
     }
 
+# CACHALOT SETTINGS
+CACHALOT_TIMEOUT = 180
+CACHALOT_ENABLED = True
+
 # FRONTEND SETTINGS
 # -----------------------------------------------------------------------------
 # Version or any valid git branch tag of front-end code
