@@ -53,12 +53,13 @@ class AreaOfInterest(models.Model):
 
 
 class BlacklistedUser(models.Model):
-    username = models.CharField(max_length=1000, unique=True)
+    username = models.CharField(max_length=1000)
+    uid = models.CharField(max_length=255, unique=True)
     added_by = models.ForeignKey(User)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.username
+        return self.uid
 
     def save(self, *args, **kwargs):
         self.full_clean()

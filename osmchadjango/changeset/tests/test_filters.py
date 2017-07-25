@@ -81,16 +81,22 @@ class TestChangesetFilter(TestCase):
             )
 
     def test_users_related_filters(self):
+        # test filter by user
         self.assertEqual(
             ChangesetFilter({'users': 'suspect_user'}).qs.count(), 1)
         self.assertEqual(
             ChangesetFilter({'users': 'suspect_user,test'}).qs.count(), 4
             )
+        # test filter by checked_by
         self.assertEqual(
             ChangesetFilter({'checked_by': self.user.name}).qs.count(), 1
             )
         users = '{},{}'.format(self.user.name, self.user_2.name)
         self.assertEqual(ChangesetFilter({'checked_by': users}).qs.count(), 2)
+        # test filter by uid
+        self.assertEqual(ChangesetFilter({'uids': '343'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'uids': '343,123123'}).qs.count(), 4)
+        self.assertEqual(ChangesetFilter({'uids': '123123'}).qs.count(), 3)
 
     def test_id_filters(self):
         self.assertEqual(ChangesetFilter({'ids': '2343,2344'}).qs.count(), 1)

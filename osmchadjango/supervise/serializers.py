@@ -45,4 +45,4 @@ class BlacklistSerializer(ModelSerializer):
 
     class Meta:
         model = BlacklistedUser
-        fields = ('username', 'date', 'added_by')
+        fields = ('uid', 'username', 'date', 'added_by')

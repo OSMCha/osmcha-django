@@ -28,7 +28,14 @@ class FeatureFilter(GeoFilterSet):
         name='changeset__user',
         method='filter_changeset_users',
         help_text="""Filter features whose last edit was made by a user. Use
-            commas to search for more than one user."""
+            commas to search for more than one username."""
+        )
+    uids = filters.CharFilter(
+        name='changeset__uid',
+        method='filter_changeset_uid',
+        help_text="""Filter features whose last edit was made by a user. Use
+            commas to search for more than one user uid. The uid is a unique
+            identifier of a OSM user."""
         )
     checked_by = filters.CharFilter(
         name='check_user',
@@ -115,10 +122,15 @@ class FeatureFilter(GeoFilterSet):
         users_array = [t.strip() for t in value.split(',')]
         return queryset.filter(**{lookup: users_array})
 
+    def filter_changeset_uid(self, queryset, name, value):
+        lookup = '__'.join([name, 'in'])
+        uids_array = [t.strip() for t in value.split(',')]
+        return queryset.filter(**{lookup: uids_array})
+
     def filter_check_users(self, queryset, name, value):
         lookup = '__'.join([name, 'name', 'in'])
-        users_array = [t.strip() for t in value.split(',')]
-        return queryset.filter(**{lookup: users_array})
+        check_users_array = [t.strip() for t in value.split(',')]
+        return queryset.filter(**{lookup: check_users_array})
 
     def filter_any_reasons(self, queryset, name, value):
         lookup = '__'.join([name, 'id', 'in'])
