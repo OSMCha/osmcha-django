@@ -22,6 +22,11 @@ urlpatterns = [
         name='aoi-list-changesets'
         ),
     url(
+        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/feed/$',
+        view=views.AOIListChangesetsFeedView(),
+        name='aoi-changesets-feed'
+        ),
+    url(
         regex=r'^aoi/(?P<pk>[0-9a-f-]+)/features/$',
         view=views.AOIListFeaturesAPIView.as_view(),
         name='aoi-list-features'

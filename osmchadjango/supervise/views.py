@@ -1,4 +1,6 @@
 from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.feeds import Feed
+from django.core.urlresolvers import reverse
 
 from rest_framework.generics import (
     ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
@@ -94,6 +96,60 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         serializer.save(
             geometry=get_geometry_from_filters(self.request.data)
             )
+
+
+class AOIListChangesetsFeedView(Feed):
+    """Feed view with the last 50 changesets that matches an Area of Interest.
+    """
+
+    def get_object(self, request, pk):
+        return AreaOfInterest.objects.get(pk=pk)
+
+    def title(self, obj):
+        return 'Changesets of Area of Interest {} by {}'.format(
+            obj.name, obj.user
+        )
+
+    def link(self, obj):
+        return reverse('supervise:aoi-detail', args=[obj.id])
+
+    def items(self, obj):
+        return obj.changesets()[:50]
+
+    def item_title(self, item):
+        return 'Changeset {} by {}'.format(item.id, item.user)
+
+    def item_geometry(self, item):
+        return item.bbox
+
+    def item_link(self, item):
+        return reverse('frontend:changeset-detail', args=[item.id])
+
+    def item_pubdate(self, item):
+        return item.date
+
+    def item_description(self, item):
+        description_items = []
+        if item.comment:
+            description_items.append(item.comment)
+        description_items.append('Create: {}, Modify: {}, Delete: {}'.format(
+            item.create, item.modify, item.delete
+            ))
+        if item.is_suspect:
+            suspect = 'Changeset flagged for: '
+            suspect += ', '.join([reason.name for reason in item.reasons.all()])
+            description_items.append(suspect)
+        if item.checked:
+            if item.harmful:
+                description_items.append(
+                    'Marked as harmful by {}'.format(item.check_user.username)
+                    )
+            elif item.harmful is False:
+                description_items.append(
+                    'Marked as good by {}'.format(item.check_user.username)
+                    )
+
+        return '<br>'.join(description_items)
 
 
 class AOIListChangesetsAPIView(ListAPIView):
