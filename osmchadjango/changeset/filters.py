@@ -117,67 +117,68 @@ class ChangesetFilter(GeoFilterSet):
         name='create',
         lookup_expr='gte',
         help_text="""Filter changesets whose number of elements created are
-            greater or equal a number."""
+            greater than or equal to a number."""
         )
     create__lte = filters.NumberFilter(
         name='create',
         lookup_expr='lte',
         help_text="""Filter changesets whose number of elements created are
-            lower or equal a number."""
+            lower than or equal to a number."""
         )
     modify__gte = filters.NumberFilter(
         name='modify',
         lookup_expr='gte',
         help_text="""Filter changesets whose number of elements modified are
-            greater or equal a number."""
+            greater than or equal to a number."""
         )
     modify__lte = filters.NumberFilter(
         name='modify',
         lookup_expr='lte',
         help_text="""Filter changesets whose number of elements modified are
-            lower or equal a number."""
+            lower than or equal to a number."""
         )
     delete__gte = filters.NumberFilter(
         name='delete',
         lookup_expr='gte',
         help_text="""Filter changesets whose number of elements deleted are
-            greater or equal a number."""
+            greater than or equal to a number."""
         )
     delete__lte = filters.NumberFilter(
         name='delete',
         lookup_expr='lte',
         help_text="""Filter changesets whose number of elements deleted are
-            lower or equal a number."""
+            lower than or equal to a number."""
         )
     date__gte = filters.DateTimeFilter(
         name='date',
         lookup_expr='gte',
-        help_text="""Filter changesets whose date is greater or equal a date or
-            a datetime value."""
+        help_text="""Filter changesets whose date is greater than or equal a
+            date or a datetime value."""
         )
     date__lte = filters.DateTimeFilter(
         name='date',
         lookup_expr='lte',
-        help_text="""Filter changesets whose date is lower or equal a date or a
-            datetime value."""
+        help_text="""Filter changesets whose date is lower than or equal a date
+            or a datetime value."""
         )
     check_date__gte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='gte',
-        help_text="""Filter changesets whose check_date is greater or equal a
-            date or a datetime value."""
+        help_text="""Filter changesets whose check_date is greater than or equal
+            a date or a datetime value."""
         )
     check_date__lte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='lte',
-        help_text="""Filter changesets whose check_date is lower or equal a date
-            or a datetime value."""
+        help_text="""Filter changesets whose check_date is lower than or equal
+            a date or a datetime value."""
         )
     editor = filters.CharFilter(
         name='editor',
         lookup_expr='icontains',
-        help_text="""Filter changesets by its editor field using the icontains
-            lookup expression."""
+        help_text="""Filter changesets created with a software editor. It uses
+            the icontains lookup expression, so a query for 'josm' will return
+            changesets created or last modified with all JOSM versions."""
         )
     comment = filters.CharFilter(
         name='comment',

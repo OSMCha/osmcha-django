@@ -78,17 +78,20 @@ class FeatureFilter(GeoFilterSet):
     osm_version__gte = filters.NumberFilter(
         name='osm_version',
         lookup_expr='gte',
-        help_text='Filter items whose osm_version is greater or equal than a number.'
+        help_text="""Filter items whose osm_version is greater than or equal to
+            a number."""
         )
     osm_version__lte = filters.NumberFilter(
         name='osm_version',
         lookup_expr='lte',
-        help_text='Filter items whose osm_version is lower or equal than a number.'
+        help_text="""Filter items whose osm_version is lower than or equal to a
+            number."""
         )
     osm_type = filters.CharFilter(
         name='osm_type',
         lookup_expr='exact',
-        help_text='Filter features by its osm_type. Options: node, way, relation.'
+        help_text="""Filter features by its osm_type. The value options are node,
+            way or relation."""
         )
     date__gte = filters.DateTimeFilter(
         name='changeset__date',
@@ -117,8 +120,11 @@ class FeatureFilter(GeoFilterSet):
     editor = filters.CharFilter(
         name='changeset__editor',
         lookup_expr='icontains',
-        help_text="""Filter features by its changeset__editor field. The
-            lookup expression used is 'icontains'."""
+        help_text="""Filter features that were created or last modified with a
+            software editor. The lookup expression used is 'icontains', so a
+            query for 'josm' will get features created or last modified with
+            all JOSM versions.
+            """
         )
 
     def filter_changeset_users(self, queryset, name, value):
