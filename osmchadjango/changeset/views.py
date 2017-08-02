@@ -47,13 +47,13 @@ class PaginatedCSVRenderer (CSVRenderer):
 
 
 class ChangesetListAPIView(ListAPIView):
-    """List changesets. The data can be filtered by any field, except 'uuid'.
-    There are two ways of filtering changesets by geolocation. The first
-    option is to use the 'geometry' filter field, which can receive any type of
-    geometry as a GeoJson geometry string. The other is the 'in_bbox' parameter,
-    which needs to receive the min Lat, min Lon, max Lat, max Lon values. The
-    accepted response formats are CSV and JSON. The default pagination return
-    50 objects by page.
+    """List changesets. There are two ways of filtering changesets by
+    geolocation. The first option is to use the 'geometry' filter field, which
+    can receive any type of geometry as a GeoJson geometry string. The other is
+    the 'in_bbox' parameter, which needs to receive the min Lat, min Lon, max
+    Lat, max Lon values. Furthermore, we can filter the data by any other
+    changeset property. The accepted response formats are JSON and CSV. The
+    default pagination returns 50 objects by page.
     """
 
     queryset = Changeset.objects.all().select_related(
@@ -100,8 +100,8 @@ class SuspectChangesetListAPIView(ChangesetListAPIView):
 
 
 class NoSuspectChangesetListAPIView(ChangesetListAPIView):
-    """Return the not suspect changesets. Accepts the same filter and pagination
-    parameters of ChangesetListAPIView.
+    """Return the changesets that were not flagged as suspect. Accepts the same
+    filter and pagination parameters of ChangesetListAPIView.
     """
     def get_queryset(self):
         return self.queryset.filter(is_suspect=False)
@@ -295,9 +295,9 @@ class CheckChangeset(ModelViewSet):
     @detail_route(methods=['put'])
     def set_harmful(self, request, pk):
         """Mark a changeset as harmful. You can set the tags of the changeset by
-        sending a list of tag ids inside a field named 'tags' in the request data.
-        If you don't want to set the 'tags', you don't need to send data, just make
-        an empty PUT request.
+        sending a list of tag ids inside a field named 'tags' in the request
+        data.  If you don't want to set the 'tags', you don't need to send data,
+        just make an empty PUT request.
         """
         changeset = self.get_object()
         if changeset.checked:
@@ -324,9 +324,9 @@ class CheckChangeset(ModelViewSet):
     @detail_route(methods=['put'])
     def set_good(self, request, pk):
         """Mark a changeset as good. You can set the tags of the changeset by
-        sending a list of tag ids inside a field named 'tags' in the request data.
-        If you don't want to set the 'tags', you don't need to send data, just make
-        an empty PUT request.
+        sending a list of tag ids inside a field named 'tags' in the request
+        data.  If you don't want to set the 'tags', you don't need to send data,
+        just make an empty PUT request.
         """
         changeset = self.get_object()
         if changeset.checked:
@@ -452,10 +452,10 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 class UserWhitelistListCreateAPIView(ListCreateAPIView):
     """
     get:
-    List your whitelisted users.
+    List the users whitelisted by the request user.
 
     post:
-    Add a user to your whitelist.
+    Add a user to the whitelist of the request user.
     """
     serializer_class = UserWhitelistSerializer
     permission_classes = (IsAuthenticated,)
@@ -471,7 +471,7 @@ class UserWhitelistListCreateAPIView(ListCreateAPIView):
 
 
 class UserWhitelistDestroyAPIView(DestroyAPIView):
-    """Delete a user from your whitelist."""
+    """Delete a user from the whitelist of the request user."""
     serializer_class = UserWhitelistSerializer
     permission_classes = (IsAuthenticated,)
     lookup_field = 'whitelist_user'
@@ -502,8 +502,8 @@ class ChangesetStatsAPIView(ListAPIView):
 
 
 class UserStatsAPIView(ListAPIView):
-    """Get stats about a user in OSMCHA. You need to inform the uid of the user,
-    so we can get the stats of all usernames he have used.
+    """Get stats about an OSM user in the OSMCHA history. It needs to receive
+    the uid of the user in OSM.
     """
     serializer_class = UserStatsSerializer
 
