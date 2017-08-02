@@ -152,26 +152,26 @@ class ChangesetFilter(GeoFilterSet):
     date__gte = filters.DateTimeFilter(
         name='date',
         lookup_expr='gte',
-        help_text="""Filter changesets whose date is greater than or equal a
+        help_text="""Filter changesets whose date is greater than or equal to a
             date or a datetime value."""
         )
     date__lte = filters.DateTimeFilter(
         name='date',
         lookup_expr='lte',
-        help_text="""Filter changesets whose date is lower than or equal a date
-            or a datetime value."""
+        help_text="""Filter changesets whose date is lower than or equal to a
+            date or a datetime value."""
         )
     check_date__gte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='gte',
         help_text="""Filter changesets whose check_date is greater than or equal
-            a date or a datetime value."""
+            to a date or a datetime value."""
         )
     check_date__lte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='lte',
         help_text="""Filter changesets whose check_date is lower than or equal
-            a date or a datetime value."""
+            to a date or a datetime value."""
         )
     editor = filters.CharFilter(
         name='editor',
