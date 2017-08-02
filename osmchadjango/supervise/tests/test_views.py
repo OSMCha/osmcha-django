@@ -673,6 +673,7 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
         ChangesetFactory.create_batch(
             51,
             harmful=False,
+            user='çãoéí',
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
         response = self.client.get(

@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.contrib.gis.feeds import Feed
 from django.core.urlresolvers import reverse
