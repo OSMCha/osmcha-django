@@ -690,6 +690,30 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             )
         self.assertEqual(len(items), 50)
 
+    def test_feed_view_of_unnamed_aoi_and_zero_changesets(self):
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        ChangesetFactory(
+            editor='JOSM 1.5',
+            harmful=False,
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
+            )
+        self.aoi.name = ''
+        self.aoi.save()
+        response = self.client.get(
+            reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        title = [i for i in rss_data if i.tag == 'title'][0]
+        items = [i for i in rss_data if i.tag == 'item']
+        self.assertEqual(
+            title.text,
+            'Changesets of Area of Interest Unnamed by {}'.format(
+                self.aoi.user.username
+                )
+            )
+        self.assertEqual(len(items), 0)
+
 
 class TestAoIStatsAPIViews(APITestCase):
     def setUp(self):
