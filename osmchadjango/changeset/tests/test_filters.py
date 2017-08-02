@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.contrib.gis.geos import Polygon
+from django.utils import timezone
 from django.test import TestCase
 
 from ..filters import ChangesetFilter
@@ -120,6 +121,10 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'date__lte': tomorrow}).qs.count(), 4)
         self.assertEqual(ChangesetFilter({'date__lte': yesterday}).qs.count(), 0)
 
+        next_hour = timezone.now() + timedelta(hours=1)
+        self.assertEqual(ChangesetFilter({'date__gte': next_hour}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'date__lte': next_hour}).qs.count(), 4)
+
     def test_check_date_field_filter(self):
         tomorrow = date.today() + timedelta(days=1)
         yesterday = date.today() - timedelta(days=1)
@@ -135,6 +140,14 @@ class TestChangesetFilter(TestCase):
             )
         self.assertEqual(
             ChangesetFilter({'check_date__gte': tomorrow}).qs.count(), 0
+            )
+
+        next_hour = timezone.now() + timedelta(hours=1)
+        self.assertEqual(
+            ChangesetFilter({'check_date__lte': next_hour}).qs.count(), 2
+            )
+        self.assertEqual(
+            ChangesetFilter({'check_date__gte': next_hour}).qs.count(), 0
             )
 
     def test_char_field_filters(self):
