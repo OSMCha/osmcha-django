@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from ...changeset.tests.modelfactories import (
@@ -54,11 +55,29 @@ class TestFeatureFilter(TestCase):
         self.assertEqual(
             FeatureFilter({'date__gte': tomorrow}).qs.count(), 0
             )
+
+        next_hour = timezone.now() + timedelta(hours=1)
+        self.assertEqual(
+            FeatureFilter({'date__gte': next_hour}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'date__lte': next_hour}).qs.count(), 4
+            )
+
         self.assertEqual(
             FeatureFilter({'check_date__gte': tomorrow}).qs.count(), 1
             )
         self.assertEqual(
+            FeatureFilter({'check_date__gte': yesterday}).qs.count(), 2
+            )
+        self.assertEqual(
             FeatureFilter({'check_date__lte': yesterday}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'check_date__gte': next_hour}).qs.count(), 1
+            )
+        self.assertEqual(
+            FeatureFilter({'check_date__lte': next_hour}).qs.count(), 1
             )
 
     def test_users_filters(self):

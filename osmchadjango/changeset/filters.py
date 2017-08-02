@@ -149,25 +149,29 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets whose number of elements deleted are
             lower or equal a number."""
         )
-    date__gte = filters.DateFilter(
+    date__gte = filters.DateTimeFilter(
         name='date',
         lookup_expr='gte',
-        help_text='Filter changesets whose date is greater or equal a date.'
+        help_text="""Filter changesets whose date is greater or equal a date or
+            a datetime value."""
         )
-    date__lte = filters.DateFilter(
+    date__lte = filters.DateTimeFilter(
         name='date',
         lookup_expr='lte',
-        help_text='Filter changesets whose date is lower or equal a date.'
+        help_text="""Filter changesets whose date is lower or equal a date or a
+            datetime value."""
         )
-    check_date__gte = filters.DateFilter(
+    check_date__gte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='gte',
-        help_text='Filter changesets whose check_date is greater or equal a date.'
+        help_text="""Filter changesets whose check_date is greater or equal a
+            date or a datetime value."""
         )
-    check_date__lte = filters.DateFilter(
+    check_date__lte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='lte',
-        help_text='Filter changesets whose check_date is lower or equal a date.'
+        help_text="""Filter changesets whose check_date is lower or equal a date
+            or a datetime value."""
         )
     editor = filters.CharFilter(
         name='editor',

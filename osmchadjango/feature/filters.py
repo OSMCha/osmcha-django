@@ -90,25 +90,29 @@ class FeatureFilter(GeoFilterSet):
         lookup_expr='exact',
         help_text='Filter features by its osm_type. Options: node, way, relation.'
         )
-    date__gte = filters.DateFilter(
+    date__gte = filters.DateTimeFilter(
         name='changeset__date',
         lookup_expr='gte',
-        help_text='Filter features whose changeset date is greater or equal to a date.'
+        help_text="""Filter features whose changeset date is greater than or
+            equal to a date or a datetime."""
         )
-    date__lte = filters.DateFilter(
+    date__lte = filters.DateTimeFilter(
         name='changeset__date',
         lookup_expr='lte',
-        help_text='Filter features whose changeset date is lower or equal to a date.'
+        help_text="""Filter features whose changeset date is lower than or equal
+            to a date or a datetime."""
         )
-    check_date__gte = filters.DateFilter(
+    check_date__gte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='gte',
-        help_text='Filter features whose check_date is greater or equal to a date.'
+        help_text="""Filter features whose check_date is greater than or equal
+            to a date or a datetime."""
         )
-    check_date__lte = filters.DateFilter(
+    check_date__lte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='lte',
-        help_text='Filter features whose check_date is lower or equal to a date.'
+        help_text="""Filter features whose check_date is lower than or equal to
+            a date or a datetime."""
         )
     editor = filters.CharFilter(
         name='changeset__editor',
