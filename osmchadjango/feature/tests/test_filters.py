@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from ...changeset.tests.modelfactories import (
-    SuspicionReasonsFactory, TagFactory
+    SuspicionReasonsFactory, TagFactory, GoodChangesetFactory
     )
 from ..filters import FeatureFilter
 from .modelfactories import (
@@ -52,6 +52,16 @@ class TestFeatureFilter(TestCase):
         id = self.checked_feature.changeset.id
         self.assertEqual(
             FeatureFilter({'changeset_ids': id}).qs.count(), 1
+            )
+
+    def test_changeset_checked_filter(self):
+        self.feature.changeset.checked = True
+        self.feature.changeset.save()
+        self.assertEqual(
+            FeatureFilter({'changeset_checked': True}).qs.count(), 1
+            )
+        self.assertEqual(
+            FeatureFilter({'changeset_checked': False}).qs.count(), 2
             )
 
     def test_date_filters(self):
