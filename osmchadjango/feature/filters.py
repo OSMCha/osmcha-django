@@ -75,6 +75,12 @@ class FeatureFilter(GeoFilterSet):
             sign (-) before the field name to reverse the ordering. Default
             ordering is '-changeset_id'."""
         )
+    changeset_ids = filters.CharFilter(
+        name='changeset__id',
+        method='filter_changeset_ids',
+        help_text="""Filter features by its changeset id. Send the ids separated
+            by commas."""
+        )
     osm_version__gte = filters.NumberFilter(
         name='osm_version',
         lookup_expr='gte',
@@ -163,6 +169,11 @@ class FeatureFilter(GeoFilterSet):
             return queryset.order_by(value)
         else:
             return queryset
+
+    def filter_changeset_ids(self, queryset, name, value):
+        lookup = '__'.join([name, 'in'])
+        values = [int(t) for t in value.split(',')]
+        return queryset.filter(**{lookup: values})
 
     class Meta:
         model = Feature

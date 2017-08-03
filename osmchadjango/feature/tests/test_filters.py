@@ -42,6 +42,18 @@ class TestFeatureFilter(TestCase):
             FeatureFilter({'editor': 'Potlatch 2'}).qs.count(), 3
             )
 
+    def test_changeset_ids_filter(self):
+        changeset_ids = '{},{}'.format(
+            self.feature.changeset.id, self.way_feature.changeset.id
+            )
+        self.assertEqual(
+            FeatureFilter({'changeset_ids': changeset_ids}).qs.count(), 2
+            )
+        id = self.checked_feature.changeset.id
+        self.assertEqual(
+            FeatureFilter({'changeset_ids': id}).qs.count(), 1
+            )
+
     def test_date_filters(self):
         tomorrow = date.today() + timedelta(days=1)
         yesterday = date.today() - timedelta(days=1)
