@@ -35,9 +35,9 @@ from .serializers import (
 
 class FeatureListAPIView(ListAPIView):
     """List Features. It can be filtered using the 'location' parameter, which can
-    receive any valid geometry, or using the 'in_bbox' field, which must receive
+    receive any valid geometry, or using the 'in_bbox' filter, which must receive
     the min Lat, min Lon, max Lat, max Lon values. It's also possible to filter
-    using other fields. The default pagination return 50 objects by page.
+    using other fields. The default pagination returns 50 objects by page.
     """
     queryset = Feature.objects.all().select_related(
         'check_user', 'changeset'
@@ -235,9 +235,9 @@ class CheckFeature(ModelViewSet):
     @detail_route(methods=['put'])
     def set_harmful(self, request, changeset, slug):
         """Mark a feature as harmful. You can set the tags of the feature by sending
-        a list of tag ids inside a field named 'tags' in the request data. If you
-        don't want to set the 'tags', you don't need to send data, just make an
-        empty PUT request.
+        a list of tag ids inside a field named 'tags' in the request data. If
+        you don't want to set the 'tags', you don't need to send data, just
+        make an empty PUT request.
         """
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:
@@ -264,9 +264,9 @@ class CheckFeature(ModelViewSet):
     @detail_route(methods=['put'])
     def set_good(self, request, changeset, slug):
         """Mark a feature as good. You can set the tags of the feature by sending
-        a list of tag ids inside a field named 'tags' in the request data. If you
-        don't want to set the 'tags', you don't need to send data, just make an
-        empty PUT request.
+        a list of tag ids inside a field named 'tags' in the request data. If
+        you don't want to set the 'tags', you don't need to send data, just
+        make an empty PUT request.
         """
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:

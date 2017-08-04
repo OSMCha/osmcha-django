@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 
 from django.test import TestCase
+from django.utils import timezone
 from django.contrib.auth import get_user_model
 
 from ...changeset.tests.modelfactories import (
-    SuspicionReasonsFactory, TagFactory
+    SuspicionReasonsFactory, TagFactory, GoodChangesetFactory
     )
 from ..filters import FeatureFilter
 from .modelfactories import (
@@ -41,6 +42,28 @@ class TestFeatureFilter(TestCase):
             FeatureFilter({'editor': 'Potlatch 2'}).qs.count(), 3
             )
 
+    def test_changeset_ids_filter(self):
+        changeset_ids = '{},{}'.format(
+            self.feature.changeset.id, self.way_feature.changeset.id
+            )
+        self.assertEqual(
+            FeatureFilter({'changeset_ids': changeset_ids}).qs.count(), 2
+            )
+        id = self.checked_feature.changeset.id
+        self.assertEqual(
+            FeatureFilter({'changeset_ids': id}).qs.count(), 1
+            )
+
+    def test_changeset_checked_filter(self):
+        self.feature.changeset.checked = True
+        self.feature.changeset.save()
+        self.assertEqual(
+            FeatureFilter({'changeset_checked': True}).qs.count(), 1
+            )
+        self.assertEqual(
+            FeatureFilter({'changeset_checked': False}).qs.count(), 2
+            )
+
     def test_date_filters(self):
         tomorrow = date.today() + timedelta(days=1)
         yesterday = date.today() - timedelta(days=1)
@@ -54,11 +77,29 @@ class TestFeatureFilter(TestCase):
         self.assertEqual(
             FeatureFilter({'date__gte': tomorrow}).qs.count(), 0
             )
+
+        next_hour = timezone.now() + timedelta(hours=1)
+        self.assertEqual(
+            FeatureFilter({'date__gte': next_hour}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'date__lte': next_hour}).qs.count(), 4
+            )
+
         self.assertEqual(
             FeatureFilter({'check_date__gte': tomorrow}).qs.count(), 1
             )
         self.assertEqual(
+            FeatureFilter({'check_date__gte': yesterday}).qs.count(), 2
+            )
+        self.assertEqual(
             FeatureFilter({'check_date__lte': yesterday}).qs.count(), 0
+            )
+        self.assertEqual(
+            FeatureFilter({'check_date__gte': next_hour}).qs.count(), 1
+            )
+        self.assertEqual(
+            FeatureFilter({'check_date__lte': next_hour}).qs.count(), 1
             )
 
     def test_users_filters(self):

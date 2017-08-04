@@ -19,6 +19,17 @@ class FeatureFilter(GeoFilterSet):
         help_text="""Filter features that were checked or not. Use true/false or
             1/0 values."""
         )
+    checked = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text="""Filter features that were checked or not. Use true/false or
+            1/0 values."""
+        )
+    changeset_checked = filters.BooleanFilter(
+        name='changeset__checked',
+        widget=BooleanWidget(),
+        help_text="""Filter features whose changeset is checked or not. Use
+            true/false or 1/0 values."""
+        )
     harmful = filters.BooleanFilter(
         widget=BooleanWidget(),
         help_text="""Filter features that were marked as harmful or not harmful.
@@ -75,46 +86,62 @@ class FeatureFilter(GeoFilterSet):
             sign (-) before the field name to reverse the ordering. Default
             ordering is '-changeset_id'."""
         )
+    changeset_ids = filters.CharFilter(
+        name='changeset__id',
+        method='filter_changeset_ids',
+        help_text="""Filter features by its changeset id. Send the ids separated
+            by commas."""
+        )
     osm_version__gte = filters.NumberFilter(
         name='osm_version',
         lookup_expr='gte',
-        help_text='Filter items whose osm_version is greater or equal than a number.'
+        help_text="""Filter items whose osm_version is greater than or equal to
+            a number."""
         )
     osm_version__lte = filters.NumberFilter(
         name='osm_version',
         lookup_expr='lte',
-        help_text='Filter items whose osm_version is lower or equal than a number.'
+        help_text="""Filter items whose osm_version is lower than or equal to a
+            number."""
         )
     osm_type = filters.CharFilter(
         name='osm_type',
         lookup_expr='exact',
-        help_text='Filter features by its osm_type. Options: node, way, relation.'
+        help_text="""Filter features by its osm_type. The value options are node,
+            way or relation."""
         )
-    date__gte = filters.DateFilter(
+    date__gte = filters.DateTimeFilter(
         name='changeset__date',
         lookup_expr='gte',
-        help_text='Filter features whose changeset date is greater or equal to a date.'
+        help_text="""Filter features whose changeset date is greater than or
+            equal to a date or a datetime."""
         )
-    date__lte = filters.DateFilter(
+    date__lte = filters.DateTimeFilter(
         name='changeset__date',
         lookup_expr='lte',
-        help_text='Filter features whose changeset date is lower or equal to a date.'
+        help_text="""Filter features whose changeset date is lower than or equal
+            to a date or a datetime."""
         )
-    check_date__gte = filters.DateFilter(
+    check_date__gte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='gte',
-        help_text='Filter features whose check_date is greater or equal to a date.'
+        help_text="""Filter features whose check_date is greater than or equal
+            to a date or a datetime."""
         )
-    check_date__lte = filters.DateFilter(
+    check_date__lte = filters.DateTimeFilter(
         name='check_date',
         lookup_expr='lte',
-        help_text='Filter features whose check_date is lower or equal to a date.'
+        help_text="""Filter features whose check_date is lower than or equal to
+            a date or a datetime."""
         )
     editor = filters.CharFilter(
         name='changeset__editor',
         lookup_expr='icontains',
-        help_text="""Filter features by its changeset__editor field. The
-            lookup expression used is 'icontains'."""
+        help_text="""Filter features that were created or last modified with a
+            software editor. The lookup expression used is 'icontains', so a
+            query for 'josm' will get features created or last modified with
+            all JOSM versions.
+            """
         )
 
     def filter_changeset_users(self, queryset, name, value):
@@ -153,6 +180,11 @@ class FeatureFilter(GeoFilterSet):
             return queryset.order_by(value)
         else:
             return queryset
+
+    def filter_changeset_ids(self, queryset, name, value):
+        lookup = '__'.join([name, 'in'])
+        values = [int(t) for t in value.split(',')]
+        return queryset.filter(**{lookup: values})
 
     class Meta:
         model = Feature

@@ -1,4 +1,8 @@
+from __future__ import unicode_literals
+
 from django.contrib.gis.geos import GEOSGeometry, Polygon
+from django.contrib.gis.feeds import Feed
+from django.core.urlresolvers import reverse
 
 from rest_framework.generics import (
     ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
@@ -47,11 +51,13 @@ class IsOwnerOrReadOnly(BasePermission):
 class AOIListCreateAPIView(ListCreateAPIView):
     """
     get:
-    List the Areas of Interest of the current logged user. You can order it by
-    'name' or 'date'. The default ordering is by '-date'.
+    List the Areas of Interest of the request user.
+    It can be ordered by 'name' or 'date'. The default ordering is by '-date'.
 
     post:
-    Create an Area of Interest. It requires authentication.
+    Create an Area of Interest.
+    It needs to receive the filter parameters and a name. The AoI name must be
+    unique to a user. This endpoint requires authentication.
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = AreaOfInterestSerializer
@@ -76,15 +82,18 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     """
     get:
     Get details about an Area of Interest.
+
     put:
-    Update an Area of Interest. Only the user that created an Area of Interest
-    has permissions to update it.
+    Update an Area of Interest.
+    Only the user that created an Area of Interest has permissions to update it.
+
     patch:
-    Update an Area of Interest. Only the user that created an Area of Interest
-    has permissions to update it.
+    Update an Area of Interest.
+    Only the user that created an Area of Interest has permissions to update it.
+
     delete:
-    Delete an Area of Interest. Only the user that created an Area of Interest
-    has permissions to delete it.
+    Delete an Area of Interest.
+    Only the user that created an Area of Interest has permissions to delete it.
     """
     queryset = AreaOfInterest.objects.all()
     serializer_class = AreaOfInterestSerializer
@@ -94,6 +103,60 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         serializer.save(
             geometry=get_geometry_from_filters(self.request.data)
             )
+
+
+class AOIListChangesetsFeedView(Feed):
+    """Feed view with the last 50 changesets that matches an Area of Interest.
+    """
+
+    def get_object(self, request, pk):
+        return AreaOfInterest.objects.get(pk=pk)
+
+    def title(self, obj):
+        return 'Changesets of Area of Interest {} by {}'.format(
+            obj.name if obj.name else 'Unnamed', obj.user
+        )
+
+    def link(self, obj):
+        return reverse('supervise:aoi-detail', args=[obj.id])
+
+    def items(self, obj):
+        return obj.changesets()[:50]
+
+    def item_title(self, item):
+        return 'Changeset {} by {}'.format(item.id, item.user)
+
+    def item_geometry(self, item):
+        return item.bbox
+
+    def item_link(self, item):
+        return reverse('frontend:changeset-detail', args=[item.id])
+
+    def item_pubdate(self, item):
+        return item.date
+
+    def item_description(self, item):
+        description_items = []
+        if item.comment:
+            description_items.append(item.comment)
+        description_items.append('Create: {}, Modify: {}, Delete: {}'.format(
+            item.create, item.modify, item.delete
+            ))
+        if item.is_suspect:
+            suspect = 'Changeset flagged for: '
+            suspect += ', '.join([reason.name for reason in item.reasons.all()])
+            description_items.append(suspect)
+        if item.checked:
+            if item.harmful:
+                description_items.append(
+                    'Marked as harmful by {}'.format(item.check_user.username)
+                    )
+            elif item.harmful is False:
+                description_items.append(
+                    'Marked as good by {}'.format(item.check_user.username)
+                    )
+
+        return '<br>'.join(description_items)
 
 
 class AOIListChangesetsAPIView(ListAPIView):
@@ -153,7 +216,7 @@ class AOIListFeaturesAPIView(ListAPIView):
 
 
 class AOIStatsAPIView(ListAPIView):
-    """Return the statistics of the changesets that match an Area of Interest.
+    """Return the statistics of the changesets that matches an Area of Interest.
     Return the data in the same format as the Changeset Stats view.
     """
     queryset = AreaOfInterest.objects.all()
@@ -171,9 +234,11 @@ class AOIStatsAPIView(ListAPIView):
 class BlacklistedUserListCreateAPIView(ListCreateAPIView):
     """
     get:
-    List BlacklistedUsers. Only staff users can access this endpoint.
+    List BlacklistedUsers.
+    Access restricted to staff users.
     post:
-    Add a user to the Blacklist. Only staff users can add users to the blacklist.
+    Add a user to the Blacklist.
+    Only staff users can add users to the blacklist.
     """
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
@@ -187,12 +252,18 @@ class BlacklistedUserDetailAPIView(RetrieveUpdateDestroyAPIView):
     """
     get:
     Get details about a BlacklistedUser.
+    Access restricted to staff users.
     delete:
     Delete a User from the Blacklist.
+    Only staff users can use this method.
     patch:
-    Update a BlacklistedUser. It's useful if you need to update the username of a User.
+    Update a BlacklistedUser.
+    It's useful if you need to update the username of a User. Only staff users
+    can use this method.
     put:
-    Update a BlacklistedUser. It's useful if you need to update the username of a User.
+    Update a BlacklistedUser.
+    It's useful if you need to update the username of a User. Only staff users
+    can use this method.
     """
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
