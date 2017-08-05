@@ -1,7 +1,20 @@
 Change Log
 ==========
 
-Log of changes since the version 2.0
+Log of changes since the 2.0 version
+
+[2.3.3] - 2017-08-05
+
+- Update django version to 1.11.4
+- Update documentation
+
+[2.3.2] - 2017-07-28
+
+- Update django version to 1.11.3
+- Add RSS feed to list the changesets that matches an Area of Interest
+- Add changeset_checked and changeset_ids filter to FeatureFilter
+- Improve views and filter documentation
+- Change date and check_date filters to accept datetime values
 
 [2.3.1] - 2017-07-28
 

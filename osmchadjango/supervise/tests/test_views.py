@@ -670,9 +670,9 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
-        ChangesetFactory.create_batch(
+        GoodChangesetFactory.create_batch(
             51,
-            harmful=False,
+            comment='Test case',
             user='çãoéí',
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
@@ -693,12 +693,16 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
 
     def test_feed_view_of_unnamed_aoi_and_zero_changesets(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
-        ChangesetFactory(
+        HarmfulChangesetFactory(
             editor='JOSM 1.5',
-            harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
         self.aoi.name = ''
+        self.aoi.filters = {
+            'editor': 'JOSM 1.5',
+            'harmful': 'True',
+            'in_bbox': '0,0,2,2'
+            }
         self.aoi.save()
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
@@ -713,7 +717,7 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
                 self.aoi.user.username
                 )
             )
-        self.assertEqual(len(items), 0)
+        self.assertEqual(len(items), 1)
 
 
 class TestAoIStatsAPIViews(APITestCase):

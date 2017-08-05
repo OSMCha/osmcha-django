@@ -19,11 +19,6 @@ class FeatureFilter(GeoFilterSet):
         help_text="""Filter features that were checked or not. Use true/false or
             1/0 values."""
         )
-    checked = filters.BooleanFilter(
-        widget=BooleanWidget(),
-        help_text="""Filter features that were checked or not. Use true/false or
-            1/0 values."""
-        )
     changeset_checked = filters.BooleanFilter(
         name='changeset__checked',
         widget=BooleanWidget(),

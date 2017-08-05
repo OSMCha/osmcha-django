@@ -23,7 +23,7 @@ class AreaOfInterest(models.Model):
 
     def changesets(self):
         """Return the changesets that match the filters, including the geometry
-        area, of the AreaOfInterest.
+        of the AreaOfInterest.
         """
         qs = ChangesetFilter(self.filters).qs
         if self.geometry is not None:
@@ -35,7 +35,7 @@ class AreaOfInterest(models.Model):
 
     def features(self):
         """Return the features that match the filters, including the geometry
-        area, of the AreaOfInterest.
+        of the AreaOfInterest.
         """
         qs = FeatureFilter(self.filters).qs
         if self.geometry is not None:
