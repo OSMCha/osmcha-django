@@ -253,8 +253,9 @@ class ChangesetFilter(GeoFilterSet):
 
     def filter_area_lt(self, queryset, name, value):
         """This filter method was designed to exclude changesets that are much
-        bigger than the filter area. For example, if you want only changesets
-        that are lower than 5 times the filter area, you need to pass the value 5.
+        bigger than the filter area. For example, if you want to exclude
+        changesets that are greater than 5 times the filter area, you need to
+        set the value to 5.
         """
         if 'geometry' in self.data.keys():
             try:
