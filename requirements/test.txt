@@ -1,5 +1,5 @@
 # Test dependencies go here.
 -r base.txt
-flake8==3.3.0
-django-test-plus==1.0.17
+flake8==3.4.0
+django-test-plus==1.0.18
 factory-boy==2.8.1

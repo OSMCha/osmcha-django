@@ -1,6 +1,6 @@
 # Bleeding edge Django
 
-django==1.11.4
+django==1.11.3
 
 # Configuration
 django-environ==0.4.3
@@ -12,10 +12,7 @@ django-crispy-forms==1.6.1
 django-floppyforms==1.7.0
 
 # Models
-django-model-utils==2.5.2
-
-# Images
-Pillow==2.9.0
+django-model-utils==3.0.0
 
 # For authentication with OSM
 social-auth-app-django==1.2.0
@@ -32,7 +29,7 @@ django-cors-headers==2.1.0
 # coreapi==2.3.0
 
 # For the persistence stores
-psycopg2==2.7.1
+psycopg2==2.7.2
 
 # Unicode slugification
 unicode-slugify==0.1.3
