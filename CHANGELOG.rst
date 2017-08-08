@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.3.4] - 2017-08-08
+
+- General update of dependencies
+
 [2.3.3] - 2017-08-05
 
 - Update django version to 1.11.4
