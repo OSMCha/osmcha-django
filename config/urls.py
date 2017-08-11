@@ -39,6 +39,10 @@ api_urls = [
         r'^{}'.format(API_BASE_URL),
         include("osmchadjango.users.urls", namespace="users")
         ),
+    url(
+        r'^{}'.format(API_BASE_URL),
+        include("osmchadjango.priority.urls", namespace="priority")
+        ),
     ]
 
 urlpatterns += [
@@ -70,5 +74,3 @@ if settings.DEBUG:
         url(r'^500/$', defaults.server_error),
         url(r'^__debug__/', include(debug_toolbar.urls)),
         ]
-
-
