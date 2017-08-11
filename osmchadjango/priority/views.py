@@ -14,7 +14,7 @@ class PriorityCreateAPIView(CreateAPIView):
 
 
 class PriorityDestroyAPIView(DestroyAPIView):
-    """Add a Changeset to the Priority list."""
+    """Remove a Changeset from the Priority list."""
     queryset = Priority.objects.all()
     serializer_class = PriorityCreationSerializer
     lookup_field = 'changeset'
