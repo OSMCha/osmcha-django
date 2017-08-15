@@ -7,14 +7,18 @@ from .serializers import PriorityCreationSerializer
 
 
 class PriorityCreateAPIView(CreateAPIView):
-    """Add a Changeset to the Priority list."""
+    """Add a Changeset to the Priority list.
+    Only staff users have permission to use this endpoint.
+    """
     queryset = Priority.objects.all()
     serializer_class = PriorityCreationSerializer
     permission_classes = (IsAdminUser,)
 
 
 class PriorityDestroyAPIView(DestroyAPIView):
-    """Remove a Changeset from the Priority list."""
+    """Remove a Changeset from the Priority list.
+    Only staff users have permission to use this endpoint.
+    """
     queryset = Priority.objects.all()
     serializer_class = PriorityCreationSerializer
     lookup_field = 'changeset'
@@ -22,8 +26,8 @@ class PriorityDestroyAPIView(DestroyAPIView):
 
 
 class PriorityChangesetsListAPIView(ChangesetListAPIView):
-    """List priority Changesets to be reviewed by the data team. Only staff
-    users can access this endpoint.
+    """List priority Changesets to be reviewed by the data team.
+    Only staff users can access this endpoint.
     """
     permission_classes = (IsAdminUser,)
 
