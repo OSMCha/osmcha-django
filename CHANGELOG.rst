@@ -3,6 +3,14 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.4.0] - To be released
+
+- Add Priority model and app
+
+[2.3.5] - 2017-08-09
+
+- Disable SessionAuthentication in DRF endpoints
+
 [2.3.4] - 2017-08-08
 
 - General update of dependencies
