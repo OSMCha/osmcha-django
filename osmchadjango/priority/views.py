@@ -1,7 +1,7 @@
 from rest_framework.generics import CreateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAdminUser
 
-from ..changeset.views import ChangesetListAPIView
+from ..changeset.views import ChangesetListAPIView, ChangesetStatsAPIView
 from .models import Priority
 from .serializers import PriorityCreationSerializer
 
@@ -29,6 +29,15 @@ class PriorityChangesetsListAPIView(ChangesetListAPIView):
     """List priority Changesets to be reviewed by the data team.
     Only staff users can access this endpoint.
     """
+    permission_classes = (IsAdminUser,)
+
+    def get_queryset(self):
+        return self.queryset.filter(
+            id__in=Priority.objects.values_list('changeset', flat=True)
+            )
+
+
+class PriorityChangesetsStatsAPIView(ChangesetStatsAPIView):
     permission_classes = (IsAdminUser,)
 
     def get_queryset(self):

@@ -20,4 +20,9 @@ urlpatterns = [
         view=views.PriorityChangesetsListAPIView.as_view(),
         name='list-changesets'
     ),
+    url(
+        regex=r'^priority-changesets/stats/$',
+        view=views.PriorityChangesetsStatsAPIView.as_view(),
+        name='stats'
+    ),
 ]
