@@ -27,7 +27,8 @@ class PriorityDestroyAPIView(DestroyAPIView):
 
 class PriorityChangesetsListAPIView(ChangesetListAPIView):
     """List priority Changesets to be reviewed by the data team.
-    Only staff users can access this endpoint.
+    It's possible to apply the same filter parameters that are available in the
+    changeset list endpoint. Access restricted to staff users.
     """
     permission_classes = (IsAdminUser,)
 
@@ -38,6 +39,13 @@ class PriorityChangesetsListAPIView(ChangesetListAPIView):
 
 
 class PriorityChangesetsStatsAPIView(ChangesetStatsAPIView):
+    """Get stats about Priority Changesets.
+    It will return the total number of checked and harmful changesets, the
+    number of users with harmful changesets and the number of checked and
+    harmful changesets by Suspicion Reason and by Tag. It's possible to filter
+    the changesets using the same filter parameters of the changeset list
+    endpoint. Access restricted to staff users.
+    """
     permission_classes = (IsAdminUser,)
 
     def get_queryset(self):
