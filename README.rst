@@ -12,7 +12,7 @@ The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap
 It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
 This project provides a Django application that get the changesets from the
-OpenStreetMap API, analyses and store it in the database and finally provides a
+OpenStreetMap API, analyses and store it in a database and finally provides a
 REST API to interact with the changeset data.
 
 License: GPLv3
@@ -22,7 +22,7 @@ Settings
 
 osmcha-django relies extensively on environment settings which **will not work with
 Apache/mod_wsgi setups**. It has been deployed successfully with both Gunicorn/Nginx
-and even uWSGI/Nginx.
+and uWSGI/Nginx.
 
 For configuration purposes, the following table maps the 'osmcha-django' environment
 variables to their Django setting:
@@ -154,10 +154,10 @@ Instances
 
 We have some instances running ``osmcha-django``:
 
-The main instance is https://http://osmcha.mapbox.com/. You can see the API
+The main instance is https://http://osmcha.mapbox.com/. You can check the API
 documentation at https://osmcha.mapbox.com/api-docs/.
 
-Furthermore, we have a test instance running at https://osmcha-django-api-test.tilestream.net/.
+Furthermore, we have a test instance running at https://osmcha-django-staging.tilestream.net/.
 
 Deployment
 ------------
