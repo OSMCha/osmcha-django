@@ -6,6 +6,7 @@ Log of changes since the 2.0 version
 [2.4.0] - To be released
 
 - Add Priority model and app
+- Update osmcha lib to 0.4.1
 
 [2.3.5] - 2017-08-09
 

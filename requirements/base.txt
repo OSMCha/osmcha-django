@@ -50,8 +50,7 @@ django-cachalot==1.5.0
 
 # Your custom requirements go here
 PyYAML==3.12
-# using the premerge version of osmcha
-osmcha==0.4.0
+osmcha==0.4.1
 
 # git python is required by the frontend management command
 GitPython==2.1.5
