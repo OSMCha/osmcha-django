@@ -26,7 +26,7 @@ class PriorityDestroyAPIView(DestroyAPIView):
 
 
 class PriorityChangesetsListAPIView(ChangesetListAPIView):
-    """List priority Changesets to be reviewed by the data team.
+    """List priority Changesets.
     It's possible to apply the same filter parameters that are available in the
     changeset list endpoint. Access restricted to staff users.
     """
