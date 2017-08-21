@@ -271,10 +271,11 @@ class TestChangesetDetailView(APITestCase):
             )
         self.changeset = HarmfulChangesetFactory(id=31982803)
         self.feature = FeatureFactory(changeset=self.changeset)
+        self.invisible_feature = FeatureFactory(changeset=self.changeset)
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
         self.reason_2.features.add(self.feature)
-        self.reason_3.features.add(self.feature)
+        self.reason_3.features.add(self.feature, self.invisible_feature)
         self.reason_3.changesets.add(self.changeset)
         self.tag = Tag.objects.create(name='Vandalism')
         self.tag.changesets.add(self.changeset)
@@ -367,7 +368,7 @@ class TestChangesetDetailView(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            len(response.data['properties']['features'][0]['reasons']),
+            len(response.data['properties']['features']),
             2
             )
         self.assertIn(

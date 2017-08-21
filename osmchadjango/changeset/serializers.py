@@ -87,7 +87,17 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
     """
     reasons = SerializerMethodField()
     tags = SerializerMethodField()
-    features = FeatureSimpleSerializer(many=True, read_only=True)
+    features = SerializerMethodField()
+
+    def get_features(self, obj):
+        """Filter features to show only the ones that have at least one visible
+        Suspicion Reason.
+        """
+        return FeatureSimpleSerializer(
+            obj.features.filter(reasons__in=obj.reasons.filter(is_visible=True)),
+            many=True,
+            read_only=True
+            ).data
 
     def get_reasons(self, obj):
         return BasicSuspicionReasonsSerializer(
@@ -121,7 +131,9 @@ class ChangesetListStatsSerializer(ListSerializer):
             reasons = SuspicionReasons.objects.order_by('-name')
             tags = Tag.objects.order_by('-name')
         else:
-            reasons = SuspicionReasons.objects.filter(is_visible=True).order_by('-name')
+            reasons = SuspicionReasons.objects.filter(
+                is_visible=True
+                ).order_by('-name')
             tags = Tag.objects.filter(is_visible=True).order_by('-name')
 
         reasons_list = [

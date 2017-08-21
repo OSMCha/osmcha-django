@@ -7,8 +7,8 @@ Log of changes since the 2.0 version
 
 - Add Priority model and app
 - Update osmcha lib to 0.4.1
-- Use ``dist:precise`` in travis-ci (postgis is failing in ``dist:trusty``)
 - Documentation updates
+- Hide features that doesn't have visible SuspicionReasons (to non staff users and only in the changesets endpoints)
 
 [2.3.5] - 2017-08-09
 
