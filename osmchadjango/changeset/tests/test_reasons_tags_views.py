@@ -228,8 +228,12 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
         self.features = [self.feature_1, self.feature_2]
         self.feature_3 = FeatureFactory(changeset=self.changeset_1)
         self.reason_1.features.set([self.feature_1, self.feature_2])
-        self.reason_2.features.set([self.feature_1, self.feature_2, self.feature_3])
-        self.reason_2.changesets.set([self.feature_1.changeset, self.feature_2.changeset])
+        self.reason_2.features.set(
+            [self.feature_1, self.feature_2, self.feature_3]
+            )
+        self.reason_2.changesets.set(
+            [self.feature_1.changeset, self.feature_2.changeset]
+            )
 
     def test_unathenticated_request(self):
         """Unauthenticated users can not access these endpoints."""
