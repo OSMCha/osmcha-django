@@ -36,7 +36,7 @@ class TestUpdateUserName(TestCase):
         update_user_name(self.user)
         update_user_name(self.user_2)
         self.assertEqual(self.user.name, 'Wille Marcel')
-        self.assertEqual(self.user_2.name, 'Narcélio de Sá')
+        self.assertEqual(self.user_2.name, 'narceliodesa')
 
     def test_user_with_wrong_uid(self):
         user = User.objects.create_user(
