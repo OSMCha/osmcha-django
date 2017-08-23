@@ -7,6 +7,7 @@ Log of changes since the 2.0 version
 
 - Add Priority model and app
 - Update osmcha lib to 0.4.1
+- Update Django Rest Framework to 3.6.4
 - Documentation updates
 - Hide features that doesn't have visible SuspicionReasons (to non staff users and only in the changesets endpoints)
 
