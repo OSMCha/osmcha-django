@@ -3,9 +3,8 @@ Change Log
 
 Log of changes since the 2.0 version
 
-[2.4.0] - To be released
+[2.3.6] - 2017-08-29
 
-- Add Priority model and app
 - Update osmcha lib to 0.4.1
 - Update Django Rest Framework to 3.6.4
 - Documentation updates

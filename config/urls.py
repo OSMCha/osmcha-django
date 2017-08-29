@@ -40,10 +40,6 @@ api_urls = [
         r'^{}'.format(API_BASE_URL),
         include("osmchadjango.users.urls", namespace="users")
         ),
-    url(
-        r'^{}'.format(API_BASE_URL),
-        include("osmchadjango.priority.urls", namespace="priority")
-        ),
     ]
 
 urlpatterns += [
