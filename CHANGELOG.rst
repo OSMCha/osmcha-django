@@ -3,6 +3,17 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.3.6] - 2017-08-29
+
+- Update osmcha lib to 0.4.1
+- Update Django Rest Framework to 3.6.4
+- Documentation updates
+- Hide features that doesn't have visible SuspicionReasons (to non staff users and only in the changesets endpoints)
+
+[2.3.5] - 2017-08-09
+
+- Disable SessionAuthentication in DRF endpoints
+
 [2.3.4] - 2017-08-08
 
 - General update of dependencies

@@ -24,9 +24,9 @@ from ..feature.models import Feature
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
-    SuspicionReasonsSerializer, TagSerializer,  UserWhitelistSerializer,
-    UserStatsSerializer, ChangesetTagsSerializer, SuspicionReasonsFeatureSerializer,
-    SuspicionReasonsChangesetSerializer
+    ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
+    SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
+    TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
     )
 from .throttling import NonStaffUserThrottle
 
@@ -388,8 +388,8 @@ def uncheck_changeset(request, pk):
 class AddRemoveChangesetTagsAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
-    # The serializer is not used in this view. It's here only to avoid errors in
-    # docs schema generation.
+    # The serializer is not used in this view. It's here only to avoid errors
+    # in docs schema generation.
     serializer_class = ChangesetStatsSerializer
 
     @detail_route(methods=['post'])

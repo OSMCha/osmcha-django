@@ -37,4 +37,4 @@ class TestUpdateUserNameCommand(TestCase):
         self.user.refresh_from_db()
         self.user_2.refresh_from_db()
         self.assertEqual(self.user.name, 'Wille Marcel')
-        self.assertEqual(self.user_2.name, 'Narcélio de Sá')
+        self.assertEqual(self.user_2.name, 'narceliodesa')

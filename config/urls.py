@@ -5,10 +5,8 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.views.generic.base import RedirectView
 from django.views import defaults
 from django.views import static as static_views
-from osmchadjango.frontend import urls as frontend_urls
 
 from .docs import SwaggerSchemaView
 
@@ -17,9 +15,12 @@ API_BASE_URL = 'api/v1/'
 urlpatterns = []
 
 # If static files are not intercepted by the web-server, serve them with the dev-server:
-if settings.DEBUG is False:   # if DEBUG is True it will be served automatically
+if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
     urlpatterns += [
-        url(r'^static/(?P<path>.*)$', static_views.serve, {'document_root': settings.STATIC_ROOT}),
+        url(r'^static/(?P<path>.*)$',
+            static_views.serve,
+            {'document_root': settings.STATIC_ROOT}
+            ),
         ]
 
 api_urls = [
@@ -46,7 +47,10 @@ urlpatterns += [
     url(r'^admin/', include(admin.site.urls)),
 
     # api docs
-    url(r'^api-docs/$', SwaggerSchemaView.as_view(url_pattern=api_urls), name='api-docs'),
+    url(r'^api-docs/$',
+        SwaggerSchemaView.as_view(url_pattern=api_urls),
+        name='api-docs'
+        ),
 
     # include api_urls
     url(
@@ -55,7 +59,7 @@ urlpatterns += [
         ),
 
     # frontend urls
-    url(r'^', include(frontend_urls, namespace="frontend")),
+    url(r'^', include("osmchadjango.frontend.urls", namespace="frontend")),
 
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
@@ -70,5 +74,3 @@ if settings.DEBUG:
         url(r'^500/$', defaults.server_error),
         url(r'^__debug__/', include(debug_toolbar.urls)),
         ]
-
-

@@ -1,4 +1,6 @@
 language: python
+dist: trusty
+sudo: false
 python:
   - "3.6"
   - "3.5"
@@ -6,6 +8,9 @@ python:
 
 addons:
   postgresql: "9.4"
+  apt:
+    packages:
+    - postgresql-9.4-postgis-2.3
 
 install:
   - "pip install coveralls"
@@ -21,8 +26,6 @@ script:
 
 after_success:
   - coveralls
-
-sudo: false
 
 notifications:
   email: false
