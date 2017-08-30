@@ -3,6 +3,11 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.3.7] - 2017-08-30
+
+- Update osmcha lib to 0.4.2
+- Add filter and ordering by number of Suspicion Reasons
+
 [2.3.6] - 2017-08-29
 
 - Update osmcha lib to 0.4.1
