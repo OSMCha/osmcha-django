@@ -259,6 +259,28 @@ class TestChangesetListViewOrdering(APITestCase):
             [i.id for i in Changeset.objects.all()]
             )
 
+    def test_number_reasons_ordering(self):
+        changeset_1, changeset_2 = Changeset.objects.all()[:2]
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.reason_1.changesets.add(changeset_1)
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
+        self.reason_2.changesets.add(changeset_1, changeset_2)
+
+        response = self.client.get(
+            self.url,
+            {'order_by': '-number_reasons', 'page_size': 2}
+            )
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [changeset_1.id, changeset_2.id]
+            )
+
+        response = self.client.get(self.url, {'order_by': 'number_reasons'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')[-2:]],
+            [changeset_2.id, changeset_1.id]
+            )
+
 
 class TestChangesetDetailView(APITestCase):
 
