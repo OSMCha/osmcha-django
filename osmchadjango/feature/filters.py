@@ -1,3 +1,5 @@
+from django.db.models import Count
+
 from rest_framework_gis.filterset import GeoFilterSet
 from rest_framework_gis.filters import GeometryFilter
 from django_filters import filters
@@ -48,30 +50,6 @@ class FeatureFilter(GeoFilterSet):
         method='filter_check_users',
         help_text="""Filter features that were checked by a user. Use commas to
             search for more than one user."""
-        )
-    reasons = filters.CharFilter(
-        name='reasons',
-        method='filter_any_reasons',
-        help_text="""Filter features that have one or more of the Suspicion
-            Reasons. Inform the Suspicion Reasons ids separated by commas."""
-        )
-    all_reasons = filters.CharFilter(
-        name='reasons',
-        method='filter_all_reasons',
-        help_text="""Filter features that have ALL the Suspicion Reasons of a
-        list. Inform the Suspicion Reasons ids separated by commas."""
-        )
-    tags = filters.CharFilter(
-        name='tags',
-        method='filter_any_reasons',
-        help_text="""Filter features that have one or more of the Tags. Inform
-            the Tags ids separated by commas."""
-        )
-    all_tags = filters.CharFilter(
-        name='tags',
-        method='filter_all_reasons',
-        help_text="""Filter features that have ALL the Tags of a list. Inform
-            the Tags ids separated by commas."""
         )
     order_by = filters.CharFilter(
         name=None,
@@ -138,6 +116,36 @@ class FeatureFilter(GeoFilterSet):
             all JOSM versions.
             """
         )
+    reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_any_reasons',
+        help_text="""Filter features that have one or more of the Suspicion
+            Reasons. Inform the Suspicion Reasons ids separated by commas."""
+        )
+    all_reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_all_reasons',
+        help_text="""Filter features that have ALL the Suspicion Reasons of a
+        list. Inform the Suspicion Reasons ids separated by commas."""
+        )
+    number_reasons__gte = filters.NumberFilter(
+        name='number_reasons',
+        method='filter_number_reasons',
+        help_text="""Filter features whose number of Suspicion Reasons is
+            equal or greater than a value."""
+        )
+    tags = filters.CharFilter(
+        name='tags',
+        method='filter_any_reasons',
+        help_text="""Filter features that have one or more of the Tags. Inform
+            the Tags ids separated by commas."""
+        )
+    all_tags = filters.CharFilter(
+        name='tags',
+        method='filter_all_reasons',
+        help_text="""Filter features that have ALL the Tags of a list. Inform
+            the Tags ids separated by commas."""
+        )
 
     def filter_changeset_users(self, queryset, name, value):
         lookup = '__'.join([name, 'in'])
@@ -165,6 +173,11 @@ class FeatureFilter(GeoFilterSet):
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset
+
+    def filter_number_reasons(self, queryset, name, value):
+        lookup = '__'.join([name, 'gte'])
+        queryset = queryset.annotate(number_reasons=Count('reasons'))
+        return queryset.filter(**{lookup: value})
 
     def order_queryset(self, queryset, name, value):
         allowed_fields = [
