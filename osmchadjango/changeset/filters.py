@@ -1,4 +1,5 @@
 from django.contrib.gis.geos import Polygon
+from django.db.models import Count
 
 from rest_framework_gis.filterset import GeoFilterSet
 from rest_framework_gis.filters import GeometryFilter
@@ -44,30 +45,6 @@ class ChangesetFilter(GeoFilterSet):
         method='filter_uids',
         help_text="""Filter changesets by its uid. The uid is a unique identifier
         of each user in OSM. Use commas to search for more than one uid."""
-        )
-    reasons = filters.CharFilter(
-        name='reasons',
-        method='filter_any_reasons',
-        help_text="""Filter changesets that have one or more of the Suspicion
-            Reasons. Inform the Suspicion Reasons ids separated by commas."""
-        )
-    all_reasons = filters.CharFilter(
-        name='reasons',
-        method='filter_all_reasons',
-        help_text="""Filter changesets that have ALL the Suspicion Reasons of a
-            list. Inform the Suspicion Reasons ids separated by commas."""
-        )
-    tags = filters.CharFilter(
-        name='tags',
-        method='filter_any_reasons',
-        help_text="""Filter changesets that have one or more of the Tags. Inform
-            the Tags ids separated by commas."""
-        )
-    all_tags = filters.CharFilter(
-        name='tags',
-        method='filter_all_reasons',
-        help_text="""Filter changesets that have ALL the Tags of a list. Inform
-            the Tags ids separated by commas."""
         )
     checked = filters.BooleanFilter(
         widget=BooleanWidget(),
@@ -198,6 +175,36 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets by its imagery_used field using the
             icontains lookup expression."""
         )
+    reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_any_reasons',
+        help_text="""Filter changesets that have one or more of the Suspicion
+            Reasons. Inform the Suspicion Reasons ids separated by commas."""
+        )
+    all_reasons = filters.CharFilter(
+        name='reasons',
+        method='filter_all_reasons',
+        help_text="""Filter changesets that have ALL the Suspicion Reasons of a
+            list. Inform the Suspicion Reasons ids separated by commas."""
+        )
+    number_reasons__gte = filters.NumberFilter(
+        name='number_reasons',
+        method='filter_number_reasons',
+        help_text="""Filter changesets whose number of Suspicion Reasons is
+            equal or greater than a value."""
+        )
+    tags = filters.CharFilter(
+        name='tags',
+        method='filter_any_reasons',
+        help_text="""Filter changesets that have one or more of the Tags. Inform
+            the Tags ids separated by commas."""
+        )
+    all_tags = filters.CharFilter(
+        name='tags',
+        method='filter_all_reasons',
+        help_text="""Filter changesets that have ALL the Tags of a list. Inform
+            the Tags ids separated by commas."""
+        )
 
     def filter_whitelist(self, queryset, name, value):
         if self.request.user.is_authenticated() and value:
@@ -240,6 +247,11 @@ class ChangesetFilter(GeoFilterSet):
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset
+
+    def filter_number_reasons(self, queryset, name, value):
+        lookup = '__'.join([name, 'gte'])
+        queryset = queryset.annotate(number_reasons=Count('reasons'))
+        return queryset.filter(**{lookup: value})
 
     def order_queryset(self, queryset, name, value):
         allowed_fields = [
