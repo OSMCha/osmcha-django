@@ -342,6 +342,27 @@ class TestOrderingOfFeatureListAPIView(APITestCase):
             [i.id for i in Feature.objects.order_by('-check_date')]
             )
 
+    def test_ordering_by_number_reasons(self):
+        feature_1, feature_2 = Feature.objects.all()[:2]
+        self.reason_1 = SuspicionReasons.objects.create(name='possible import')
+        self.reason_1.features.add(feature_1)
+        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
+        self.reason_2.features.add(feature_1, feature_2)
+
+        response = self.client.get(
+            self.url,
+            {'order_by': '-number_reasons', 'page_size': 2}
+            )
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [feature_1.id, feature_2.id]
+            )
+        response = self.client.get(self.url, {'order_by': 'number_reasons'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')[-2:]],
+            [feature_2.id, feature_1.id]
+            )
+
 
 class TestFeatureDetailAPIView(APITestCase):
     def setUp(self):

@@ -55,9 +55,9 @@ class FeatureFilter(GeoFilterSet):
         name=None,
         method='order_queryset',
         help_text="""Order the Features by one of the following fields: id,
-            osm_id, changeset__date, changeset_id or check_date. Use a minus
-            sign (-) before the field name to reverse the ordering. Default
-            ordering is '-changeset_id'."""
+            osm_id, changeset__date, changeset_id, check_date or number_reasons.
+            Use a minus sign (-) before the field name to reverse the ordering.
+            Default ordering is '-changeset_id'."""
         )
     changeset_ids = filters.CharFilter(
         name='changeset__id',
@@ -183,8 +183,11 @@ class FeatureFilter(GeoFilterSet):
         allowed_fields = [
             '-id', 'id', '-osm_id', 'osm_id', 'changeset__date',
             '-changeset__date', 'changeset_id', 'check_date', '-check_date',
+            'number_reasons', '-number_reasons'
             ]
         if value in allowed_fields:
+            if value in ['number_reasons', '-number_reasons']:
+                queryset = queryset.annotate(number_reasons=Count('reasons'))
             return queryset.order_by(value)
         else:
             return queryset
