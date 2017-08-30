@@ -183,6 +183,24 @@ class TestFeatureFilter(TestCase):
             0
             )
 
+    def test_number_reasons_filter(self):
+        reason_1 = SuspicionReasonsFactory(name='Edited wikidata tag')
+        reason_1.features.add(self.feature)
+        reason_2 = SuspicionReasonsFactory(name='Changed name tag')
+        reason_2.features.add(self.checked_feature, self.feature)
+        self.assertEqual(
+            FeatureFilter({'number_reasons__gte': 2}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            FeatureFilter({'number_reasons__gte': 1}).qs.count(),
+            2
+            )
+        self.assertEqual(
+            FeatureFilter({'number_reasons__gte': 3}).qs.count(),
+            0
+            )
+
     def test_tag_filter(self):
         tag_1 = TagFactory(name='Vandalism')
         tag_1.features.add(self.feature, self.checked_feature)

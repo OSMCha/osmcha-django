@@ -213,6 +213,20 @@ class TestChangesetFilter(TestCase):
                 ).qs,
             )
 
+    def test_number_reasons_filter(self):
+        self.assertEqual(
+            ChangesetFilter({'number_reasons__gte': 1}).qs.count(),
+            2
+            )
+        self.assertEqual(
+            ChangesetFilter({'number_reasons__gte': 2}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'number_reasons__gte': 3}).qs.count(),
+            0
+            )
+
     def test_tags_filter(self):
         tag_1 = TagFactory(name='Vandalism')
         tag_1.changesets.add(self.changeset, self.harmful_changeset)
