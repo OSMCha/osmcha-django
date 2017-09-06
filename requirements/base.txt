@@ -1,6 +1,6 @@
 # Bleeding edge Django
 
-django==1.11.4
+django==1.11.5
 
 # Configuration
 django-environ==0.4.3
@@ -29,7 +29,7 @@ django-cors-headers==2.1.0
 # coreapi==2.3.0
 
 # For the persistence stores
-psycopg2==2.7.2
+psycopg2==2.7.3.1
 
 # Unicode slugification
 unicode-slugify==0.1.3

@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.3.8] - 2017-09-06
+
+- Update django and psycopg
+
 [2.3.7] - 2017-08-30
 
 - Update osmcha lib to 0.4.2
