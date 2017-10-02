@@ -1,5 +1,6 @@
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.db.utils import IntegrityError
 
 import django_filters.rest_framework
 from rest_framework import status
@@ -18,6 +19,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
+from rest_framework.exceptions import APIException
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from ..feature.models import Feature
@@ -449,6 +451,11 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
             )
 
 
+class WhitelistValidationException(APIException):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = 'The user was already whitelisted by the request user.'
+
+
 class UserWhitelistListCreateAPIView(ListCreateAPIView):
     """
     get:
@@ -467,7 +474,10 @@ class UserWhitelistListCreateAPIView(ListCreateAPIView):
             return UserWhitelist.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        try:
+            serializer.save(user=self.request.user)
+        except IntegrityError:
+            raise WhitelistValidationException()
 
 
 class UserWhitelistDestroyAPIView(DestroyAPIView):

@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework.serializers import (
-    ModelSerializer, Serializer, CharField
+    ModelSerializer, Serializer, CharField, SlugRelatedField
     )
 from rest_framework.fields import SerializerMethodField
 
@@ -9,6 +9,11 @@ from rest_framework.fields import SerializerMethodField
 class UserSerializer(ModelSerializer):
     uid = SerializerMethodField()
     avatar = SerializerMethodField()
+    whitelists = SlugRelatedField(
+        many=True,
+        read_only=True,
+        slug_field='whitelist_user'
+        )
 
     def get_uid(self, obj):
         try:
@@ -27,7 +32,8 @@ class UserSerializer(ModelSerializer):
     class Meta:
         model = get_user_model()
         fields = (
-            'id', 'uid', 'username', 'is_staff', 'is_active',  'email', 'avatar'
+            'id', 'uid', 'username', 'is_staff', 'is_active',  'email',
+            'avatar', 'whitelists'
             )
         read_only_fields = ('username', 'is_staff', 'is_active', 'id', 'uid')
 

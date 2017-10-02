@@ -36,6 +36,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('is_staff'), False)
         self.assertEqual(response.data.get('is_active'), True)
         self.assertEqual(response.data.get('avatar'), 'http://theurl.org/pic.jpg')
+        self.assertEqual(response.data.get('whitelists'), [])
         self.assertFalse('password' in response.data.keys())
 
     def test_update_view(self):

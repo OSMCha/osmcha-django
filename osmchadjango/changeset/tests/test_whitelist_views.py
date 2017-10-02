@@ -67,6 +67,13 @@ class TestWhitelistUserView(APITestCase):
             UserWhitelist.objects.filter(whitelist_user='the_user').count(), 1
             )
 
+    def test_whitelist_same_user_two_times(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
+        self.assertEqual(response.status_code, 201)
+        response = self.client.post(self.url, {'whitelist_user': 'good_user'})
+        self.assertEqual(response.status_code, 403)
+
 
 class TestUserWhitelistDestroyAPIView(APITestCase):
     def setUp(self):
