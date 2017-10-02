@@ -3,6 +3,11 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.4.0] - 2017-10-02
+
+- Handle errors when trying to create a duplicated UserWhitelist using the API
+- Add 'whitelists' field to User detail endpoint
+
 [2.3.9] - 2017-09-15
 
 - Update osmcha lib to 0.4.3 and django-extensions
