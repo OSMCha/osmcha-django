@@ -15,7 +15,7 @@ This project provides a Django application that get the changesets from the
 OpenStreetMap API, analyses and store it in a database and finally provides a
 REST API to interact with the changeset data.
 
-License: GPLv3
+License: BSD 2-Clause
 
 Settings
 ------------

@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.5.0] - 2017-10-09
+
+- Change license to BSD 2-Clause
+
 [2.4.0] - 2017-10-02
 
 - Handle errors when trying to create a duplicated UserWhitelist using the API
