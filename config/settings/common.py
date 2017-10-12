@@ -323,6 +323,10 @@ CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 # https://overpass-api.de/achavi/?changeset=
 OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/changeset-map/#')
 
+# Enable/disable the functionality to post comments to changesets when they
+# are reviewed
+ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
+
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
