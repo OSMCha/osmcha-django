@@ -128,7 +128,8 @@ class ChangesetCommentAPI(object):
         self.bad_changeset_message = """Hello!
             Thank you very much for your contributions to OpenStreetMap!
             I reviewed your changeset on OSMCha and found some errors or elements
-            that could be mapped in a better way.
+            that could be mapped in a better way. Feel free to message me
+            to know more about it or visit http://learnosm.org/ to get started.
             #REVIEWED_BAD #OSMCHA
             Published using https://osmcha.mapbox.com.
             """
