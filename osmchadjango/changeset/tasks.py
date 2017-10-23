@@ -123,21 +123,21 @@ class ChangesetCommentAPI(object):
             I reviewed your changeset on OSMCha and it looks great!
             Thank you very much for your contributions to OpenStreetMap!
             #REVIEWED_GOOD #OSMCHA
-            Published using https://osmcha.mapbox.com.
-            """
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
         self.bad_changeset_message = """Hello!
             Thank you very much for your contributions to OpenStreetMap!
             I reviewed your changeset on OSMCha and found some errors or elements
             that could be mapped in a better way. Feel free to message me
             to know more about it or visit http://learnosm.org/ to get started.
             #REVIEWED_BAD #OSMCHA
-            Published using https://osmcha.mapbox.com.
-            """
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
         self.unchecked_changeset_message = """Hello!
             My previous review of your changeset was wrong, so I'm changing its
             status to unreviewed on OSMCHA. Sorry for the error.
-            Published using https://osmcha.mapbox.com.
-            """
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
