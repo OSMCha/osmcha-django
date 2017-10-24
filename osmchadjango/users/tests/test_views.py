@@ -53,6 +53,15 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('username'), 'test')
         self.assertEqual(response.data.get('is_staff'), False)
 
+    def test_username_serialization(self):
+        self.user.name = 'test user'
+        self.user.save()
+        self.client.login(username='test', password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('id'), self.user.id)
+        self.assertEqual(response.data.get('username'), 'test user')
+
     def test_uid_field_of_non_social_user(self):
         self.user_2 = User.objects.create_user(
             username='test_2',

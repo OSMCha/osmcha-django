@@ -164,6 +164,11 @@ class TestChangesetFilteredViews(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 2)
+        self.assertTrue(
+            response.data['features'][0]['properties']['check_user'].startswith(
+                'user '
+                )
+            )
 
     def test_unchecked_changesets_view(self):
         url = reverse('changeset:unchecked-list')

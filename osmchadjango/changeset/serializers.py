@@ -69,7 +69,7 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     """Serializer with all the Changeset model fields, except the
     'powerfull_editor'.
     """
-    check_user = ReadOnlyField(source='check_user.username')
+    check_user = ReadOnlyField(source='check_user.name')
     reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
     tags = BasicTagSerializer(many=True, read_only=True)
     features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
