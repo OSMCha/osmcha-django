@@ -12,8 +12,8 @@ class UserFactory(factory.django.DjangoModelFactory):
         model = get_user_model()
 
     username = factory.Sequence(lambda n: 'user%d' % n)
+    name = factory.Sequence(lambda n: 'user %d' % n)
     email = factory.LazyAttribute(lambda obj: '%s@example.com' % obj.username)
-    name = factory.LazyAttribute(lambda obj: '%s' % obj.username)
 
 
 class ChangesetFactory(factory.django.DjangoModelFactory):
