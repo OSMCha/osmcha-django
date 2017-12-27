@@ -66,7 +66,7 @@ class TestFeatureFilter(TestCase):
 
     def test_date_filters(self):
         tomorrow = date.today() + timedelta(days=1)
-        yesterday = date.today() - timedelta(days=1)
+        yesterday = date.today() - timedelta(days=1, hours=2)
         CheckedFeatureFactory(check_date=tomorrow)
         self.assertEqual(
             FeatureFilter({'date__gte': yesterday}).qs.count(), 4

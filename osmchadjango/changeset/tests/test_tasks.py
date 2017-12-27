@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
+from mock import patch
+
 from django.test import TestCase
 
+from social_django.models import UserSocialAuth
+import oauth2 as oauth
+
+from ...users.models import User
 from ..models import Changeset, SuspicionReasons
-from ..tasks import create_changeset, format_url, get_last_replication_id
+from ..tasks import (
+    create_changeset, format_url, get_last_replication_id, ChangesetCommentAPI
+    )
 
 
 class TestFormatURL(TestCase):
@@ -55,3 +63,84 @@ class TestCreateChangesetWithoutBBOX(TestCase):
         self.assertEqual(Changeset.objects.count(), 1)
         self.assertIsNone(changeset.bbox)
         self.assertEqual(changeset.area, None)
+
+
+class TestChangesetCommentAPI(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            extra_data={
+                'id': '123123',
+                'access_token': {
+                    'oauth_token': 'aaaa',
+                    'oauth_token_secret': 'bbbb'
+                    }
+                }
+            )
+
+    def test_changeset_comment_init(self):
+        changeset_comment = ChangesetCommentAPI(self.user, 123456)
+        self.assertEqual(
+            changeset_comment.url,
+            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/'
+            )
+        self.assertIsInstance(changeset_comment.client, oauth.Client)
+        self.assertEqual(changeset_comment.client.token.key, 'aaaa')
+        self.assertEqual(changeset_comment.client.token.secret, 'bbbb')
+
+    @patch.object(oauth.Client, 'request')
+    def test_post_comment(self, mock_oauth_client):
+        mock_oauth_client.return_value = [{'status': '200'}]
+        changeset_comment = ChangesetCommentAPI(self.user, 123456)
+        changeset_comment.post_comment('Reviewed in OSMCha and set as GOOD!')
+
+        mock_oauth_client.assert_called_with(
+            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            method='POST',
+            body='text=Reviewed in OSMCha and set as GOOD!'
+            )
+
+    @patch.object(oauth.Client, 'request')
+    def test_post_good_changeset_review(self, mock_oauth_client):
+        mock_oauth_client.return_value = [{'status': '200'}]
+        changeset_comment = ChangesetCommentAPI(self.user, 123456)
+        changeset_comment.post_good_changeset_review()
+
+        mock_oauth_client.assert_called_with(
+            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            method='POST',
+            body='text={}'.format(changeset_comment.good_changeset_message)
+            )
+
+    @patch.object(oauth.Client, 'request')
+    def test_post_bad_changeset_review(self, mock_oauth_client):
+        mock_oauth_client.return_value = [{'status': '200'}]
+        changeset_comment = ChangesetCommentAPI(self.user, 123456)
+        changeset_comment.post_bad_changeset_review()
+
+        mock_oauth_client.assert_called_with(
+            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            method='POST',
+            body='text={}'.format(changeset_comment.bad_changeset_message)
+            )
+
+    @patch.object(oauth.Client, 'request')
+    def test_post_undo_changeset_review(self, mock_oauth_client):
+        mock_oauth_client.return_value = [{'status': '200'}]
+        changeset_comment = ChangesetCommentAPI(self.user, 123456)
+        changeset_comment.post_undo_changeset_review()
+
+        mock_oauth_client.assert_called_with(
+            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            method='POST',
+            body='text={}'.format(changeset_comment.unchecked_changeset_message)
+            )
