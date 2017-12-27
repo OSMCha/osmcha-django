@@ -3,6 +3,11 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.6.0] - 2017-12-27
+
+- Post comment to OSM Changeset page when a review is added to a changeset
+- Return the correct username of users in views
+
 [2.5.0] - 2017-10-09
 
 - Change license to BSD 2-Clause

@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.core.management import call_command
 
 from social_django.models import UserSocialAuth
+from rest_framework.authtoken.models import Token
 
 from ..models import User
 
@@ -38,3 +39,23 @@ class TestUpdateUserNameCommand(TestCase):
         self.user_2.refresh_from_db()
         self.assertEqual(self.user.name, 'Wille Marcel')
         self.assertEqual(self.user_2.name, 'narceliodesa')
+
+
+class TestClearTokensCommand(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='WilleMarcel',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='5654409',
+            )
+        Token.objects.create(user=self.user)
+
+    def test_command(self):
+        self.assertEqual(Token.objects.count(), 1)
+        call_command('clear_tokens')
+        self.assertEqual(Token.objects.count(), 0)

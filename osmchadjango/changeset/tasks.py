@@ -6,6 +6,7 @@ import yaml
 from django.conf import settings
 
 import requests
+import oauth2 as oauth
 from celery import shared_task, group
 from osmcha.changeset import Analyse, ChangesetList
 
@@ -96,3 +97,86 @@ def fetch_latest():
         start = sequence - 1000
     print("Importing replications from %d to %d" % (start, sequence,))
     import_replications(start, sequence)
+
+
+class ChangesetCommentAPI(object):
+    """Class that allows us to publish comments in changesets on the
+    OpenStreetMap website.
+    """
+    def __init__(self, user, changeset_id):
+        self.user = user
+        self.changeset_id = changeset_id
+        consumer = oauth.Consumer(
+            key=settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+            secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
+            )
+        user_token = self.user.social_auth.all().first().access_token
+        token = oauth.Token(
+            key=user_token['oauth_token'],
+            secret=user_token['oauth_token_secret']
+            )
+        self.client = oauth.Client(consumer, token)
+        self.url = 'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
+            changeset_id
+            )
+        self.good_changeset_message = """Hello!
+            I reviewed your changeset on OSMCha and it looks great!
+            Thank you very much for your contributions to OpenStreetMap!
+            #REVIEWED_GOOD #OSMCHA
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
+        self.bad_changeset_message = """Hello!
+            Thank you very much for your contributions to OpenStreetMap!
+            I reviewed your changeset on OSMCha and found some errors or elements
+            that could be mapped in a better way. Feel free to message me
+            to know more about it or visit http://learnosm.org/ to get started.
+            #REVIEWED_BAD #OSMCHA
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
+        self.unchecked_changeset_message = """Hello!
+            My previous review of your changeset was wrong, so I'm changing its
+            status to unreviewed on OSMCHA. Sorry for the error.
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(changeset_id)
+
+    def post_comment(self, message=None):
+        """Post comment to changeset."""
+        response = self.client.request(
+            self.url,
+            method='POST',
+            body='text={}'.format(message)
+            )
+        if response[0]['status'] == '200':
+            print(
+                'Comment in the changeset {} posted successfully.'.format(
+                    self.changeset_id
+                    )
+                )
+        else:
+            print("""Some error occurred and it wasn't possible to post the
+                comment to the changeset {}.""".format(self.changeset_id))
+
+    def post_good_changeset_review(self, message=None):
+        """Post a comment to a changeset reviewed as good. If the message is not
+        defined, it will use the default good changeset review message.
+        """
+        if message is None:
+            message = self.good_changeset_message
+        self.post_comment(message)
+
+    def post_bad_changeset_review(self, message=None):
+        """Post a comment to a changeset reviewed as bad. If the message is not
+        defined, it will use the default bad changeset review message.
+        """
+        if message is None:
+            message = self.bad_changeset_message
+        self.post_comment(message)
+
+    def post_undo_changeset_review(self, message=None):
+        """Post a comment to a changeset whose review was undone. If the message
+        is not defined, it will use the default unchecked changeset review
+        message.
+        """
+        if message is None:
+            message = self.unchecked_changeset_message
+        self.post_comment(message)

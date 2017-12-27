@@ -419,7 +419,7 @@ class TestFeatureDetailAPIView(APITestCase):
             )
         self.assertEqual(
             response.data['properties']['check_user'],
-            self.feature.check_user.username
+            self.feature.check_user.name
             )
         self.assertEqual(
             response.data['properties']['changeset'],

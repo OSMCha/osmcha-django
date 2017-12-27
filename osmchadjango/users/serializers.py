@@ -9,6 +9,7 @@ from rest_framework.fields import SerializerMethodField
 class UserSerializer(ModelSerializer):
     uid = SerializerMethodField()
     avatar = SerializerMethodField()
+    username = SerializerMethodField()
     whitelists = SlugRelatedField(
         many=True,
         read_only=True,
@@ -28,6 +29,12 @@ class UserSerializer(ModelSerializer):
                 ).last().extra_data.get('avatar')
         except AttributeError:
             return None
+
+    def get_username(self, obj):
+        if obj.name:
+            return obj.name
+        else:
+            return obj.username
 
     class Meta:
         model = get_user_model()

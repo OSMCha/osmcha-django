@@ -1,6 +1,7 @@
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.utils import IntegrityError
+from django.conf import settings
 
 import django_filters.rest_framework
 from rest_framework import status
@@ -30,6 +31,7 @@ from .serializers import (
     SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
     TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
     )
+from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
 
 
@@ -289,6 +291,12 @@ class CheckChangeset(ModelViewSet):
         changeset.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
+        if settings.ENABLE_POST_CHANGESET_COMMENTS:
+            changeset_comment = ChangesetCommentAPI(request.user, changeset.id)
+            if harmful:
+                changeset_comment.post_bad_changeset_review()
+            else:
+                changeset_comment.post_good_changeset_review()
         return Response(
             {'detail': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
             status=status.HTTP_200_OK
@@ -376,6 +384,9 @@ def uncheck_changeset(request, pk):
         instance.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
+        if settings.ENABLE_POST_CHANGESET_COMMENTS:
+            changeset_comment = ChangesetCommentAPI(request.user, instance.id)
+            changeset_comment.post_undo_changeset_review()
         return Response(
             {'detail': 'Changeset marked as unchecked.'},
             status=status.HTTP_200_OK
