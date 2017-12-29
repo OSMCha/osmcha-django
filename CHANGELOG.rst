@@ -5,7 +5,7 @@ Log of changes since the 2.0 version
 
 [2.6.0] - 2017-12-27
 
-- Post comment to OSM Changeset page when a review is added to a changeset
+- Post a comment to OSM Changeset page when a review is added to a changeset (to use it, set the ENV variable ``DJANGO_ENABLE_CHANGESET_COMMENTS`` to True)
 - Return the correct username of users in views
 
 [2.5.0] - 2017-10-09
