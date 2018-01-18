@@ -1,5 +1,4 @@
 import json
-import mock
 
 from django.contrib.gis.geos import Polygon
 from django.core.urlresolvers import reverse
@@ -7,7 +6,6 @@ from django.test import TestCase, override_settings
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
-import oauth2 as oauth
 
 from ...users.models import User
 from ...feature.tests.modelfactories import FeatureFactory
@@ -658,16 +656,12 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset_2.check_user)
         self.assertIsNone(self.changeset_2.check_date)
 
-    @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
-    def test_set_harmful_changeset_put(self, mock_oauth_client):
+    def test_set_harmful_changeset_put(self):
         """User can set a changeset of another user as harmful with a PUT request.
         We can also set the tags of the changeset sending it as data.
         """
-        mock_oauth_client.return_value = [{'status': '200'}]
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
-        # ENABLE POST CHANGESET COMMENTS for this test
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset_2.pk]),
             data
@@ -688,13 +682,6 @@ class TestCheckChangesetViews(APITestCase):
             self.tag_2,
             self.changeset_2.tags.all()
             )
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-                self.changeset_2.pk
-                ),
-            method='POST',
-            body=mock.ANY
-        )
 
     def test_set_harmful_changeset_with_invalid_tag_id(self):
         """Return a 400 error if a user try to add a invalid tag id to a changeset.
@@ -745,13 +732,10 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset_2.check_user)
         self.assertIsNone(self.changeset_2.check_date)
 
-    @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
-    def test_set_good_changeset_put(self, mock_oauth_client):
+    def test_set_good_changeset_put(self):
         """User can set a changeset of another user as good with a PUT request.
         We can also set the tags of the changeset sending it as data.
         """
-        mock_oauth_client.return_value = [{'status': '200'}]
         self.client.login(username=self.user.username, password='password')
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
@@ -773,13 +757,6 @@ class TestCheckChangesetViews(APITestCase):
             self.tag_2,
             self.changeset_2.tags.all()
             )
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-                self.changeset_2.pk
-                ),
-            method='POST',
-            body=mock.ANY
-        )
 
     def test_set_good_changeset_with_invalid_tag_id(self):
         """Return a 400 error if a user try to add a invalid tag id to a changeset.
@@ -892,10 +869,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertEqual(self.harmful_changeset.tags.count(), 1)
         self.assertIn(self.tag, self.harmful_changeset.tags.all())
 
-    @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
-    def test_uncheck_harmful_changeset(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
+    def test_uncheck_harmful_changeset(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.harmful_changeset.pk]),
@@ -907,13 +881,6 @@ class TestUncheckChangesetView(APITestCase):
         self.assertIsNone(self.harmful_changeset.check_user)
         self.assertIsNone(self.harmful_changeset.check_date)
         self.assertEqual(self.harmful_changeset.tags.count(), 1)
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-                self.harmful_changeset.pk
-                ),
-            method='POST',
-            body=mock.ANY
-        )
 
     def test_uncheck_good_changeset(self):
         self.client.login(username=self.user.username, password='password')

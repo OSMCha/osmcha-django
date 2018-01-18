@@ -69,6 +69,13 @@ urlpatterns = [
         name='tags'
     ),
     url(
+        regex=r'^changesets/(?P<pk>\w+)/comment/$',
+        view=views.ChangesetCommentAPIView.as_view(
+            {'post': 'post_comment'}
+            ),
+        name='comment'
+    ),
+    url(
         regex=r'^whitelist-user/$',
         view=views.UserWhitelistListCreateAPIView.as_view(),
         name='whitelist-user'

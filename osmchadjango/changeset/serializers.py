@@ -1,8 +1,9 @@
 import json
 
-from rest_framework.fields import ReadOnlyField, SerializerMethodField
+from rest_framework.fields import ReadOnlyField, SerializerMethodField, CharField
 from rest_framework.serializers import (
-    ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField
+    ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField,
+    Serializer
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -233,3 +234,7 @@ class ChangesetTagsSerializer(ModelSerializer):
     class Meta:
         model = Changeset
         fields = ('tags',)
+
+
+class ChangesetCommentSerializer(Serializer):
+    comment = CharField(max_length=1000)

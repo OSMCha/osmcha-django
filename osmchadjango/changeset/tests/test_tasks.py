@@ -108,39 +108,3 @@ class TestChangesetCommentAPI(TestCase):
             method='POST',
             body='text=Reviewed in OSMCha and set as GOOD!'
             )
-
-    @patch.object(oauth.Client, 'request')
-    def test_post_good_changeset_review(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
-        changeset_comment = ChangesetCommentAPI(self.user, 123456)
-        changeset_comment.post_good_changeset_review()
-
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            method='POST',
-            body='text={}'.format(changeset_comment.good_changeset_message)
-            )
-
-    @patch.object(oauth.Client, 'request')
-    def test_post_bad_changeset_review(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
-        changeset_comment = ChangesetCommentAPI(self.user, 123456)
-        changeset_comment.post_bad_changeset_review()
-
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            method='POST',
-            body='text={}'.format(changeset_comment.bad_changeset_message)
-            )
-
-    @patch.object(oauth.Client, 'request')
-    def test_post_undo_changeset_review(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
-        changeset_comment = ChangesetCommentAPI(self.user, 123456)
-        changeset_comment.post_undo_changeset_review()
-
-        mock_oauth_client.assert_called_with(
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            method='POST',
-            body='text={}'.format(changeset_comment.unchecked_changeset_message)
-            )
