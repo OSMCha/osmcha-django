@@ -40,7 +40,8 @@ class UserSerializer(ModelSerializer):
         model = get_user_model()
         fields = (
             'id', 'uid', 'username', 'is_staff', 'is_active',  'email',
-            'avatar', 'whitelists'
+            'avatar', 'whitelists', 'message_good', 'message_bad',
+            'comment_feature'
             )
         read_only_fields = ('username', 'is_staff', 'is_active', 'id', 'uid')
 
