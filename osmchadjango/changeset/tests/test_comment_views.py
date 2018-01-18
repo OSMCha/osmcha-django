@@ -98,6 +98,9 @@ class TestCommentChangesetAPIView(APITestCase):
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
     @mock.patch.object(oauth.Client, 'request')
     def test_comment_unreviewed_changeset(self, mock_oauth_client):
+        """Unreviewed changeset should not receive the #OSMCHA_(GOOD or BAD)
+        hashtag.
+        """
         mock_oauth_client.return_value = [{'status': '200'}]
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! Do you know this area?'}
@@ -129,6 +132,7 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 400)
 
     def test_comment_changeset_doesnt_exist(self):
+        """Request should fail if the changeset id is not on our database."""
         self.client.login(username=self.user.username, password='password')
         comment = {'message': 'Hello! Awesome edit'}
         response = self.client.post(

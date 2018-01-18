@@ -525,6 +525,7 @@ class UserStatsAPIView(ListAPIView):
 
 
 class ChangesetCommentAPIView(ModelViewSet):
+    """Post a comment to a changeset in the OpenStreetMap website."""
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangesetCommentSerializer
