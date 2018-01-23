@@ -22,11 +22,9 @@ class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
     get:
     Get details of the current logged user.
     patch:
-    Update details of the current logged user. It's allowed only to update the
-    email address.
+    Update details of the current logged user.
     put:
-    Update details of the current logged user. It's allowed only to update the
-    email address.
+    Update details of the current logged user.
     """
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
