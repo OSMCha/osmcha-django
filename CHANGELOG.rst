@@ -3,6 +3,12 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.7.0] - 2018-02-01
+
+- Disable automatic comments
+- Add endpoint to allow user to post comments to changesets from inside OSMCha
+- Modify user model to include message_good, message_bad and comment_feature fields
+
 [2.6.0] - 2017-12-27
 
 - Post a comment to OSM Changeset page when a review is added to a changeset (to use it, set the ENV variable ``DJANGO_ENABLE_CHANGESET_COMMENTS`` to True)
