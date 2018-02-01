@@ -135,7 +135,7 @@ How to login using the OAuth api
 Frontend
 ^^^^^^^^
 
-`osmcha-frontend https://github.com/mapbox/osmcha-frontend`_ is one web interface
+`osmcha-frontend <https://github.com/mapbox/osmcha-frontend>`_ is a web interface
 that you can use to interact with the API. We have a django management command
 to get the last version of osmcha-frontend and serve it with the API.
 
@@ -148,7 +148,7 @@ Feature creation endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The feature creation endpoint allows only admin users to create features. You can
-use the admin site to create a token to the user.
+use the admin site to create a token to a user.
 
 Instances
 ---------
@@ -166,9 +166,8 @@ Deployment
 Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Heroku and Dokku.
 
 
-Management Commands
---------------------
+Get in contact
+---------------
 
-1. Export a CSV of all harmful changesets
-
-    $ python manage.py generate_harmful_csv filename.csv
+If you use, deploy or are interested in help to develop OSMCha, subscribe to our
+`mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_.

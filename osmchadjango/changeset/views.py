@@ -30,6 +30,7 @@ from .serializers import (
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
     SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
     TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
+    ChangesetCommentSerializer
     )
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
@@ -291,12 +292,6 @@ class CheckChangeset(ModelViewSet):
         changeset.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
-        if settings.ENABLE_POST_CHANGESET_COMMENTS:
-            changeset_comment = ChangesetCommentAPI(request.user, changeset.id)
-            if harmful:
-                changeset_comment.post_bad_changeset_review()
-            else:
-                changeset_comment.post_good_changeset_review()
         return Response(
             {'detail': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
             status=status.HTTP_200_OK
@@ -384,9 +379,6 @@ def uncheck_changeset(request, pk):
         instance.save(
             update_fields=['checked', 'harmful', 'check_user', 'check_date']
             )
-        if settings.ENABLE_POST_CHANGESET_COMMENTS:
-            changeset_comment = ChangesetCommentAPI(request.user, instance.id)
-            changeset_comment.post_undo_changeset_review()
         return Response(
             {'detail': 'Changeset marked as unchecked.'},
             status=status.HTTP_200_OK
@@ -530,3 +522,56 @@ class UserStatsAPIView(ListAPIView):
 
     def get_queryset(self):
         return Changeset.objects.filter(uid=self.kwargs['uid'])
+
+
+class ChangesetCommentAPIView(ModelViewSet):
+    """Post a comment to a changeset in the OpenStreetMap website."""
+    queryset = Changeset.objects.all()
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChangesetCommentSerializer
+
+    @detail_route(methods=['post'])
+    def post_comment(self, request, pk):
+        self.changeset = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            if settings.ENABLE_POST_CHANGESET_COMMENTS:
+                changeset_comment = ChangesetCommentAPI(
+                    request.user,
+                    self.changeset.id
+                    )
+                comment_response = changeset_comment.post_comment(
+                    self.add_footer(serializer.data['comment'])
+                    )
+                if comment_response.get('success'):
+                    return Response(
+                        {'detail': 'Changeset comment posted succesfully.'},
+                        status=status.HTTP_201_CREATED
+                        )
+                else:
+                    return Response(
+                        {'detail': 'Changeset comment failed.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                        )
+            else:
+                return Response(
+                    {'detail': 'Changeset comment is not enabled.'},
+                    status=status.HTTP_403_FORBIDDEN
+                    )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+    def add_footer(self, message):
+        status = ""
+        if self.changeset.checked and self.changeset.harmful is not None:
+            status = "#REVIEWED_{} #OSMCHA".format(
+                'BAD' if self.changeset.harmful else 'GOOD'
+                )
+        return """{}
+            ---
+            {}
+            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            """.format(message, status, self.changeset.id)

@@ -37,6 +37,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.data.get('is_active'), True)
         self.assertEqual(response.data.get('avatar'), 'http://theurl.org/pic.jpg')
         self.assertEqual(response.data.get('whitelists'), [])
+        self.assertFalse(response.data.get('comment_feature'))
         self.assertFalse('password' in response.data.keys())
 
     def test_update_view(self):
@@ -44,14 +45,26 @@ class TestCurrentUserDetailAPIView(APITestCase):
         data = {
             "username": "test_user",
             "email": "admin@a.com",
-            "is_staff": "true"
+            "is_staff": "true",
+            "message_good": "Hello! Awesome edit!",
+            "message_bad": "Hello! I found an error in your edit...",
+            "comment_feature": True
             }
         response = self.client.put(self.url, data)
         self.assertEqual(response.status_code, 200)
         response = self.client.get(self.url)
         self.assertEqual(response.data.get('email'), 'admin@a.com')
         self.assertEqual(response.data.get('username'), 'test')
-        self.assertEqual(response.data.get('is_staff'), False)
+        self.assertFalse(response.data.get('is_staff'))
+        self.assertEqual(
+            response.data.get('message_good'),
+            'Hello! Awesome edit!'
+            )
+        self.assertEqual(
+            response.data.get('message_bad'),
+            'Hello! I found an error in your edit...'
+            )
+        self.assertTrue(response.data.get('comment_feature'))
 
     def test_username_serialization(self):
         self.user.name = 'test user'

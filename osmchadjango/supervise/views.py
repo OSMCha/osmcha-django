@@ -217,7 +217,7 @@ class AOIListFeaturesAPIView(ListAPIView):
 
 class AOIStatsAPIView(ListAPIView):
     """Return the statistics of the changesets that matches an Area of Interest.
-    Return the data in the same format as the Changeset Stats view.
+    The data will be in the same format as the Changeset Stats view.
     """
     queryset = AreaOfInterest.objects.all()
     serializer_class = ChangesetStatsSerializer

@@ -8,9 +8,22 @@ from django.db import models
 
 class User(AbstractUser):
 
-    # First Name and Last Name do not cover name patterns
-    # around the globe.
-    name = models.CharField("Name of User", blank=True, max_length=255, db_index=True)
+    # First Name and Last Name do not cover name patterns around the globe.
+    name = models.CharField(
+        "Name of User", blank=True, max_length=255, db_index=True
+        )
+    message_good = models.TextField(
+        "Default message to good changesets",
+        blank=True
+        )
+    message_bad = models.TextField(
+        "Default message to bad changesets",
+        blank=True
+        )
+    comment_feature = models.BooleanField(
+        "Enable suggestion to post comment",
+        default=False
+        )
 
     def __str__(self):
         return self.username
