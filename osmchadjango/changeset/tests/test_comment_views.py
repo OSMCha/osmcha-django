@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.core.urlresolvers import reverse
 from django.test import override_settings
 
@@ -36,15 +39,15 @@ class TestCommentChangesetAPIView(APITestCase):
         self.harmful_changeset = HarmfulChangesetFactory(id=31982803)
         self.good_changeset = GoodChangesetFactory(id=31982804)
 
+    @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
     def test_comment_changeset_unauthenticated(self):
-        self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! I found an error in your edit'}
         response = self.client.post(
             reverse('changeset:comment', args=[self.harmful_changeset.id]),
             data=comment
             )
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
     @mock.patch.object(oauth.Client, 'request')
@@ -75,8 +78,8 @@ class TestCommentChangesetAPIView(APITestCase):
     def test_comment_good_changeset(self, mock_oauth_client):
         mock_oauth_client.return_value = [{'status': '200'}]
         self.client.login(username=self.user.username, password='password')
-        comment = {'comment': 'Hello! Awesome edit'}
-        message = """Hello! Awesome edit
+        comment = {'comment': 'Hello! Awesome edit! :~) óã'}
+        message = """Hello! Awesome edit! :~) óã
             ---
             #REVIEWED_GOOD #OSMCHA
             Published using OSMCha: https://osmcha.mapbox.com/changesets/31982804
