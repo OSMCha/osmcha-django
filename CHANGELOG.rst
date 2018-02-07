@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.7.1] - 2018-02-07
+
+- Fix encoding bugs in ChangesetCommentAPIView
+
 [2.7.0] - 2018-02-01
 
 - Disable automatic comments
