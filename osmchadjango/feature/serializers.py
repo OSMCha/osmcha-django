@@ -12,7 +12,7 @@ from .models import Feature
 
 
 class FeatureSerializerToStaff(GeoFeatureModelSerializer):
-    check_user = ReadOnlyField(source='check_user.name')
+    check_user = ReadOnlyField(source='check_user.name', default=None)
     changeset = ReadOnlyField(source='changeset.id')
     date = ReadOnlyField(source='changeset.date')
     source = ReadOnlyField(source='changeset.source')
