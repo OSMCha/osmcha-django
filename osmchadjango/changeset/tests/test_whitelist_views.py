@@ -47,7 +47,7 @@ class TestWhitelistUserView(APITestCase):
         self.assertEqual(response.status_code, 201)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data.get('results')), 1)
         self.client.logout()
         # the same with another user
         self.client.login(username=self.user_2.username, password='password')
@@ -55,7 +55,7 @@ class TestWhitelistUserView(APITestCase):
         self.assertEqual(response.status_code, 201)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data.get('results')), 1)
 
         self.assertEqual(UserWhitelist.objects.count(), 2)
         self.assertEqual(UserWhitelist.objects.filter(user=self.user).count(), 1)
