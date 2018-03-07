@@ -20,6 +20,7 @@ class SuspicionReasons(models.Model):
         super(SuspicionReasons, self).save(*args, **kwargs)
 
     class Meta:
+        ordering = ['id']
         verbose_name = 'Suspicion reason'
         verbose_name_plural = 'Suspicion reasons'
 
@@ -38,20 +39,25 @@ class Tag(models.Model):
         self.full_clean()
         super(Tag, self).save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['id']
+
 
 class UserWhitelist(models.Model):
-    user = models.ForeignKey(User, related_name='whitelists')
+    user = models.ForeignKey(
+        User, related_name='whitelists', on_delete=models.CASCADE
+        )
     whitelist_user = models.CharField(max_length=1000, db_index=True)
 
     def __str__(self):
         return '{} whitelisted by {}'.format(self.whitelist_user, self.user)
 
     class Meta:
+        ordering = ['-whitelist_user']
         unique_together = ('user', 'whitelist_user',)
 
 
 class Changeset(models.Model):
-
     user = models.CharField(max_length=1000, db_index=True)
     uid = models.CharField(_('User ID'), max_length=255, db_index=True)
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
@@ -70,9 +76,10 @@ class Changeset(models.Model):
     harmful = models.NullBooleanField(db_index=True)
     tags = models.ManyToManyField(Tag, related_name='changesets')
     checked = models.BooleanField(default=False, db_index=True)
-    check_user = models.ForeignKey(User, null=True, blank=True, db_index=True)
+    check_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, db_index=True
+        )
     check_date = models.DateTimeField(null=True, blank=True)
-    objects = models.GeoManager()
 
     def __str__(self):
         return '%s' % self.id

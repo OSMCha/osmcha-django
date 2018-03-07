@@ -1,15 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
+
+app_name = 'users'
 urlpatterns = [
-    url(
-        regex=r'^users/$',
+    re_path(
+        r'^users/$',
         view=views.CurrentUserDetailAPIView.as_view(),
         name='detail'
         ),
-    url(r'^social-auth/$', views.SocialAuthAPIView.as_view(), name="social-auth"),
+    re_path(r'^social-auth/$', views.SocialAuthAPIView.as_view(), name="social-auth"),
     ]

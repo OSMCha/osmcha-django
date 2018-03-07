@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userdetail',
             name='changesets_no',
-            field=models.IntegerField(help_text=b'Number of changesets', null=True, db_index=True, blank=True),
+            field=models.IntegerField(help_text='Number of changesets', null=True, db_index=True, blank=True),
         ),
     ]

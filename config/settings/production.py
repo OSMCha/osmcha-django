@@ -23,10 +23,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # ------------------------------------------------------------------------------
 INSTALLED_APPS += ("djangosecure", 'gunicorn',)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     # Make sure djangosecure.middleware.SecurityMiddleware is listed first
     'djangosecure.middleware.SecurityMiddleware',
-) + MIDDLEWARE_CLASSES
+] + MIDDLEWARE
 
 # set this to 60 seconds and then to 518400 when you can prove it works
 SECURE_HSTS_SECONDS = 60

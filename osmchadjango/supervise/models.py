@@ -12,11 +12,10 @@ from ..users.models import User
 class AreaOfInterest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True)
-    user = models.ForeignKey('users.User')
+    user = models.ForeignKey('users.User', on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
     filters = JSONField()
     geometry = models.GeometryField(blank=True, null=True)
-    objects = models.GeoManager()
 
     def __str__(self):
         return '{} by {}'.format(self.name, self.user.username)
@@ -55,7 +54,7 @@ class AreaOfInterest(models.Model):
 class BlacklistedUser(models.Model):
     username = models.CharField(max_length=1000)
     uid = models.CharField(max_length=255, unique=True)
-    added_by = models.ForeignKey(User)
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -64,3 +63,6 @@ class BlacklistedUser(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super(BlacklistedUser, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-date']

@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('score', models.IntegerField()),
                 ('reason', models.CharField(max_length=255)),
-                ('changeset', models.ForeignKey(to='changeset.Changeset')),
+                ('changeset', models.ForeignKey(to='changeset.Changeset', on_delete=models.deletion.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('score', models.IntegerField()),
                 ('reason', models.CharField(max_length=255)),
-                ('user', models.ForeignKey(to='changeset.UserDetail')),
+                ('user', models.ForeignKey(to='changeset.UserDetail', on_delete=models.deletion.CASCADE)),
             ],
         ),
         migrations.AlterUniqueTogether(

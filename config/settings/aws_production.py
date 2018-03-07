@@ -24,10 +24,10 @@ USE_X_FORWARDED_HOST = True
 # ------------------------------------------------------------------------------
 INSTALLED_APPS += ("djangosecure", 'gunicorn',)
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     # Make sure djangosecure.middleware.SecurityMiddleware is listed first
     'djangosecure.middleware.SecurityMiddleware',
-) + MIDDLEWARE_CLASSES
+] + MIDDLEWARE
 
 # SITE CONFIGURATION
 # ------------------------------------------------------------------------------
