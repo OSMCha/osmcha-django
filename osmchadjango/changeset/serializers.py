@@ -70,7 +70,7 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     """Serializer with all the Changeset model fields, except the
     'powerfull_editor'.
     """
-    check_user = ReadOnlyField(source='check_user.name')
+    check_user = ReadOnlyField(source='check_user.name', default=None)
     reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
     tags = BasicTagSerializer(many=True, read_only=True)
     features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
@@ -125,6 +125,7 @@ class ChangesetListStatsSerializer(ListSerializer):
     read_only = True
 
     def to_representation(self, data):
+        data = Changeset.objects.filter(id__in=[i.id for i in data])
         checked_changesets = data.filter(checked=True)
         harmful_changesets = data.filter(harmful=True)
 
@@ -179,6 +180,7 @@ class UserStatsListSerializer(ListSerializer):
     read_only = True
 
     def to_representation(self, data):
+        data = Changeset.objects.filter(id__in=[i.id for i in data])
         checked_changesets = data.filter(checked=True)
         harmful_changesets = data.filter(harmful=True)
 

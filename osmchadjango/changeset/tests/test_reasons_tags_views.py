@@ -34,7 +34,7 @@ class TestSuspicionReasonsAPIListView(APITestCase):
     def test_view(self):
         response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data.get('results')), 1)
         reason_dict = {
             'id': self.reason_1.id,
             'name': 'possible import',
@@ -43,13 +43,13 @@ class TestSuspicionReasonsAPIListView(APITestCase):
             'for_changeset': True,
             'for_feature': True
             }
-        self.assertIn(reason_dict, response.data)
+        self.assertIn(reason_dict, response.data.get('results'))
 
     def test_admin_user_request(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data.get('results')), 2)
 
 
 class TestTagAPIListView(APITestCase):
@@ -77,7 +77,7 @@ class TestTagAPIListView(APITestCase):
     def test_view(self):
         response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data.get('results')), 1)
         tag_dict = {
             'id': self.tag_1.id,
             'name': 'Illegal import',
@@ -88,14 +88,14 @@ class TestTagAPIListView(APITestCase):
             }
         self.assertIn(
             tag_dict,
-            response.data
+            response.data.get('results')
             )
 
     def test_admin_user_request(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data.get('results')), 2)
 
 
 class TestBatchAddSuspicionReasons(APITestCase):

@@ -20,7 +20,9 @@ class AreaOfInterestSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = AreaOfInterest
         geo_field = 'geometry'
-        exclude = ('user',)
+        fields = [
+            'id', 'name', 'filters', 'geometry', 'date', 'changesets_url', 'user'
+            ]
         validators = [
             UniqueTogetherValidator(
                 queryset=AreaOfInterest.objects.all(),

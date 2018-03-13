@@ -3,6 +3,11 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.7.2] - 2018-03-12
+
+- Update all dependencies, except Django 2.0
+- Update osmcha lib to 0.4.6
+
 [2.7.1] - 2018-02-07
 
 - Fix encoding bugs in ChangesetCommentAPIView
