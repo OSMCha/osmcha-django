@@ -6,10 +6,14 @@ from django.test import TestCase
 from django.utils.six import StringIO
 from django.utils import timezone
 
-from ...feature.tests.modelfactories import FeatureFactory, CheckedFeatureFactory
 from ...feature.models import Feature
-from ..models import Changeset
-from .modelfactories import ChangesetFactory, GoodChangesetFactory
+from ..models import Changeset, SuspicionReasons
+from ...feature.tests.modelfactories import (
+    FeatureFactory, CheckedFeatureFactory
+    )
+from .modelfactories import (
+    ChangesetFactory, GoodChangesetFactory, SuspectChangesetFactory
+    )
 
 
 class TestImportReplicationFile(TestCase):
@@ -75,3 +79,41 @@ class TestDeleteOldData(TestCase):
         self.assertIn(self.old_checked_changeset, Changeset.objects.all())
         self.assertIn(self.checked_changeset, Changeset.objects.all())
         self.assertIn(self.old_changeset_2, Changeset.objects.all())
+
+
+class TestMergeReasons(TestCase):
+    def setUp(self):
+        self.reason_1 = SuspicionReasons.objects.create(name='New mapper')
+        self.reason_2 = SuspicionReasons.objects.create(
+            name='New mapper <5 mapping days'
+            )
+        self.changesets = SuspectChangesetFactory.create_batch(10)
+        for c in self.changesets:
+            self.reason_2.changesets.add(c)
+
+        self.reason_1.changesets.add(self.changesets[0])
+
+    def test_merge(self):
+        call_command('merge_reasons', self.reason_2.id, self.reason_1.id)
+        self.assertEqual(self.reason_1.changesets.count(), 10)
+        self.assertEqual(SuspicionReasons.objects.count(), 1)
+        self.assertEqual(
+            SuspicionReasons.objects.filter(name='New mapper').count(), 1
+            )
+        self.assertEqual(
+            SuspicionReasons.objects.filter(
+                name='New mapper <5 mapping days'
+                ).count(),
+            0
+            )
+
+    def test_error(self):
+        self.out = StringIO()
+        call_command(
+            'merge_reasons',
+            self.reason_2.id + 1,
+            self.reason_1.id,
+            stdout=self.out
+            )
+        self.assertIn('Verify the SuspicionReasons ids.', self.out.getvalue())
+        self.assertIn('One or both of them does not exist.', self.out.getvalue())
