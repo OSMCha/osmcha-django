@@ -95,7 +95,6 @@ class TestMergeReasons(TestCase):
 
     def test_merge(self):
         call_command('merge_reasons', self.reason_2.id, self.reason_1.id)
-        self.assertEqual(self.reason_1.changesets.count(), 10)
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(
             SuspicionReasons.objects.filter(name='New mapper').count(), 1
@@ -103,6 +102,16 @@ class TestMergeReasons(TestCase):
         self.assertEqual(
             SuspicionReasons.objects.filter(
                 name='New mapper <5 mapping days'
+                ).count(),
+            0
+            )
+        self.assertEqual(
+            Changeset.objects.filter(reasons__name='New mapper').count(),
+            10
+            )
+        self.assertEqual(
+            Changeset.objects.filter(
+                reasons__name='New mapper <5 mapping days'
                 ).count(),
             0
             )

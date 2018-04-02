@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.conf import settings
+from django.db import connection
 
 from ...models import SuspicionReasons
 
@@ -16,19 +17,37 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         try:
-            reason_1 = SuspicionReasons.objects.get(id=options['reason_1'][0])
-            reason_2 = SuspicionReasons.objects.get(id=options['reason_2'][0])
-            changesets = reason_1.changesets.exclude(reasons=reason_2)
+            origin_reason = SuspicionReasons.objects.get(
+                id=options['reason_1'][0]
+                )
+            final_reason = SuspicionReasons.objects.get(
+                id=options['reason_2'][0]
+                )
+            changesets = origin_reason.changesets.exclude(reasons=final_reason)
+            excluded_changesets = final_reason.changesets.filter(
+                reasons=final_reason
+                )
             changeset_number = changesets.count()
-            reason_1_name = reason_1.name
-            for c in changesets:
-                reason_2.changesets.add(c)
-            reason_1.delete()
+            origin_reason_name = origin_reason.name
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    """UPDATE changeset_changeset_reasons
+                        SET suspicionreasons_id=%s
+                        WHERE suspicionreasons_id=%s AND changeset_id not in %s
+                    """,
+                    [
+                        final_reason.id,
+                        origin_reason.id,
+                        tuple([c.id for c in excluded_changesets])
+                    ]
+                    )
+            origin_reason.delete()
             self.stdout.write(
                 """{} changesets were moved from '{}' to '{}' SuspicionReasons.
                 '{}' has been successfully deleted.
                 """.format(
-                    changeset_number, reason_1_name, reason_2.name, reason_1_name
+                    changeset_number, origin_reason_name, final_reason.name,
+                    origin_reason_name
                     )
                 )
         except SuspicionReasons.DoesNotExist:
