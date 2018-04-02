@@ -3,6 +3,12 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.7.4] - 2018-04-02
+
+- Update osmcha lib version
+- Use https on OSM.org API requests
+- Use SQL command instead of Django ORM in merge_reasons command
+
 [2.7.3] - 2018-03-26
 
 - Add 'merge_reasons' management command
