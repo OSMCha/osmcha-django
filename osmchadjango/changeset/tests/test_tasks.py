@@ -18,7 +18,7 @@ class TestFormatURL(TestCase):
     def test_format_url(self):
         self.assertEqual(
             format_url(1473773),
-            'http://planet.openstreetmap.org/replication/changesets/001/473/773.osm.gz'
+            'https://planet.openstreetmap.org/replication/changesets/001/473/773.osm.gz'
             )
 
 

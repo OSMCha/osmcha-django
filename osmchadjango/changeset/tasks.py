@@ -54,7 +54,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
 def format_url(n):
     """Return the url of a replication file."""
     n = str(n)
-    base_url = 'http://planet.openstreetmap.org/replication/changesets/'
+    base_url = 'https://planet.openstreetmap.org/replication/changesets/'
     return join(base_url, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
 
 
@@ -72,7 +72,7 @@ def get_last_replication_id():
     """Get the id number of the last replication file available on Planet OSM.
     """
     state = requests.get(
-        'http://planet.openstreetmap.org/replication/changesets/state.yaml'
+        'https://planet.openstreetmap.org/replication/changesets/state.yaml'
         ).content
     state = yaml.load(state)
     return state.get('sequence')
