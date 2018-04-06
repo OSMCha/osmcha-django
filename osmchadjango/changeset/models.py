@@ -92,7 +92,7 @@ class Changeset(models.Model):
 
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
-        return 'http://www.openstreetmap.org/changeset/{}'.format(self.id)
+        return 'https://www.openstreetmap.org/changeset/{}'.format(self.id)
 
     def viz_tool_link(self):
         """Return link to the changeset visualization tool."""
@@ -102,7 +102,7 @@ class Changeset(models.Model):
         """Return link to open changeset in JOSM."""
         josm_base = "http://127.0.0.1:8111/import?url="
         changeset_url = "{}/{}/{}".format(
-            "http://www.openstreetmap.org/api/0.6/changeset",
+            "https://www.openstreetmap.org/api/0.6/changeset",
             self.id,
             "download"
             )
@@ -110,7 +110,7 @@ class Changeset(models.Model):
 
     def id_link(self):
         """Return link to open the area of the changeset in iD editor."""
-        id_base = "http://www.openstreetmap.org/edit?editor=id#map=16"
+        id_base = "https://www.openstreetmap.org/edit?editor=id#map=16"
         if self.bbox:
             centroid = [round(c, 5) for c in self.bbox.centroid.coords]
             return "{}/{}/{}".format(id_base, centroid[1], centroid[0])

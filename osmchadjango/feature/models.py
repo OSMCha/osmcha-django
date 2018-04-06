@@ -38,7 +38,7 @@ class Feature(models.Model):
 
     def osm_link(self):
         """Return the link to the feature page on OSM website."""
-        return 'http://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id)
+        return 'https://www.openstreetmap.org/%s/%s' % (self.osm_type, self.osm_id)
 
     @property
     def all_tags(self):

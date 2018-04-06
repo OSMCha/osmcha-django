@@ -103,17 +103,17 @@ class TestChangesetModel(TestCase):
             )
         self.assertEqual(
             self.changeset.osm_link(),
-            'http://www.openstreetmap.org/changeset/31982803'
+            'https://www.openstreetmap.org/changeset/31982803'
             )
         self.assertEqual(
             self.changeset.josm_link(),
             ('http://127.0.0.1:8111/import?url='
-             'http://www.openstreetmap.org/api/0.6/changeset/31982803/download'
+             'https://www.openstreetmap.org/api/0.6/changeset/31982803/download'
              )
             )
         self.assertEqual(
             self.changeset.id_link(),
-            'http://www.openstreetmap.org/edit?editor=id#map=16/44.2401/-71.03477'
+            'https://www.openstreetmap.org/edit?editor=id#map=16/44.2401/-71.03477'
             )
 
     def test_suspicion_reasons(self):
