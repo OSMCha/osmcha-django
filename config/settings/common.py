@@ -61,7 +61,6 @@ THIRD_PARTY_APPS = (
     'coreapi',
     'coreschema',
     'django_filters',
-    # 'cachalot',
 )
 
 # Apps specific for this project go here.

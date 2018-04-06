@@ -45,9 +45,6 @@ celery==3.1.25
 django-redis==4.8.0
 redis>=2.10.5
 
-# Cache
-django-cachalot==1.5.0
-
 # Your custom requirements go here
 PyYAML==3.12
 osmcha==0.4.7
