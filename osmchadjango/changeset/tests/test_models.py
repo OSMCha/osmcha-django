@@ -130,6 +130,18 @@ class TestChangesetModel(TestCase):
         tag_2.changesets.add(self.changeset)
         self.assertEqual(self.changeset.tags.all().count(), 2)
 
+    def test_new_feature_field(self):
+        json_content = [
+            {"id": 123, "reasons": [1, 2, 3, 4]},
+            {"id": 321, "reasons": [1, 4]}
+        ]
+        changeset = ChangesetFactory(
+            id=31982804,
+            new_features=json_content
+            )
+        self.assertEqual(Changeset.objects.all().count(), 2)
+        self.assertEqual(changeset.new_features, json_content)
+
 
 class TestChangesetModelOrdering(TestCase):
     def setUp(self):
