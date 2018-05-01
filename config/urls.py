@@ -25,19 +25,19 @@ if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
 
 api_urls = [
     path(
-        ''.format(API_BASE_URL),
+        '{}'.format(API_BASE_URL),
         include("osmchadjango.changeset.urls", namespace="changeset")
         ),
     path(
-        ''.format(API_BASE_URL),
+        '{}'.format(API_BASE_URL),
         include("osmchadjango.feature.urls", namespace="feature")
         ),
     path(
-        ''.format(API_BASE_URL),
+        '{}'.format(API_BASE_URL),
         include("osmchadjango.supervise.urls", namespace="supervise")
         ),
     path(
-        ''.format(API_BASE_URL),
+        '{}'.format(API_BASE_URL),
         include("osmchadjango.users.urls", namespace="users")
         ),
     ]
