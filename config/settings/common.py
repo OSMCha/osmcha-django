@@ -51,7 +51,6 @@ DJANGO_APPS = (
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS = (
-    'crispy_forms',  # Form layouts
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
