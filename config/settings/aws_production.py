@@ -22,7 +22,7 @@ USE_X_FORWARDED_HOST = True
 
 # gunicorn
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ('gunicorn')
+INSTALLED_APPS += ('gunicorn',)
 
 
 # SITE CONFIGURATION
