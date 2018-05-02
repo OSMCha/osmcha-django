@@ -4,7 +4,6 @@ django==2.0.4
 
 # Configuration
 django-environ==0.4.4
-django-secure==1.0.1
 
 # Forms
 django-braces==1.12.0

@@ -20,14 +20,10 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
-# django-secure
+# gunicorn
 # ------------------------------------------------------------------------------
-INSTALLED_APPS += ("djangosecure", 'gunicorn',)
+INSTALLED_APPS += ('gunicorn')
 
-MIDDLEWARE = [
-    # Make sure djangosecure.middleware.SecurityMiddleware is listed first
-    'djangosecure.middleware.SecurityMiddleware',
-] + MIDDLEWARE
 
 # SITE CONFIGURATION
 # ------------------------------------------------------------------------------
