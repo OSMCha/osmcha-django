@@ -51,7 +51,6 @@ DJANGO_APPS = (
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS = (
-    'crispy_forms',  # Form layouts
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
@@ -87,8 +86,7 @@ MIDDLEWARE = [
     'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'osmchadjango.changeset.middleware.errors.ExceptionMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 # MIGRATIONS CONFIGURATION
