@@ -3,6 +3,8 @@ from __future__ import absolute_import, unicode_literals
 from django.urls import re_path
 from django.views.generic.base import TemplateView, RedirectView
 
+from . import views
+
 
 app_name = 'frontend'
 urlpatterns = [
@@ -25,6 +27,16 @@ urlpatterns = [
         r'^local-landing.html',
         view=TemplateView.as_view(template_name="frontend/local-landing.html"),
         name='local-landing'
+    ),
+    re_path(
+        r'^service-worker.js',
+        view=views.service_worker_view,
+        name='service-worker'
+    ),
+    re_path(
+        r'^favicon.ico',
+        view=views.favicon_view,
+        name='favicon'
     ),
     re_path(
         r'^changesets/(?P<pk>\d+)/$',
