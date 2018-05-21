@@ -132,8 +132,8 @@ class TestChangesetModel(TestCase):
 
     def test_new_feature_field(self):
         json_content = [
-            {"id": 123, "reasons": [1, 2, 3, 4]},
-            {"id": 321, "reasons": [1, 4]}
+            {"id": 123, "reasons": ["Deleted wikidata object", "Deleted place"]},
+            {"id": 321, "reasons": ["Deleted address"]}
         ]
         changeset = ChangesetFactory(
             id=31982804,
