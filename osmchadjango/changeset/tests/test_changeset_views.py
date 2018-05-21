@@ -1413,12 +1413,13 @@ class TestAddFeatureToChangesetView(APITestCase):
         response = self.client.post(self.url, data=self.data_3)
         self.assertEqual(response.status_code, 200)
         self.changeset.refresh_from_db()
-        self.assertEqual(
-            self.changeset.new_features,
-            [{
-                "id": 87765444,
-                "osm_type": "node",
-                "osm_version": 44,
-                "reasons": ["Deleted Motorway", "Relevant object deleted"]
-            }]
+        self.assertEqual(len(self.changeset.new_features), 1)
+        self.assertEqual(self.changeset.new_features[0]['id'], 87765444)
+        self.assertIn(
+            "Deleted Motorway",
+            self.changeset.new_features[0]['reasons']
+            )
+        self.assertIn(
+            "Relevant object deleted",
+            self.changeset.new_features[0]['reasons']
             )
