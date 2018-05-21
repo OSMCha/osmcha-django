@@ -77,6 +77,11 @@ urlpatterns = [
         name='comment'
     ),
     re_path(
+        r'^add-feature/$',
+        view=views.add_feature,
+        name='add-feature'
+    ),
+    re_path(
         r'^whitelist-user/$',
         view=views.UserWhitelistListCreateAPIView.as_view(),
         name='whitelist-user'

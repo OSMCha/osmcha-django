@@ -1276,3 +1276,149 @@ class TestThrottling(APITestCase):
                 )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 5)
+
+
+class TestAddFeatureToChangesetView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+
+        self.staff_user = User.objects.create_user(
+            username='staff_test',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.staff_user,
+            provider='openstreetmap',
+            uid='443324',
+            )
+
+        self.data = {
+            "id": 877656232,
+            "changeset": 1234,
+            "uid": 9999,
+            "user": "TestUser",
+            "osm_type": "node",
+            "osm_version": 54,
+            "reasons": ["Deleted place", "Deleted wikidata"]
+            }
+        self.data_2 = {
+            "id": 877656333,
+            "changeset": 1234,
+            "uid": 9999,
+            "user": "TestUser",
+            "osm_type": "node",
+            "osm_version": 44,
+            "reasons": ["Deleted address"]
+            }
+        self.data_3 = {
+            "id": 87765444,
+            "changeset": 4965,
+            "uid": 4563,
+            "user": "TestUser2",
+            "osm_type": "node",
+            "osm_version": 44,
+            "reasons": ["Deleted Motorway"]
+            }
+        self.changeset = ChangesetFactory(id=4965)
+        self.url = reverse('changeset:add-feature')
+
+    def test_unauthenticated_can_not_add_feature(self):
+        """Unauthenticated requests should return 401 error."""
+        response = self.client.post(self.url, data=self.data)
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(Changeset.objects.filter(id=1234).count(), 0)
+
+    def test_non_staff_user_can_not_add_feature(self):
+        """Non staff users requests should return 403 error."""
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.post(self.url, data=self.data)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(Changeset.objects.filter(id=1234).count(), 0)
+
+    def test_add_feature(self):
+        """If adding a feature to a changeset that does not exist in the
+        database, it must to create it with the basic info contained in the
+        feature.
+        """
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.post(self.url, data=self.data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Changeset.objects.get(id=1234).new_features,
+            [{
+                "id": 877656232,
+                "osm_type": "node",
+                "osm_version": 54,
+                "reasons": ["Deleted place", "Deleted wikidata"]
+            }]
+        )
+        self.assertEqual(Changeset.objects.get(id=1234).reasons.count(), 2)
+
+        # Add another feature to the same changeset
+        response = self.client.post(self.url, data=self.data_2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Changeset.objects.get(id=1234).new_features,
+            [{
+                "id": 877656232,
+                "osm_type": "node",
+                "osm_version": 54,
+                "reasons": ["Deleted place", "Deleted wikidata"]
+            },
+            {
+                "id": 877656333,
+                "osm_type": "node",
+                "osm_version": 44,
+                "reasons": ["Deleted address"]
+            }]
+            )
+        self.assertEqual(Changeset.objects.get(id=1234).reasons.count(), 3)
+
+    def test_add_feature_to_existent_changeset(self):
+        """Adding a feature to a existent changeset."""
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.post(self.url, data=self.data_3)
+        self.assertEqual(response.status_code, 200)
+        self.changeset.refresh_from_db()
+        self.assertEqual(
+            self.changeset.new_features,
+            [{
+                "id": 87765444,
+                "osm_type": "node",
+                "osm_version": 44,
+                "reasons": ["Deleted Motorway"]
+            }]
+            )
+
+    def test_add_same_feature_twice(self):
+        """If a feature with the same id is added twice, it should add the
+        suspicion reason to the existing feature.
+        """
+        self.client.login(username=self.staff_user.username, password='password')
+        response = self.client.post(self.url, data=self.data_3)
+        self.assertEqual(response.status_code, 200)
+
+        self.data_3['reasons'] = ["Relevant object deleted"]
+        response = self.client.post(self.url, data=self.data_3)
+        self.assertEqual(response.status_code, 200)
+        self.changeset.refresh_from_db()
+        self.assertEqual(
+            self.changeset.new_features,
+            [{
+                "id": 87765444,
+                "osm_type": "node",
+                "osm_version": 44,
+                "reasons": ["Deleted Motorway", "Relevant object deleted"]
+            }]
+            )

@@ -9,7 +9,7 @@ from django.conf import settings
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route
+    api_view, parser_classes, permission_classes, detail_route, throttle_classes
     )
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
@@ -578,3 +578,100 @@ class ChangesetCommentAPIView(ModelViewSet):
             {}
             Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
             """.format(message, status, self.changeset.id)
+
+
+@api_view(['POST'])
+@throttle_classes((NonStaffUserThrottle,))
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def add_feature(request):
+    '''Ass Suspicion Features to Changesets. It was designed to receive features.
+    Only staff users have permissions to create features. You can use the django
+    admin to get a Token to the user you want to use to created features.
+    '''
+    feature = request.data
+    required_fields = ['changeset', 'id', 'uid', 'reasons']
+    changeset_fields_to_update = ['new_features']
+
+    # Check missing required fields
+    missing_fields = [i for i in required_fields if i not in feature.keys()]
+    if len(missing_fields):
+        message = 'Request data is missing the following fields {}.'.format(
+            ', '.join(missing_fields)
+            )
+        return Response(
+            {'detail': message},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # Get reasons to add to changeset and define if it changeset will be suspect
+    suspicions = feature.get('reasons')
+    has_visible_features = False
+    if suspicions:
+        reasons = set()
+        for suspicion in suspicions:
+            if type(suspicion) is str:
+                reason, created = SuspicionReasons.objects.get_or_create(
+                    name=suspicion
+                    )
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+
+    changeset_defaults = {
+        'uid': feature.get('uid'),
+        'is_suspect': has_visible_features
+        }
+
+    changeset, created = Changeset.objects.get_or_create(
+        id=feature.get('changeset'),
+        defaults=changeset_defaults
+        )
+
+    if type(changeset.new_features) is not list:
+        changeset.new_features = []
+    elif len(changeset.new_features) > 0:
+        for i, f in enumerate(changeset.new_features):
+            if f['id'] == feature['id']:
+                f['reasons'] = list(set(f['reasons'] + feature['reasons']))
+                changeset.save(update_fields=changeset_fields_to_update)
+                add_reasons_to_changeset(changeset, reasons)
+                return Response(
+                    {'detail': 'Feature added to changeset.'},
+                    status=status.HTTP_200_OK
+                    )
+
+    fields_to_save = ['id', 'osm_type', 'osm_version', 'reasons']
+    [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
+
+    changeset.new_features.append(feature)
+
+    if not changeset.is_suspect and has_visible_features:
+        changeset.is_suspect = True
+        changeset_fields_to_update.append('is_suspect')
+
+    changeset.save(update_fields=changeset_fields_to_update)
+    print(
+        'Changeset {} {}'.format(
+            changeset.id, 'created' if created else 'updated'
+            )
+        )
+    add_reasons_to_changeset(changeset, reasons)
+    return Response(
+        {'detail': 'Feature added to changeset.'},
+        status=status.HTTP_200_OK
+        )
+
+
+def add_reasons_to_changeset(changeset, reasons):
+    try:
+        changeset.reasons.add(*reasons)
+    except IntegrityError:
+        # This most often happens due to a race condition,
+        # where two processes are saving to the same changeset
+        # In this case, we can safely ignore this attempted DB Insert,
+        # since what we wanted inserted has already been done through
+        # a separate web request.
+        print('IntegrityError with changeset %s' % changeset.id)
+    except ValueError as e:
+        print('ValueError with changeset %s' % changeset.id)
