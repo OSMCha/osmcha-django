@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[2.7.5] - 2018-04-02
+
+- Update social-core-auth to fix bug in authentication
+
 [2.7.4] - 2018-04-02
 
 - Update osmcha lib version
