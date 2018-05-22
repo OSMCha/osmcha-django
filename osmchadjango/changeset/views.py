@@ -527,6 +527,7 @@ class UserStatsAPIView(ListAPIView):
     the uid of the user in OSM.
     """
     serializer_class = UserStatsSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Changeset.objects.filter(uid=self.kwargs['uid'])
