@@ -220,6 +220,16 @@ class TestCreateFeature(APITestCase):
 
 class TestFeatureListAPIView(APITestCase):
     def setUp(self):
+        self.user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='b@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='444444',
+            )
         FeatureFactory.create_batch(15)
         WayFeatureFactory.create_batch(15)
         CheckedFeatureFactory.create_batch(15)
@@ -231,6 +241,31 @@ class TestFeatureListAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 50)
         self.assertEqual(response.data.get('count'), 60)
+
+    def test_unauthenticated_response_fields(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            'check_user',
+            response.data.get('features').get('properties').keys()
+            )
+
+    def test_authenticated_response_fields(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            'check_user',
+            response.data.get('features')[0]['properties'].keys()
+        )
+
+    def test_unauthenticated_response_fields(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            'check_user',
+            response.data.get('features')[0]['properties'].keys()
+        )
 
     def test_pagination(self):
         response = self.client.get(self.url, {'page': 2})

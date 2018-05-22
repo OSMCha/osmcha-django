@@ -51,6 +51,15 @@ class FeatureSerializer(FeatureSerializerToStaff):
             ).data
 
 
+class FeatureSerializerToUnauthenticated(FeatureSerializer):
+    check_user = None
+
+    class Meta:
+        model = Feature
+        geo_field = 'geometry'
+        exclude = ('comparator_version', 'check_user')
+
+
 class FeatureTagsSerializer(ModelSerializer):
     tags = PrimaryKeyRelatedField(many=True, queryset=Tag.objects.all())
 
