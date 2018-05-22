@@ -71,7 +71,7 @@ class SocialAuthAPIView(GenericAPIView):
             name='openstreetmap',
             redirect_uri=None
             )
-        authed_user = request.user if not request.user.is_anonymous() else None
+        authed_user = request.user if not request.user.is_anonymous else None
         user = backend.do_auth(access_token, user=authed_user)
         token, created = Token.objects.get_or_create(user=user)
         return {'token': token.key}
