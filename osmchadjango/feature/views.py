@@ -29,7 +29,8 @@ from ..changeset.views import (
 from .models import Feature
 from .filters import FeatureFilter
 from .serializers import (
-    FeatureSerializer, FeatureSerializerToStaff, FeatureTagsSerializer
+    FeatureSerializer, FeatureSerializerToStaff, FeatureTagsSerializer,
+    FeatureSerializerToUnaunthenticated
     )
 
 
@@ -56,8 +57,10 @@ class FeatureListAPIView(ListAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return FeatureSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return FeatureSerializer
+        else:
+            return FeatureSerializerToUnaunthenticated
 
 
 class FeatureDetailAPIView(RetrieveAPIView):
@@ -74,8 +77,10 @@ class FeatureDetailAPIView(RetrieveAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return FeatureSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return FeatureSerializer
+        else:
+            return FeatureSerializerToUnaunthenticated
 
 
 @api_view(['POST'])

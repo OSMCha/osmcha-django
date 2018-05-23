@@ -231,6 +231,31 @@ class TestFeatureListAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 50)
         self.assertEqual(response.data.get('count'), 60)
+        self.assertNotIn(
+            'check_user',
+            response.data.get('features')[0]['properties'].keys()
+            )
+
+    def test_authenticated_response_fields(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data.get('features')), 50)
+        self.assertEqual(response.data.get('count'), 60)
+        self.assertIn(
+            'check_user',
+            response.data.get('features')[0]['properties'].keys()
+            )
 
     def test_pagination(self):
         response = self.client.get(self.url, {'page': 2})
@@ -368,7 +393,7 @@ class TestFeatureDetailAPIView(APITestCase):
     def setUp(self):
         self.feature = CheckedFeatureFactory()
 
-    def test_feature_detail_view(self):
+    def test_feature_detail_view_unauthenticated(self):
         response = self.client.get(
             reverse(
                 'feature:detail',
@@ -418,10 +443,6 @@ class TestFeatureDetailAPIView(APITestCase):
             self.feature.harmful
             )
         self.assertEqual(
-            response.data['properties']['check_user'],
-            self.feature.check_user.name
-            )
-        self.assertEqual(
             response.data['properties']['changeset'],
             self.feature.changeset.id
             )
@@ -430,6 +451,30 @@ class TestFeatureDetailAPIView(APITestCase):
         self.assertIn('check_date', response.data['properties'].keys())
         self.assertIn('old_geojson', response.data['properties'].keys())
         self.assertIn('geometry', response.data.keys())
+        self.assertNotIn('check_user', response.data['properties'].keys())
+
+    def test_authenticated_response_fields(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse(
+                'feature:detail',
+                args=[self.feature.changeset.id, self.feature.url]
+                )
+            )
+        self.assertEqual(
+            response.data['properties']['check_user'],
+            self.feature.check_user.name
+            )
 
 
 class TestReasonsAndTagsFields(APITestCase):
