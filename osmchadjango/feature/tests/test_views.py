@@ -236,7 +236,7 @@ class TestFeatureListAPIView(APITestCase):
             response.data.get('features')[0]['properties'].keys()
             )
 
-    def test_authenticated_response_fields(self):
+    def test_authenticated_fields_and_filters(self):
         self.user = User.objects.create_user(
             username='test',
             password='password',
@@ -252,10 +252,32 @@ class TestFeatureListAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('features')), 50)
         self.assertEqual(response.data.get('count'), 60)
+        # check_user field should be serialized only to authenticated users
         self.assertIn(
             'check_user',
             response.data.get('features')[0]['properties'].keys()
             )
+
+        # The users, check_users and uids filters works to authenticated users
+        response = self.client.get(self.url, {'users': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 60)
+
+        response = self.client.get(self.url, {'users': 'another_user'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'checked_by': 'another_user'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'uids': '123123'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 60)
+
+        response = self.client.get(self.url, {'uids': '1234,234342'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
 
     def test_pagination(self):
         response = self.client.get(self.url, {'page': 2})
@@ -289,6 +311,20 @@ class TestFeatureListAPIView(APITestCase):
         response = self.client.get(self.url, {'harmful': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 15)
+
+        # The users, check_users and uids filters should work only
+        # to authenticated users
+        response = self.client.get(self.url, {'users': 'another_test,test_34'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 60)
+
+        response = self.client.get(self.url, {'check_users': 'another_user'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 60)
+
+        response = self.client.get(self.url, {'uids': '3432342,438753,3232'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 60)
 
     def test_csv_renderer(self):
         self.assertIn(PaginatedCSVRenderer, FeatureListAPIView().renderer_classes)
