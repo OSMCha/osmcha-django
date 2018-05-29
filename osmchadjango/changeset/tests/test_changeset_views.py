@@ -104,10 +104,18 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.data['count'], 52)
 
     def test_authenticated_user_filters(self):
+        """Test if the users, check_users and uids filters works to
+        authenticated users.
+        """
         self.client.login(username=self.user.username, password='password')
+
         response = self.client.get(self.url, {'users': 'another_user'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'users': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
 
         response = self.client.get(self.url, {'checked_by': 'another_user'})
         self.assertEqual(response.status_code, 200)
@@ -116,6 +124,10 @@ class TestChangesetListView(APITestCase):
         response = self.client.get(self.url, {'uids': '98978,43323'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'uids': '123123'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
 
     def test_area_lt_filter(self):
         """Test in_bbox in combination with area_lt filter field."""
