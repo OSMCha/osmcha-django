@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('osm_id', models.IntegerField()),
                 ('geometry', django.contrib.gis.db.models.fields.GeometryField(srid=4326)),
                 ('geojson', models.TextField()),
-                ('changeset', models.ForeignKey(to='changeset.Changeset')),
+                ('changeset', models.ForeignKey(to='changeset.Changeset', on_delete=models.deletion.CASCADE)),
                 ('reasons', models.ManyToManyField(to='changeset.SuspicionReasons')),
             ],
         ),

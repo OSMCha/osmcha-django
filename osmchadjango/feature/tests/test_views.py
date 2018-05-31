@@ -1,7 +1,7 @@
 import json
 from datetime import date, datetime
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 

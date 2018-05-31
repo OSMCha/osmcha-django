@@ -6,8 +6,9 @@ from ..users.models import User
 
 
 class Feature(models.Model):
-
-    changeset = models.ForeignKey('changeset.Changeset', related_name='features')
+    changeset = models.ForeignKey(
+        'changeset.Changeset', on_delete=models.CASCADE, related_name='features'
+        )
     osm_id = models.BigIntegerField()
     osm_type = models.CharField(max_length=1000)
     osm_version = models.IntegerField()
@@ -21,7 +22,9 @@ class Feature(models.Model):
         'changeset.Tag', related_name='features')
     harmful = models.NullBooleanField(db_index=True)
     checked = models.BooleanField(default=False, db_index=True)
-    check_user = models.ForeignKey(User, null=True, blank=True, db_index=True)
+    check_user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, db_index=True
+        )
     check_date = models.DateTimeField(null=True, blank=True, db_index=True)
     url = models.SlugField(max_length=1000, db_index=True)
     comparator_version = models.CharField(max_length=1000, blank=True, null=True)

@@ -207,7 +207,7 @@ class ChangesetFilter(GeoFilterSet):
         )
 
     def filter_whitelist(self, queryset, name, value):
-        if self.request.user.is_authenticated() and value:
+        if self.request.user.is_authenticated and value:
             whitelist = self.request.user.whitelists.values_list(
                 'whitelist_user',
                 flat=True

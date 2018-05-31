@@ -14,11 +14,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userdetail',
             name='no',
-            field=models.IntegerField(help_text=b'Number of Changesets', null=True, blank=True),
+            field=models.IntegerField(help_text='Number of Changesets', null=True, blank=True),
         ),
         migrations.AddField(
             model_name='userdetail',
             name='since',
-            field=models.DateTimeField(help_text=b'Mapper since', null=True, blank=True),
+            field=models.DateTimeField(help_text='Mapper since', null=True, blank=True),
         ),
     ]

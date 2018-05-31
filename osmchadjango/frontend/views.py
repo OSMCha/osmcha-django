@@ -5,15 +5,8 @@ from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 
 
-def json_static_view(request, filename):
-    data = json.loads(
-        open(join(settings.STATICFILES_DIRS[0], '{}.json'.format(filename))).read()
-        )
-    return JsonResponse(data, safe=False)
-
-
-def js_static_view(request, filename):
-    data = open(join(settings.STATICFILES_DIRS[0], '{}.js'.format(filename))).read()
+def service_worker_view(request):
+    data = open(join(settings.STATICFILES_DIRS[0], 'service-worker.js')).read()
     return HttpResponse(data, content_type="text/javascript")
 
 

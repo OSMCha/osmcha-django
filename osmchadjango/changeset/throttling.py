@@ -5,7 +5,7 @@ class NonStaffUserThrottle(UserRateThrottle):
     scope = 'non_staff_user'
 
     def get_cache_key(self, request, view):
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             if request.user.is_staff:
                 return None
             else:

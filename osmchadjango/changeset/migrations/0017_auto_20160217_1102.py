@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userdetail',
             name='changeset_no',
-            field=models.IntegerField(help_text=b'Number of changesets', null=True, blank=True),
+            field=models.IntegerField(help_text='Number of changesets', null=True, blank=True),
         ),
         migrations.AddField(
             model_name='userdetail',

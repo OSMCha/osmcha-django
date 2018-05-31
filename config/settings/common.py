@@ -51,7 +51,6 @@ DJANGO_APPS = (
     'django.contrib.admin',
 )
 THIRD_PARTY_APPS = (
-    'crispy_forms',  # Form layouts
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
@@ -61,7 +60,6 @@ THIRD_PARTY_APPS = (
     'coreapi',
     'coreschema',
     'django_filters',
-    'cachalot',
 )
 
 # Apps specific for this project go here.
@@ -78,7 +76,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 # MIDDLEWARE CONFIGURATION
 # ------------------------------------------------------------------------------
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.gzip.GZipMiddleware',
@@ -88,9 +86,8 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.http.ConditionalGetMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'osmchadjango.changeset.middleware.errors.ExceptionMiddleware'
-)
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+]
 
 # MIGRATIONS CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -259,8 +256,8 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
 
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET')
+SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY', default='')
+SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET', default='')
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -330,7 +327,7 @@ ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        #'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         ),
