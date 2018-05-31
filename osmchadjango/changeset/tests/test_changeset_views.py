@@ -1,7 +1,7 @@
 import json
 
 from django.contrib.gis.geos import Polygon
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import TestCase, override_settings
 
 from social_django.models import UserSocialAuth

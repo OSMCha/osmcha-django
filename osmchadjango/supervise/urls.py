@@ -1,48 +1,50 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.conf.urls import url
+from django.urls import re_path
 
 from . import views
 
+
+app_name = 'supervise'
 urlpatterns = [
-    url(
-        regex=r'^aoi/$',
+    re_path(
+        r'^aoi/$',
         view=views.AOIListCreateAPIView.as_view(),
         name='aoi-list-create'
         ),
-    url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/$',
+    re_path(
+        r'^aoi/(?P<pk>[0-9a-f-]+)/$',
         view=views.AOIRetrieveUpdateDestroyAPIView.as_view(),
         name='aoi-detail'
         ),
-    url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/$',
+    re_path(
+        r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/$',
         view=views.AOIListChangesetsAPIView.as_view(),
         name='aoi-list-changesets'
         ),
-    url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/feed/$',
+    re_path(
+        r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/feed/$',
         view=views.AOIListChangesetsFeedView(),
         name='aoi-changesets-feed'
         ),
-    url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/features/$',
+    re_path(
+        r'^aoi/(?P<pk>[0-9a-f-]+)/features/$',
         view=views.AOIListFeaturesAPIView.as_view(),
         name='aoi-list-features'
         ),
-    url(
-        regex=r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
+    re_path(
+        r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
         view=views.AOIStatsAPIView.as_view(),
         name='aoi-stats'
         ),
-    url(
-        regex=r'^blacklisted-users/$',
+    re_path(
+        r'^blacklisted-users/$',
         view=views.BlacklistedUserListCreateAPIView.as_view(),
         name='blacklist-list-create'
         ),
-    url(
-        regex=r'^blacklisted-users/(?P<uid>[0-9a-f-]+)/$',
+    re_path(
+        r'^blacklisted-users/(?P<uid>[0-9a-f-]+)/$',
         view=views.BlacklistedUserDetailAPIView.as_view(),
         name='blacklist-detail'
         ),

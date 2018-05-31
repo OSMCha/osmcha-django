@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
 
 from rest_framework.test import APITestCase

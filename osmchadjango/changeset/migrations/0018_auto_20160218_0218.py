@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userdetail',
             name='changesets_mapping_days',
-            field=models.CharField(default=b'', max_length=128),
+            field=models.CharField(default='', max_length=128),
             preserve_default=False,
         ),
         migrations.AddField(

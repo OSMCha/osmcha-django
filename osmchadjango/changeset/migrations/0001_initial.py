@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
                 ('harmful', models.NullBooleanField()),
                 ('checked', models.BooleanField(default=False)),
                 ('check_date', models.DateTimeField(null=True, blank=True)),
-                ('check_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, blank=True)),
+                ('check_user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.deletion.SET_NULL, blank=True)),
             ],
         ),
         migrations.CreateModel(

@@ -22,6 +22,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='changeset',
             name='user_detail',
-            field=models.ForeignKey(blank=True, to='changeset.UserDetail', null=True),
+            field=models.ForeignKey(blank=True, to='changeset.UserDetail', on_delete=models.deletion.SET_NULL, null=True),
         ),
     ]
