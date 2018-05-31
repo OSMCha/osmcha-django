@@ -3,6 +3,12 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[3.0.0] - 2018-05-30
+
+- Update Django to 2.0.4
+- Update all requirements
+- Remove unneeded dependencies
+
 [2.7.5] - 2018-04-02
 
 - Update social-core-auth to fix bug in authentication
