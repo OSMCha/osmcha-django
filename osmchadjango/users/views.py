@@ -52,11 +52,6 @@ class SocialAuthAPIView(GenericAPIView):
         )
     access_token_url = '{}/access_token'.format(base_url)
 
-    consumer = OAuth1Session(
-        settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-        client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
-        )
-
     def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
         oauth = OAuth1Session(
             settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
@@ -80,7 +75,11 @@ class SocialAuthAPIView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if 'oauth_token' not in request.data.keys() or not request.data['oauth_token']:
-            request_token = self.consumer.fetch_request_token(
+            consumer = OAuth1Session(
+                settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+                client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
+                )
+            request_token = consumer.fetch_request_token(
                 self.request_token_url
                 )
             return Response({
