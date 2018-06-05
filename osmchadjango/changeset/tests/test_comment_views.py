@@ -6,7 +6,7 @@ from django.test import override_settings
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
-import oauth2 as oauth
+from requests_oauthlib import OAuth1Session
 import mock
 
 from ...users.models import User
@@ -50,9 +50,13 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
+    @mock.patch.object(OAuth1Session, 'request')
     def test_comment_harmful_changeset(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
+        # Simulate a response object
+        class MockResponse():
+            status_code = 200
+        mock_oauth_client.return_value = MockResponse
+
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! I found an error in your edit'}
         message = """Hello! I found an error in your edit
@@ -66,17 +70,22 @@ class TestCommentChangesetAPIView(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
+            'POST',
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.harmful_changeset.id
               ),
-            method='POST',
-            body='text={}'.format(message)
+            data='text={}'.format(message),
+            json=None
             )
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
+    @mock.patch.object(OAuth1Session, 'request')
     def test_comment_good_changeset(self, mock_oauth_client):
-        mock_oauth_client.return_value = [{'status': '200'}]
+        # Simulate a response object
+        class MockResponse():
+            status_code = 200
+        mock_oauth_client.return_value = MockResponse
+
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! Awesome edit! :~) óã'}
         message = """Hello! Awesome edit! :~) óã
@@ -91,20 +100,25 @@ class TestCommentChangesetAPIView(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
+            'POST',
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.good_changeset.id
               ),
-            method='POST',
-            body='text={}'.format(message)
+            data='text={}'.format(message),
+            json=None
             )
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(oauth.Client, 'request')
+    @mock.patch.object(OAuth1Session, 'request')
     def test_comment_unreviewed_changeset(self, mock_oauth_client):
         """Unreviewed changeset should not receive the #OSMCHA_(GOOD or BAD)
         hashtag.
         """
-        mock_oauth_client.return_value = [{'status': '200'}]
+        # Simulate a response object
+        class MockResponse():
+            status_code = 200
+        mock_oauth_client.return_value = MockResponse
+        
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! Do you know this area?'}
         message = """Hello! Do you know this area?
@@ -117,11 +131,12 @@ class TestCommentChangesetAPIView(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
+            'POST',
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.changeset.id
               ),
-            method='POST',
-            body='text={}'.format(message)
+            data='text={}'.format(message),
+            json=None
             )
 
     def test_comment_good_changeset_wrong_data(self):
