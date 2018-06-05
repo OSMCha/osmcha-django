@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[3.0.1] - 2018-01-04
+
+- Replace oauth2 by requests_oauthlib
+
 [3.0.0] - 2018-05-30
 
 - Update Django to 2.0.4
