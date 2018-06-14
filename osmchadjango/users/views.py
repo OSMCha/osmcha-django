@@ -45,8 +45,8 @@ class SocialAuthAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    base_url = 'https://www.openstreetmap.org/oauth'
-    request_token_url = '{}/request_token?oauth_callback={}'.format(
+    base_url = 'http://willemarcel.pythonanywhere.com'
+    request_token_url = '{}/request_token/?oauth_callback={}'.format(
         base_url,
         settings.OAUTH_REDIRECT_URI
         )
