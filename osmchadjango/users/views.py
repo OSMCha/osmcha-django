@@ -9,8 +9,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, GenericAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
-from social_core.utils import parse_qs
-import oauth2 as oauth
+from requests_oauthlib import OAuth1Session
 
 from .serializers import UserSerializer, SocialSignUpSerializer
 
@@ -53,17 +52,15 @@ class SocialAuthAPIView(GenericAPIView):
         )
     access_token_url = '{}/access_token'.format(base_url)
 
-    consumer = oauth.Consumer(
-        settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-        settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
-        )
-
     def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
-        token = oauth.Token(oauth_token, oauth_token_secret)
-        token.set_verifier(oauth_verifier)
-        client = oauth.Client(self.consumer, token)
-        resp, content = client.request(self.access_token_url, "POST")
-        return parse_qs(content)
+        oauth = OAuth1Session(
+            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
+            resource_owner_key=oauth_token,
+            resource_owner_secret=oauth_token_secret,
+            verifier=oauth_verifier
+            )
+        return oauth.fetch_access_token(self.access_token_url)
 
     def get_user_token(self, request, access_token):
         backend = load_backend(
@@ -78,9 +75,13 @@ class SocialAuthAPIView(GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         if 'oauth_token' not in request.data.keys() or not request.data['oauth_token']:
-            client = oauth.Client(self.consumer)
-            resp, content = client.request(self.request_token_url, "GET")
-            request_token = parse_qs(content)
+            consumer = OAuth1Session(
+                settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+                client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
+                )
+            request_token = consumer.fetch_request_token(
+                self.request_token_url
+                )
             return Response({
                 'oauth_token': request_token['oauth_token'],
                 'oauth_token_secret': request_token['oauth_token_secret']

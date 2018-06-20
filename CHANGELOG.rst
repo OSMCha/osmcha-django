@@ -3,6 +3,28 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[3.0.3] - 2018-06-18
+
+- Update osmcha lib version to 0.4.8
+
+[3.0.2] - 2018-06-05
+
+- Update Django version to 2.0.6
+
+[3.0.1] - 2018-06-04
+
+- Replace oauth2 by requests_oauthlib
+
+[3.0.0] - 2018-05-30
+
+- Update Django to 2.0.4
+- Update all requirements
+- Remove unneeded dependencies
+
+[2.7.5] - 2018-04-02
+
+- Update social-core-auth to fix bug in authentication
+
 [2.7.4] - 2018-04-02
 
 - Update osmcha lib version
