@@ -148,7 +148,7 @@ class FeatureFilter(GeoFilterSet):
         )
 
     def filter_changeset_users(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'in'])
             users_array = [t.strip() for t in value.split(',')]
             return queryset.filter(**{lookup: users_array})
@@ -156,7 +156,7 @@ class FeatureFilter(GeoFilterSet):
             return queryset
 
     def filter_changeset_uid(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'in'])
             uids_array = [t.strip() for t in value.split(',')]
             return queryset.filter(**{lookup: uids_array})
@@ -164,7 +164,7 @@ class FeatureFilter(GeoFilterSet):
             return queryset
 
     def filter_check_users(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'name', 'in'])
             check_users_array = [t.strip() for t in value.split(',')]
             return queryset.filter(**{lookup: check_users_array})

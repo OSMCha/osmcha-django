@@ -207,7 +207,7 @@ class ChangesetFilter(GeoFilterSet):
         )
 
     def filter_whitelist(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             whitelist = self.request.user.whitelists.values_list(
                 'whitelist_user',
                 flat=True
@@ -217,7 +217,7 @@ class ChangesetFilter(GeoFilterSet):
             return queryset
 
     def filter_checked_by(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'name__in'])
             users = [t.strip() for t in value.split(',')]
             return queryset.filter(**{lookup: users})
@@ -225,7 +225,7 @@ class ChangesetFilter(GeoFilterSet):
             return queryset
 
     def filter_users(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'in'])
             users_array = [t.strip() for t in value.split(',')]
             return queryset.filter(**{lookup: users_array})
@@ -238,7 +238,7 @@ class ChangesetFilter(GeoFilterSet):
         return queryset.filter(**{lookup: values})
 
     def filter_uids(self, queryset, name, value):
-        if self.request.user.is_authenticated and value:
+        if (self.request is None or self.request.user.is_authenticated) and value:
             lookup = '__'.join([name, 'in'])
             values = [n for n in value.split(',')]
             return queryset.filter(**{lookup: values})
