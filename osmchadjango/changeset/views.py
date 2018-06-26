@@ -29,7 +29,8 @@ from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from ..feature.models import Feature
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
+    ChangesetSerializerUnauthenticated, ChangesetSerializer,
+    ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
     SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
     TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
@@ -82,8 +83,10 @@ class ChangesetListAPIView(ListAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return ChangesetSerializer
+        else:
+            return ChangesetSerializerUnauthenticated
 
 
 class ChangesetDetailAPIView(RetrieveAPIView):
@@ -95,8 +98,10 @@ class ChangesetDetailAPIView(RetrieveAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return ChangesetSerializer
+        else:
+            return ChangesetSerializerUnauthenticated
 
 
 class SuspectChangesetListAPIView(ChangesetListAPIView):
@@ -522,6 +527,7 @@ class UserStatsAPIView(ListAPIView):
     the uid of the user in OSM.
     """
     serializer_class = UserStatsSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Changeset.objects.filter(uid=self.kwargs['uid'])

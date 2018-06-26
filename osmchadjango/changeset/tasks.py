@@ -6,7 +6,7 @@ import yaml
 from django.conf import settings
 
 import requests
-import oauth2 as oauth
+from requests_oauthlib import OAuth1Session
 from celery import shared_task, group
 from osmcha.changeset import Analyse, ChangesetList
 
@@ -104,30 +104,25 @@ class ChangesetCommentAPI(object):
     OpenStreetMap website.
     """
     def __init__(self, user, changeset_id):
-        self.user = user
         self.changeset_id = changeset_id
-        consumer = oauth.Consumer(
-            key=settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-            secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
+        user_token = user.social_auth.all().first().access_token
+        self.client = OAuth1Session(
+            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
+            resource_owner_key=user_token['oauth_token'],
+            resource_owner_secret=user_token['oauth_token_secret']
             )
-        user_token = self.user.social_auth.all().first().access_token
-        token = oauth.Token(
-            key=user_token['oauth_token'],
-            secret=user_token['oauth_token_secret']
-            )
-        self.client = oauth.Client(consumer, token)
         self.url = 'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
             changeset_id
             )
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
-        response = self.client.request(
+        response = self.client.post(
             self.url,
-            method='POST',
-            body='text={}'.format(message)
+            data='text={}'.format(message)
             )
-        if response[0]['status'] == '200':
+        if response.status_code == 200:
             print(
                 'Comment in the changeset {} posted successfully.'.format(
                     self.changeset_id

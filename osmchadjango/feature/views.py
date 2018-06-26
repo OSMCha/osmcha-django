@@ -77,8 +77,10 @@ class FeatureDetailAPIView(RetrieveAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return FeatureSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return FeatureSerializer
+        else:
+            return FeatureSerializerToUnaunthenticated
 
 
 @api_view(['POST'])

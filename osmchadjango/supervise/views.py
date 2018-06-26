@@ -14,9 +14,13 @@ from rest_framework.permissions import (
     )
 
 from ..changeset.serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
+    ChangesetSerializerUnauthenticated
     )
-from ..feature.serializers import FeatureSerializer, FeatureSerializerToStaff
+from ..feature.serializers import (
+    FeatureSerializer, FeatureSerializerToStaff,
+    FeatureSerializerToUnaunthenticated
+    )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
 from .serializers import AreaOfInterestSerializer, BlacklistSerializer
@@ -170,8 +174,10 @@ class AOIListChangesetsAPIView(ListAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return ChangesetSerializer
+        else:
+            return ChangesetSerializerUnauthenticated
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().changesets().select_related(
@@ -198,8 +204,10 @@ class AOIListFeaturesAPIView(ListAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return FeatureSerializerToStaff
-        else:
+        elif self.request.user.is_authenticated:
             return FeatureSerializer
+        else:
+            return FeatureSerializerToUnaunthenticated
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().features().select_related(
