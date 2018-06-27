@@ -250,6 +250,9 @@ class TestAoIDetailAPIViews(APITestCase):
             filters={
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
+                'users': 'test',
+                'uids': '234,43',
+                'checked_by': 'qa_user',
                 'geometry': self.m_polygon.geojson
                 },
             )
@@ -264,7 +267,76 @@ class TestAoIDetailAPIViews(APITestCase):
             'name': 'Golfo da Guiné'
             }
 
-    def test_retrieve_detail(self):
+    def test_retrieve_detail_unauthenticated(self):
+        response = self.client.get(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.data['properties']['name'],
+            'Best place in the world'
+            )
+        # The users, uids and checked_by filter fields can not be serialized to
+        # anonymous requests.
+        self.assertEqual(
+            response.data['properties']['filters'],
+            {
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'geometry': self.m_polygon.geojson
+            }
+            )
+        self.assertEqual(
+            response.data['geometry']['type'],
+            'MultiPolygon'
+            )
+        self.assertIn(
+            'id',
+            response.data.keys()
+            )
+        self.assertNotIn(
+            'user',
+            response.data.keys()
+            )
+        self.assertEqual(
+            response.data['properties']['changesets_url'],
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
+            )
+
+    def test_retrieve_detail_unauthenticated_without_user_fields(self):
+        aoi = AreaOfInterest.objects.create(
+            name='AoI has not user filters fields',
+            user=self.user,
+            geometry=self.m_polygon,
+            filters={
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'checked_by': 'qa_user',
+                'geometry': self.m_polygon.geojson
+                }
+            )
+        response = self.client.get(
+            reverse('supervise:aoi-detail', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+
+        aoi = AreaOfInterest.objects.create(
+            name='AoI has not user filters fields 2',
+            user=self.user,
+            geometry=self.m_polygon,
+            filters={
+                'editor': 'Potlatch 2',
+                'harmful': 'False',
+                'geometry': self.m_polygon.geojson
+                }
+            )
+        response = self.client.get(
+            reverse('supervise:aoi-detail', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+
+    def test_retrieve_detail_authenticated(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -278,6 +350,9 @@ class TestAoIDetailAPIViews(APITestCase):
             {
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
+                'users': 'test',
+                'uids': '234,43',
+                'checked_by': 'qa_user',
                 'geometry': self.m_polygon.geojson
             }
             )
