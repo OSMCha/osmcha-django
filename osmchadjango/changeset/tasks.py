@@ -120,7 +120,7 @@ class ChangesetCommentAPI(object):
         """Post comment to changeset."""
         response = self.client.post(
             self.url,
-            data='text={}'.format(message)
+            data='text={}'.format(message).encode("utf-8")
             )
         if response.status_code == 200:
             print(

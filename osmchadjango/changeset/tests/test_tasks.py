@@ -114,6 +114,6 @@ class TestChangesetCommentAPI(TestCase):
         mock_oauth_client.assert_called_with(
             'POST',
             'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            data='text=Reviewed in OSMCha and set as GOOD!',
+            data=b'text=Reviewed in OSMCha and set as GOOD!',
             json=None
             )
