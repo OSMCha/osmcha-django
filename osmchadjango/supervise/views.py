@@ -23,7 +23,10 @@ from ..feature.serializers import (
     )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
-from .serializers import AreaOfInterestSerializer, BlacklistSerializer
+from .serializers import (
+    AreaOfInterestSerializer, BlacklistSerializer,
+    AreaOfInterestAnonymousSerializer
+    )
 
 
 def get_geometry_from_filters(data):
@@ -107,6 +110,12 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         serializer.save(
             geometry=get_geometry_from_filters(self.request.data)
             )
+
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated:
+            return AreaOfInterestSerializer
+        else:
+            return AreaOfInterestAnonymousSerializer
 
 
 class AOIListChangesetsFeedView(Feed):

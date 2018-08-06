@@ -41,6 +41,20 @@ class AreaOfInterestSerializer(GeoFeatureModelSerializer):
         return data
 
 
+class AreaOfInterestAnonymousSerializer(AreaOfInterestSerializer):
+    """Serializer to be used when an anonymous user access the AoI."""
+    def to_representation(self, instance):
+        data = super(
+            AreaOfInterestAnonymousSerializer,
+            self
+            ).to_representation(instance)
+        for key in ['users', 'uids', 'checked_by']:
+            if key in data['properties']['filters'].keys():
+                data['properties']['filters'].pop(key)
+
+        return data
+
+
 class BlacklistSerializer(ModelSerializer):
     date = DateTimeField(read_only=True)
     added_by = ReadOnlyField(source='added_by.username')
