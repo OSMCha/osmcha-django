@@ -80,7 +80,7 @@ class FeatureDetailAPIView(RetrieveAPIView):
         elif self.request.user.is_authenticated:
             return FeatureSerializer
         else:
-            return FeatureSerializerToUnaunthenticated
+            return FeatureSerializerToUnauthenticated
 
 
 @api_view(['POST'])
