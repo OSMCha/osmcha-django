@@ -19,7 +19,7 @@ from ..changeset.serializers import (
     )
 from ..feature.serializers import (
     FeatureSerializer, FeatureSerializerToStaff,
-    FeatureSerializerToUnaunthenticated
+    FeatureSerializerToUnauthenticated
     )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
@@ -103,7 +103,6 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Only the user that created an Area of Interest has permissions to delete it.
     """
     queryset = AreaOfInterest.objects.all()
-    serializer_class = AreaOfInterestSerializer
     permission_classes = (IsOwnerOrReadOnly,)
 
     def perform_update(self, serializer):
@@ -112,7 +111,7 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
             )
 
     def get_serializer_class(self):
-        if self.request.user.is_authenticated:
+        if self.request and self.request.user.is_authenticated:
             return AreaOfInterestSerializer
         else:
             return AreaOfInterestAnonymousSerializer
@@ -216,7 +215,7 @@ class AOIListFeaturesAPIView(ListAPIView):
         elif self.request.user.is_authenticated:
             return FeatureSerializer
         else:
-            return FeatureSerializerToUnaunthenticated
+            return FeatureSerializerToUnauthenticated
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().features().select_related(
