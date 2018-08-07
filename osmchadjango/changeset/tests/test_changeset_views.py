@@ -1427,28 +1427,28 @@ class TestAddFeatureToChangesetView(APITestCase):
         self.url = reverse('changeset:add-feature')
 
     def test_unauthenticated_can_not_add_feature(self):
-        """Unauthenticated requests should return 401 error."""
+        """Unauthenticated requests should return a 401 error."""
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 401)
         self.assertEqual(Changeset.objects.filter(id=1234).count(), 0)
 
     def test_non_staff_user_can_not_add_feature(self):
-        """Non staff users requests should return 403 error."""
+        """Non staff users requests should return a 403 error."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Changeset.objects.filter(id=1234).count(), 0)
 
     def test_add_feature(self):
-        """If adding a feature to a changeset that does not exist in the
-        database, it must to create it with the basic info contained in the
-        feature.
+        """When adding a feature to a changeset that does not exist in the
+        database, it must create the changeset with the basic info contained in
+        the feature.
         """
         self.client.login(username=self.staff_user.username, password='password')
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Changeset.objects.get(id=1234).new_features,
+            Changeset.objects.get(id=self.data.get('changeset')).new_features,
             [{
                 "id": 877656232,
                 "osm_type": "node",
@@ -1456,7 +1456,10 @@ class TestAddFeatureToChangesetView(APITestCase):
                 "reasons": ["Deleted place", "Deleted wikidata"]
             }]
         )
-        self.assertEqual(Changeset.objects.get(id=1234).reasons.count(), 2)
+        self.assertEqual(
+            Changeset.objects.get(id=self.data.get('changeset')).reasons.count(),
+            2
+            )
 
         # Add another feature to the same changeset
         response = self.client.post(self.url, data=self.data_2)
@@ -1479,7 +1482,7 @@ class TestAddFeatureToChangesetView(APITestCase):
         self.assertEqual(Changeset.objects.get(id=1234).reasons.count(), 3)
 
     def test_add_feature_to_existent_changeset(self):
-        """Adding a feature to a existent changeset."""
+        """Adding a feature to an existent changeset."""
         self.client.login(username=self.staff_user.username, password='password')
         response = self.client.post(self.url, data=self.data_3)
         self.assertEqual(response.status_code, 200)
@@ -1492,6 +1495,10 @@ class TestAddFeatureToChangesetView(APITestCase):
                 "osm_version": 44,
                 "reasons": ["Deleted Motorway"]
             }]
+            )
+        self.assertEqual(
+            Changeset.objects.get(id=self.data_3.get('changeset')).reasons.count(),
+            1
             )
 
     def test_add_same_feature_twice(self):
@@ -1515,4 +1522,8 @@ class TestAddFeatureToChangesetView(APITestCase):
         self.assertIn(
             "Relevant object deleted",
             self.changeset.new_features[0]['reasons']
+            )
+        self.assertEqual(
+            Changeset.objects.get(id=self.data_3.get('changeset')).reasons.count(),
+            2
             )
