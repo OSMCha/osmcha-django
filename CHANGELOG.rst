@@ -3,6 +3,10 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[3.0.4] - 2018-06-29
+
+- Fix error in changeset comments when it has special characters
+
 [3.0.3] - 2018-06-18
 
 - Update osmcha lib version to 0.4.8

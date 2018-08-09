@@ -74,7 +74,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.harmful_changeset.id
               ),
-            data='text={}'.format(message),
+            data='text={}'.format(message).encode('utf-8'),
             json=None
             )
 
@@ -104,7 +104,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.good_changeset.id
               ),
-            data='text={}'.format(message),
+            data='text={}'.format(message).encode('utf-8'),
             json=None
             )
 
@@ -118,7 +118,7 @@ class TestCommentChangesetAPIView(APITestCase):
         class MockResponse():
             status_code = 200
         mock_oauth_client.return_value = MockResponse
-        
+
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! Do you know this area?'}
         message = """Hello! Do you know this area?
@@ -135,7 +135,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.changeset.id
               ),
-            data='text={}'.format(message),
+            data='text={}'.format(message).encode('utf-8'),
             json=None
             )
 
