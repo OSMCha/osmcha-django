@@ -60,7 +60,7 @@ class UserWhitelist(models.Model):
 
 class Changeset(models.Model):
     user = models.CharField(max_length=1000, db_index=True)
-    uid = models.CharField(_('User ID'), max_length=255, db_index=True)
+    uid = models.CharField(_('User ID'), max_length=255, blank=True, null=True, db_index=True)
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
     comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)

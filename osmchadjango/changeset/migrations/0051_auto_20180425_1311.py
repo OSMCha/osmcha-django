@@ -6,9 +6,9 @@ from django.db import migrations
 def filtered_json(feature):
     data = {
         "osm_id": feature.osm_id,
-        "osm_type": feature.osm_type,
-        "osm_version": feature.osm_version,
-        "reasons": [reason.name for reason in feature.reasons.all()]
+        "url": "{}-{}".format(feature.osm_type, feature.osm_id),
+        "version": feature.osm_version,
+        "reasons": [reason.id for reason in feature.reasons.all()]
     }
     try:
         data['name'] = feature.geojson['properties']['name']

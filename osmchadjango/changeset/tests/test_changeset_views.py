@@ -1397,30 +1397,28 @@ class TestAddFeatureToChangesetView(APITestCase):
             )
 
         self.data = {
-            "id": 877656232,
-            "changeset": 1234,
-            "uid": 9999,
-            "user": "TestUser",
+            "osm_id": 877656232,
             "osm_type": "node",
-            "osm_version": 54,
+            "version": 54,
+            "changeset": 1234,
+            "name": "Salvador",
             "reasons": ["Deleted place", "Deleted wikidata"]
             }
         self.data_2 = {
-            "id": 877656333,
-            "changeset": 1234,
-            "uid": 9999,
-            "user": "TestUser",
+            "osm_id": 877656333,
             "osm_type": "node",
-            "osm_version": 44,
-            "reasons": ["Deleted address"]
+            "version": 44,
+            "changeset": 1234,
+            "reasons": ["Deleted address"],
+            "note": "suspect to be a graffiti",
+            "uid": 9999,
+            "user": "TestUser"
             }
         self.data_3 = {
-            "id": 87765444,
+            "osm_id": 87765444,
             "changeset": 4965,
-            "uid": 4563,
-            "user": "TestUser2",
             "osm_type": "node",
-            "osm_version": 44,
+            "version": 44,
             "reasons": ["Deleted Motorway"]
             }
         self.changeset = ChangesetFactory(id=4965)
@@ -1447,14 +1445,18 @@ class TestAddFeatureToChangesetView(APITestCase):
         self.client.login(username=self.staff_user.username, password='password')
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 200)
+        reasons = SuspicionReasons.objects.filter(
+            name__in=self.data.get('reasons')
+            )
         self.assertEqual(
             Changeset.objects.get(id=self.data.get('changeset')).new_features,
             [{
-                "id": 877656232,
-                "osm_type": "node",
-                "osm_version": 54,
-                "reasons": ["Deleted place", "Deleted wikidata"]
-            }]
+                "osm_id": 877656232,
+                "url": "node-877656232",
+                "version": 54,
+                "name": "Salvador",
+                "reasons": [i.id for i in reasons]
+                }]
         )
         self.assertEqual(
             Changeset.objects.get(id=self.data.get('changeset')).reasons.count(),
@@ -1463,37 +1465,101 @@ class TestAddFeatureToChangesetView(APITestCase):
 
         # Add another feature to the same changeset
         response = self.client.post(self.url, data=self.data_2)
+        reasons_2 = SuspicionReasons.objects.filter(
+            name__in=self.data_2.get('reasons')
+            )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
-            Changeset.objects.get(id=1234).new_features,
-            [{
-                "id": 877656232,
-                "osm_type": "node",
-                "osm_version": 54,
-                "reasons": ["Deleted place", "Deleted wikidata"]
-            },
-            {
-                "id": 877656333,
-                "osm_type": "node",
-                "osm_version": 44,
-                "reasons": ["Deleted address"]
-            }]
+            len(Changeset.objects.get(id=1234).new_features),
+            2
+            )
+        self.assertIn(
+            877656232,
+            [i.get('osm_id') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            877656333,
+            [i.get('osm_id') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            "node-877656232",
+            [i.get('url') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            "node-877656333",
+            [i.get('url') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            [i.id for i in reasons],
+            [i.get('reasons') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            set([i.id for i in reasons_2]),
+            [set(i.get('reasons')) for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            "suspect to be a graffiti",
+            [i.get('note') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            54,
+            [i.get('version') for i in Changeset.objects.get(id=1234).new_features],
+            )
+        self.assertIn(
+            44,
+            [i.get('version') for i in Changeset.objects.get(id=1234).new_features],
             )
         self.assertEqual(Changeset.objects.get(id=1234).reasons.count(), 3)
+
+    def test_add_feature_with_reason_id(self):
+        """When creating a changeset, we can inform the id of the reason instead
+        of the name.
+        """
+        self.client.login(username=self.staff_user.username, password='password')
+        reason = SuspicionReasons.objects.create(name='Deleted address')
+        payload = {
+            "osm_id": 877656232,
+            "changeset": 1234,
+            "osm_type": "node",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": [reason.id],
+            "note": "suspect to be a graffiti"
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            Changeset.objects.get(id=self.data.get('changeset')).new_features,
+            [{
+                "osm_id": 877656232,
+                "url": "node-877656232",
+                "version": 54,
+                "name": "Tall Building",
+                "reasons": [reason.id],
+                "note": "suspect to be a graffiti"
+            }]
+        )
+        self.assertEqual(
+            Changeset.objects.get(id=self.data.get('changeset')).reasons.count(),
+            1
+            )
 
     def test_add_feature_to_existent_changeset(self):
         """Adding a feature to an existent changeset."""
         self.client.login(username=self.staff_user.username, password='password')
         response = self.client.post(self.url, data=self.data_3)
+        reasons = SuspicionReasons.objects.filter(
+            name__in=self.data_3.get('reasons')
+            )
         self.assertEqual(response.status_code, 200)
         self.changeset.refresh_from_db()
         self.assertEqual(
             self.changeset.new_features,
             [{
-                "id": 87765444,
-                "osm_type": "node",
-                "osm_version": 44,
-                "reasons": ["Deleted Motorway"]
+                "osm_id": 87765444,
+                "url": "node-87765444",
+                "version": 44,
+                "reasons": [i.id for i in reasons]
             }]
             )
         self.assertEqual(
@@ -1502,7 +1568,7 @@ class TestAddFeatureToChangesetView(APITestCase):
             )
 
     def test_add_same_feature_twice(self):
-        """If a feature with the same id is added twice, it should add the
+        """If a feature with the same url is added twice, it should add the
         suspicion reason to the existing feature.
         """
         self.client.login(username=self.staff_user.username, password='password')
@@ -1514,16 +1580,52 @@ class TestAddFeatureToChangesetView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.changeset.refresh_from_db()
         self.assertEqual(len(self.changeset.new_features), 1)
-        self.assertEqual(self.changeset.new_features[0]['id'], 87765444)
+        self.assertEqual(self.changeset.new_features[0]['osm_id'], 87765444)
         self.assertIn(
-            "Deleted Motorway",
+            SuspicionReasons.objects.get(name="Deleted Motorway").id,
             self.changeset.new_features[0]['reasons']
             )
         self.assertIn(
-            "Relevant object deleted",
+            SuspicionReasons.objects.get(name="Relevant object deleted").id,
             self.changeset.new_features[0]['reasons']
             )
         self.assertEqual(
             Changeset.objects.get(id=self.data_3.get('changeset')).reasons.count(),
             2
             )
+
+    def test_validation(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        # validate osm_id
+        payload = {
+            "osm_id": "asdfs",
+            "changeset": 1234,
+            "osm_type": "node",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": ["Other reason"],
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 400)
+        # validate changeset
+        payload = {
+            "osm_id": 12312,
+            "changeset": "123-32",
+            "osm_type": "node",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": ["Other reason"],
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 400)
+        # validate osm_type
+        payload = {
+            "osm_id": 12312,
+            "changeset": 1234,
+            "osm_type": "area",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": ["Other reason"],
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 400)

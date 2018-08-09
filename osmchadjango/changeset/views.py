@@ -591,14 +591,14 @@ class ChangesetCommentAPIView(ModelViewSet):
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
 def add_feature(request):
-    '''Ass Suspicion Features to Changesets. It was designed to receive features.
-    Only staff users have permissions to create features. You can use the django
-    admin to get a Token to the user you want to use to created features.
+    '''Add suspicious Features to Changesets. It was designed to receive features.
+    The permissions to create features is limited to staff users.
     '''
     feature = request.data
-    required_fields = ['changeset', 'id', 'uid', 'reasons']
+    required_fields = ['changeset', 'osm_id', 'osm_type', 'reasons']
     changeset_fields_to_update = ['new_features']
 
+    # validate data
     # Check missing required fields
     missing_fields = [i for i in required_fields if i not in feature.keys()]
     if len(missing_fields):
@@ -609,6 +609,21 @@ def add_feature(request):
             {'detail': message},
             status=status.HTTP_400_BAD_REQUEST
             )
+    # validate id and changeset fields
+    try:
+        int(feature.get('osm_id'))
+        int(feature.get('changeset'))
+    except ValueError:
+        return Response(
+            {'detail': 'osm_id or changeset values are not an integer.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    # validate osm_type
+    if feature.get('osm_type') not in ['node', 'way', 'relation']:
+        return Response(
+            {'detail': 'osm_type value should be "node", "way" or "relation".'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
 
     # Get reasons to add to changeset and define if it changeset will be suspect
     suspicions = feature.get('reasons')
@@ -616,7 +631,13 @@ def add_feature(request):
     if suspicions:
         reasons = set()
         for suspicion in suspicions:
-            if type(suspicion) is str:
+            try:
+                reason_id = int(suspicion)
+                reason = SuspicionReasons.objects.get(id=reason_id)
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+            except (ValueError, SuspicionReasons.DoesNotExist):
                 reason, created = SuspicionReasons.objects.get_or_create(
                     name=suspicion
                     )
@@ -638,8 +659,8 @@ def add_feature(request):
         changeset.new_features = []
     elif len(changeset.new_features) > 0:
         for i, f in enumerate(changeset.new_features):
-            if f['id'] == feature['id']:
-                f['reasons'] = list(set(f['reasons'] + feature['reasons']))
+            if f['url'] == '{}-{}'.format(feature['osm_type'], feature['osm_id']):
+                f['reasons'] = list(set(f['reasons'] + [i.id for i in reasons]))
                 changeset.save(update_fields=changeset_fields_to_update)
                 add_reasons_to_changeset(changeset, reasons)
                 return Response(
@@ -647,7 +668,14 @@ def add_feature(request):
                     status=status.HTTP_200_OK
                     )
 
-    fields_to_save = ['id', 'osm_type', 'osm_version', 'reasons']
+    fields_to_save = [
+        'osm_id', 'version', 'reasons', 'name', 'note', 'primary_tags', 'url'
+        ]
+    feature['url'] = '{}-{}'.format(
+        feature.get('osm_type'),
+        feature.get('osm_id')
+        )
+    feature['reasons'] = [i.id for i in reasons]
     [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
 
     changeset.new_features.append(feature)
