@@ -19,7 +19,9 @@ class FeatureFactory(factory.django.DjangoModelFactory):
     url = factory.Sequence(lambda n: 'node-%d' % n)
     osm_version = 1
     geometry = Point(42.1, 13.4)
-    geojson = {'properties': {'osm:type': 'node', 'name': 'Test'}}
+    geojson = {
+        'properties': {'osm:type': 'node', 'name': 'Test', 'building': 'yes'}
+        }
 
 
 class CheckedFeatureFactory(FeatureFactory):

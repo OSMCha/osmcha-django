@@ -586,21 +586,10 @@ class ChangesetCommentAPIView(ModelViewSet):
             """.format(message, status, self.changeset.id)
 
 
-@api_view(['POST'])
-@throttle_classes((NonStaffUserThrottle,))
-@parser_classes((JSONParser, MultiPartParser, FormParser))
-@permission_classes((IsAuthenticated, IsAdminUser))
-def add_feature(request):
-    '''Add suspicious Features to Changesets. It was designed to receive features.
-    The permissions to create features is limited to staff users.
-    '''
-    feature = request.data
+def validate_feature(feature):
     required_fields = ['changeset', 'osm_id', 'osm_type', 'reasons']
-    changeset_fields_to_update = ['new_features']
-
-    # validate data
-    # Check missing required fields
     missing_fields = [i for i in required_fields if i not in feature.keys()]
+    # Check for missing required fields
     if len(missing_fields):
         message = 'Request data is missing the following fields {}.'.format(
             ', '.join(missing_fields)
@@ -624,6 +613,70 @@ def add_feature(request):
             {'detail': 'osm_type value should be "node", "way" or "relation".'},
             status=status.HTTP_400_BAD_REQUEST
             )
+    # validate reasons
+    if type(feature.get('reasons')) != list:
+        return Response(
+            {'detail': 'reasons value should be a list.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+def filter_primary_tags(feature):
+    PRIMARY_TAGS = [
+        'aerialway',
+        'aeroway',
+        'amenity',
+        'barrier',
+        'boundary',
+        'building',
+        'craft',
+        'emergency',
+        'geological',
+        'highway',
+        'historic',
+        'landuse',
+        'leisure',
+        'man_made',
+        'military',
+        'natural',
+        'office',
+        'place',
+        'power',
+        'public_transport',
+        'railway',
+        'route',
+        'shop',
+        'tourism',
+        'waterway'
+    ]
+    tags = feature.get('primary_tags', {})
+    [
+        tags.pop(key)
+        for key in list(tags.keys())
+        if key not in PRIMARY_TAGS
+    ]
+    return tags
+
+
+@api_view(['POST'])
+@throttle_classes((NonStaffUserThrottle,))
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def add_feature(request):
+    """Add suspicious Features to Changesets, storing it as a JSONField. The
+    required fields are: 'osm_id', 'osm_type', 'reasons' and 'changeset'.
+    The optional fields are 'version', 'name', 'primary_tags' and 'note'. Any
+    other field will not be saved on the database. The permissions to create
+    features is limited to staff users.
+    """
+    feature = request.data
+
+    changeset_fields_to_update = ['new_features']
+
+    # validate data
+    validation = validate_feature(feature)
+    if validation:
+        return validation
 
     # Get reasons to add to changeset and define if it changeset will be suspect
     suspicions = feature.get('reasons')
@@ -646,7 +699,6 @@ def add_feature(request):
                     has_visible_features = True
 
     changeset_defaults = {
-        'uid': feature.get('uid'),
         'is_suspect': has_visible_features
         }
 
@@ -676,8 +728,11 @@ def add_feature(request):
         feature.get('osm_id')
         )
     feature['reasons'] = [i.id for i in reasons]
-    [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
+    primary_tags = filter_primary_tags(feature)
+    if len(primary_tags.items()):
+        feature['primary_tags'] = primary_tags
 
+    [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
     changeset.new_features.append(feature)
 
     if not changeset.is_suspect and has_visible_features:

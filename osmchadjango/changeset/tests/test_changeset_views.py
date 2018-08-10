@@ -1402,6 +1402,7 @@ class TestAddFeatureToChangesetView(APITestCase):
             "version": 54,
             "changeset": 1234,
             "name": "Salvador",
+            "primary_tags": {"office": "coworking", "building": "yes"},
             "reasons": ["Deleted place", "Deleted wikidata"]
             }
         self.data_2 = {
@@ -1455,6 +1456,7 @@ class TestAddFeatureToChangesetView(APITestCase):
                 "url": "node-877656232",
                 "version": 54,
                 "name": "Salvador",
+                "primary_tags": {"office": "coworking", "building": "yes"},
                 "reasons": [i.id for i in reasons]
                 }]
         )
@@ -1626,6 +1628,27 @@ class TestAddFeatureToChangesetView(APITestCase):
             "version": 54,
             "name": "Tall Building",
             "reasons": ["Other reason"],
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 400)
+        # validate reasons
+        payload = {
+            "osm_id": 12312,
+            "changeset": 1234,
+            "osm_type": "way",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": "Other reason",
+            }
+        response = self.client.post(self.url, data=payload)
+        self.assertEqual(response.status_code, 400)
+        payload = {
+            "osm_id": 12312,
+            "changeset": 1234,
+            "osm_type": "way",
+            "version": 54,
+            "name": "Tall Building",
+            "reasons": 1,
             }
         response = self.client.post(self.url, data=payload)
         self.assertEqual(response.status_code, 400)

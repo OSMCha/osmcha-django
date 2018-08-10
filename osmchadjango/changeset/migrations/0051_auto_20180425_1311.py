@@ -4,6 +4,33 @@ from django.db import migrations
 
 
 def filtered_json(feature):
+    PRIMARY_TAGS = [
+        'aerialway',
+        'aeroway',
+        'amenity',
+        'barrier',
+        'boundary',
+        'building',
+        'craft',
+        'emergency',
+        'geological',
+        'highway',
+        'historic',
+        'landuse',
+        'leisure',
+        'man_made',
+        'military',
+        'natural',
+        'office',
+        'place',
+        'power',
+        'public_transport',
+        'railway',
+        'route',
+        'shop',
+        'tourism',
+        'waterway'
+    ]
     data = {
         "osm_id": feature.osm_id,
         "url": "{}-{}".format(feature.osm_type, feature.osm_id),
@@ -12,6 +39,13 @@ def filtered_json(feature):
     }
     try:
         data['name'] = feature.geojson['properties']['name']
+        tags = feature.geojson['properties']
+        [
+            tags.pop(key)
+            for key in list(tags.keys())
+            if key not in PRIMARY_TAGS
+        ]
+        data['primary_tags'] = tags
     except KeyError:
         pass
     return data
