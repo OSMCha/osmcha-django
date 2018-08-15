@@ -8,7 +8,6 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
 
 from ...users.models import User
-from ...feature.tests.modelfactories import FeatureFactory
 from ..models import SuspicionReasons, Tag, Changeset
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
@@ -364,19 +363,22 @@ class TestChangesetDetailView(APITestCase):
 
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
-        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
-        self.reason_3 = SuspicionReasons.objects.create(
+        self.reason_2 = SuspicionReasons.objects.create(
             name='Big edit in my city',
             is_visible=False
             )
-        self.changeset = HarmfulChangesetFactory(id=31982803)
-        self.feature = FeatureFactory(changeset=self.changeset)
-        self.invisible_feature = FeatureFactory(changeset=self.changeset)
+        self.changeset = HarmfulChangesetFactory(
+            id=31982803,
+            new_features=[{
+                "osm_id": 87765444,
+                "url": "node-87765444",
+                "version": 44,
+                "reasons": [self.reason_1.id, self.reason_2.id],
+                "name": "Test"
+            }]
+            )
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
-        self.reason_2.features.add(self.feature)
-        self.reason_3.features.add(self.feature, self.invisible_feature)
-        self.reason_3.changesets.add(self.changeset)
         self.tag = Tag.objects.create(name='Vandalism')
         self.tag.changesets.add(self.changeset)
 
@@ -424,25 +426,32 @@ class TestChangesetDetailView(APITestCase):
         self.assertTrue(response.data['properties']['harmful'])
         self.assertIn('date', response.data['properties'].keys())
         self.assertIn('check_date', response.data['properties'].keys())
+        # unauthenticated users will have access to only the visible reason
+        self.assertEqual(len(response.data['properties']['reasons']), 1)
         self.assertEqual(len(response.data['properties']['features']), 1)
         self.assertEqual(
-            self.feature.osm_id,
+            87765444,
             response.data['properties']['features'][0]['osm_id']
             )
         self.assertEqual(
-            self.feature.url,
+            'node-87765444',
             response.data['properties']['features'][0]['url']
             )
         self.assertEqual(
             response.data['properties']['features'][0]['name'],
             'Test'
             )
+        # the non visible reason id will be serialized in the features
         self.assertEqual(
             len(response.data['properties']['features'][0]['reasons']),
-            1
+            2
             )
         self.assertIn(
-            {'id': self.reason_2.id, 'name': 'suspect word'},
+            self.reason_1.id,
+            response.data['properties']['features'][0]['reasons']
+            )
+        self.assertIn(
+            self.reason_2.id,
             response.data['properties']['features'][0]['reasons']
             )
 
@@ -490,26 +499,11 @@ class TestChangesetDetailView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             len(response.data['properties']['features']),
-            2
+            1
             )
         self.assertIn(
-            {'id': self.reason_2.id, 'name': 'suspect word'},
+            self.reason_2.id,
             response.data['properties']['features'][0]['reasons']
-            )
-        self.assertIn(
-            {'id': self.reason_3.id, 'name': 'Big edit in my city'},
-            response.data['properties']['features'][0]['reasons']
-            )
-
-    def test_feature_without_name_tag(self):
-        self.feature.geojson = json.dumps({'properties': {'osm:type': 'node'}})
-        self.feature.save()
-        response = self.client.get(
-            reverse('changeset:detail', args=[self.changeset.id])
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNone(
-            response.data['properties']['features'][0]['name']
             )
 
 

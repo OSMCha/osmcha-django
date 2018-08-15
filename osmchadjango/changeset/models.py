@@ -68,7 +68,7 @@ class Changeset(models.Model):
     imagery_used = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
     date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
-    new_features = JSONField(blank=True, null=True)
+    new_features = JSONField(default=list)
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)

@@ -109,13 +109,6 @@ urlpatterns = [
         name='changeset-reasons'
     ),
     re_path(
-        r'^suspicion-reasons/(?P<pk>\w+)/features/$',
-        view=views.AddRemoveFeatureReasonsAPIView.as_view(
-            {'post': 'add_reason_to_features', 'delete': 'remove_reason_from_features'}
-            ),
-        name='feature-reasons'
-    ),
-    re_path(
         r'^tags/$',
         view=views.TagListAPIView.as_view(),
         name='tags-list'

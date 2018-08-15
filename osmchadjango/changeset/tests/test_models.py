@@ -130,10 +130,14 @@ class TestChangesetModel(TestCase):
         tag_2.changesets.add(self.changeset)
         self.assertEqual(self.changeset.tags.all().count(), 2)
 
+    def test_empty_new_feature_field(self):
+        self.assertEqual(self.changeset.new_features, [])
+
+
     def test_new_feature_field(self):
         json_content = [
-            {"id": 123, "reasons": ["Deleted wikidata object", "Deleted place"]},
-            {"id": 321, "reasons": ["Deleted address"]}
+            {"osm_id": 123, "url": "node-123", "reasons": [1, 2], },
+            {"osm_id": 321, "url": "way-321", "reasons": [13], 'note': 'Test'}
         ]
         changeset = ChangesetFactory(
             id=31982804,

@@ -26,15 +26,13 @@ from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import APIException
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
-from ..feature.models import Feature
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializerUnauthenticated, ChangesetSerializer,
     ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
-    SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
-    TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
-    ChangesetCommentSerializer
+    SuspicionReasonsSerializer, UserStatsSerializer, UserWhitelistSerializer,
+    TagSerializer, ChangesetCommentSerializer
     )
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
@@ -200,70 +198,6 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
             reason.changesets.remove(*serializer.data['changesets'])
             return Response(
                 {'detail': 'Suspicion Reasons removed from changesets.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
-
-
-class AddRemoveFeatureReasonsAPIView(ModelViewSet):
-    queryset = SuspicionReasons.objects.all()
-    serializer_class = SuspicionReasonsFeatureSerializer
-    permission_classes = (IsAdminUser,)
-
-    @detail_route(methods=['post'])
-    def add_reason_to_features(self, request, pk):
-        """This endpoint allows us to add Suspicion Reasons to features in a
-        batch. The use of this endpoint is restricted to staff users. The ids of
-        the features need to be sent as a list in the data form.
-        """
-        reason = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            reason.features.add(*serializer.data['features'])
-            changesets = Changeset.objects.filter(
-                features__in=serializer.data['features']
-                )
-            reason.changesets.add(*changesets)
-            return Response(
-                {'detail': 'Suspicion Reasons added to features.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
-
-    @detail_route(methods=['delete'])
-    def remove_reason_from_features(self, request, pk):
-        """This endpoint allows us to remove Suspicion Reasons from features
-        in a batch. The use of this endpoint is restricted to staff users. The
-        ids of the features must be sent as a list in the form data.
-        """
-        reason = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            reason.features.remove(*serializer.data['features'])
-            changesets = Changeset.objects.filter(
-                features__id__in=serializer.data['features']
-                ).exclude(
-                    features__reasons=reason
-                )
-            reason.changesets.remove(*changesets)
-
-            features = Feature.objects.filter(
-                id__in=serializer.data['features']
-                )
-            for feature in features:
-                if feature.reasons.count() == 0:
-                    feature.delete()
-
-            return Response(
-                {'detail': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK
                 )
         else:

@@ -17,10 +17,6 @@ from ..changeset.serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetSerializerUnauthenticated
     )
-from ..feature.serializers import (
-    FeatureSerializer, FeatureSerializerToStaff,
-    FeatureSerializerToUnauthenticated
-    )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
 from .serializers import (
@@ -189,36 +185,6 @@ class AOIListChangesetsAPIView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().changesets().select_related(
-            'check_user'
-            ).prefetch_related('tags', 'reasons')
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class AOIListFeaturesAPIView(ListAPIView):
-    """List the features that matches the filters and intersects with the
-    geometry of an Area Of Interest. It supports pagination and return the data
-    in the same way as the feature list endpoint.
-    """
-    queryset = AreaOfInterest.objects.all()
-    pagination_class = StandardResultsSetPagination
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return FeatureSerializerToStaff
-        elif self.request.user.is_authenticated:
-            return FeatureSerializer
-        else:
-            return FeatureSerializerToUnauthenticated
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_object().features().select_related(
             'check_user'
             ).prefetch_related('tags', 'reasons')
 
