@@ -18,11 +18,11 @@ urlpatterns = [
         view=views.FeatureDetailAPIView.as_view(),
         name='detail'
     ),
-    re_path(
-        r'^features/create/$',
-        view=views.create_feature,
-        name='create'
-    ),
+    # re_path(
+    #     r'^features/create/$',
+    #     view=views.create_feature,
+    #     name='create'
+    # ),
     re_path(
         r'^features/(?P<changeset>\d+)-(?P<slug>[a-zA-Z0-9-]+)/set-harmful/$',
         view=views.CheckFeature.as_view({'put': 'set_harmful'}),

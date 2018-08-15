@@ -77,9 +77,14 @@ urlpatterns = [
         name='comment'
     ),
     re_path(
-        r'^add-feature/$',
+        r'^changesets/add-feature/$',
         view=views.add_feature,
         name='add-feature'
+    ),
+    re_path(
+        r'^features/create/$',
+        view=views.add_feature_v1,
+        name='add-feature-v1'
     ),
     re_path(
         r'^whitelist-user/$',
