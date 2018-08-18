@@ -137,6 +137,11 @@ class TestBatchAddSuspicionReasons(APITestCase):
             uid='99989',
             )
         self.client.login(username=user.username, password='password')
+        response = self.client.post(
+            reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
+            data={"changesets": [c.id for c in self.changesets]}
+            )
+        self.assertEqual(response.status_code, 403)
 
     def test_staff_user_request(self):
         self.client.login(username=self.user.username, password='password')
