@@ -266,73 +266,11 @@ class TestAoIDetailAPIViews(APITestCase):
             'name': 'Golfo da Guiné'
             }
 
-    def test_retrieve_detail_unauthenticated(self):
+    def test_unauthenticated(self):
         response = self.client.get(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data['properties']['name'],
-            'Best place in the world'
-            )
-        # The users, uids and checked_by filter fields can not be serialized to
-        # anonymous requests.
-        self.assertEqual(
-            response.data['properties']['filters'],
-            {
-                'editor': 'Potlatch 2',
-                'harmful': 'False',
-                'geometry': self.m_polygon.geojson
-            }
-            )
-        self.assertEqual(
-            response.data['geometry']['type'],
-            'MultiPolygon'
-            )
-        self.assertIn(
-            'id',
-            response.data.keys()
-            )
-        self.assertNotIn(
-            'user',
-            response.data.keys()
-            )
-        self.assertEqual(
-            response.data['properties']['changesets_url'],
-            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
-            )
-
-    def test_retrieve_detail_unauthenticated_without_user_fields(self):
-        aoi = AreaOfInterest.objects.create(
-            name='AoI has not user filters fields',
-            user=self.user,
-            geometry=self.m_polygon,
-            filters={
-                'editor': 'Potlatch 2',
-                'harmful': 'False',
-                'checked_by': 'qa_user',
-                'geometry': self.m_polygon.geojson
-                }
-            )
-        response = self.client.get(
-            reverse('supervise:aoi-detail', args=[aoi.pk])
-            )
-        self.assertEqual(response.status_code, 200)
-
-        aoi = AreaOfInterest.objects.create(
-            name='AoI has not user filters fields 2',
-            user=self.user,
-            geometry=self.m_polygon,
-            filters={
-                'editor': 'Potlatch 2',
-                'harmful': 'False',
-                'geometry': self.m_polygon.geojson
-                }
-            )
-        response = self.client.get(
-            reverse('supervise:aoi-detail', args=[aoi.pk])
-            )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 401)
 
     def test_retrieve_detail_authenticated(self):
         self.client.login(username=self.user.username, password='password')
@@ -656,38 +594,10 @@ class TestAoIChangesetListView(APITestCase):
         self.assertIn('uid', response.data['features'][0]['properties'])
 
     def test_unauthenticated_aoi_list_changesets_view(self):
-        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
-        ChangesetFactory(
-            editor='JOSM 1.5',
-            harmful=False,
-            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
-            )
-        ChangesetFactory.create_batch(
-            51,
-            harmful=False,
-            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
-            )
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 50)
-        self.assertIn('features', response.data.keys())
-        self.assertIn('geometry', response.data['features'][0].keys())
-        self.assertIn('properties', response.data['features'][0].keys())
-        self.assertNotIn('check_user', response.data['features'][0]['properties'])
-        self.assertNotIn('user', response.data['features'][0]['properties'])
-        self.assertNotIn('uid', response.data['features'][0]['properties'])
-
-        # test pagination
-        response = self.client.get(
-            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
-            {'page': 2}
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 1)
+        self.assertEqual(response.status_code, 401)
 
     def test_aoi_with_in_bbox_filter(self):
         aoi_with_in_bbox = AreaOfInterest.objects.create(
@@ -720,7 +630,7 @@ class TestAoIChangesetListView(APITestCase):
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
-        # first test with changesets
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi_with_in_bbox.pk])
             )
@@ -741,6 +651,7 @@ class TestAoIChangesetListView(APITestCase):
             user='çãoéí',
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
@@ -769,6 +680,8 @@ class TestAoIChangesetListView(APITestCase):
             'in_bbox': '0,0,2,2'
             }
         self.aoi.save()
+
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )

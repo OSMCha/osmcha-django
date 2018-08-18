@@ -73,16 +73,6 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
             ).data
 
 
-class ChangesetSerializerUnauthenticated(ChangesetSerializer):
-    """ChangesetSerializer with all the user metadata removed."""
-    check_user = None
-
-    class Meta:
-        model = Changeset
-        geo_field = 'bbox'
-        exclude = ('powerfull_editor', 'user', 'check_user', 'uid')
-
-
 class UserWhitelistSerializer(ModelSerializer):
     class Meta:
         model = UserWhitelist

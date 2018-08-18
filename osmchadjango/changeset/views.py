@@ -28,8 +28,7 @@ from rest_framework.exceptions import APIException
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializerUnauthenticated, ChangesetSerializer,
-    ChangesetSerializerToStaff, ChangesetStatsSerializer,
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
     SuspicionReasonsSerializer, UserStatsSerializer, UserWhitelistSerializer,
     TagSerializer, ChangesetCommentSerializer
