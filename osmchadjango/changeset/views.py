@@ -68,6 +68,7 @@ class ChangesetListAPIView(ListAPIView):
         ).prefetch_related(
         'tags', 'reasons', 'features', 'features__reasons'
         ).exclude(user="")
+    permission_classes = (IsAuthenticated,)
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
@@ -81,14 +82,13 @@ class ChangesetListAPIView(ListAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        elif self.request.user.is_authenticated:
-            return ChangesetSerializer
         else:
-            return ChangesetSerializerUnauthenticated
+            return ChangesetSerializer
 
 
 class ChangesetDetailAPIView(RetrieveAPIView):
     """Return details of a Changeset."""
+    permission_classes = (IsAuthenticated,)
     queryset = Changeset.objects.all().select_related(
         'check_user'
         ).prefetch_related('tags', 'reasons')
@@ -96,10 +96,8 @@ class ChangesetDetailAPIView(RetrieveAPIView):
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        elif self.request.user.is_authenticated:
-            return ChangesetSerializer
         else:
-            return ChangesetSerializerUnauthenticated
+            return ChangesetSerializer
 
 
 class SuspectChangesetListAPIView(ChangesetListAPIView):
