@@ -37,28 +37,36 @@ def filtered_json(feature):
         "version": feature.osm_version,
         "reasons": [reason.id for reason in feature.reasons.all()]
     }
+
     try:
-        data['name'] = feature.geojson['properties']['name']
-        tags = feature.geojson['properties']
+        properties = json.loads(feature.geojson)['properties']
+        data['name'] = properties['name']
+    except (KeyError, TypeError) as e:
+        print('{} on feature {} of {}'.format(e, data['url'], feature.changeset.id))
+
+    try:
         [
-            tags.pop(key)
-            for key in list(tags.keys())
+            properties.pop(key) for key in list(properties.keys())
             if key not in PRIMARY_TAGS
         ]
-        data['primary_tags'] = tags
-    except KeyError:
-        pass
+        data['primary_tags'] = properties
+    except (KeyError, TypeError) as e:
+        print('{} on feature {} of {}'.format(e, data['url'], feature.changeset.id))
+
     return data
 
 
 def migrate_features(apps, schema_editor):
     Changeset = apps.get_model('changeset', 'Changeset')
-    for changeset in Changeset.objects.filter(features__isnull=False):
+    changesets = Changeset.objects.filter(features__isnull=False)
+    print('{} changesets to migrate'.format(changesets.count()))
+    for changeset in changesets:
         new_features_data = [
             filtered_json(feature) for feature in changeset.features.all()
             ]
         changeset.new_features = new_features_data
         changeset.save(update_fields=['new_features'])
+        print('{} migrated'.format(changeset.id))
 
 
 class Migration(migrations.Migration):
