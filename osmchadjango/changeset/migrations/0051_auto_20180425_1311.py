@@ -39,20 +39,17 @@ def filtered_json(feature):
         "reasons": [reason.id for reason in feature.reasons.all()]
     }
 
-    try:
-        properties = json.loads(feature.geojson)['properties']
-        data['name'] = properties['name']
-    except (KeyError, TypeError) as e:
-        print('{} on feature {} of {}'.format(e, data['url'], feature.changeset.id))
 
-    try:
+    if 'properties' in json.loads(feature.geojson).keys():
+        properties = json.loads(feature.geojson)['properties']
+        if 'name' in properties.keys():
+            data['name'] = properties['name']
+
         [
             properties.pop(key) for key in list(properties.keys())
             if key not in PRIMARY_TAGS
         ]
         data['primary_tags'] = properties
-    except (KeyError, TypeError) as e:
-        print('{} on feature {} of {}'.format(e, data['url'], feature.changeset.id))
 
     return data
 
