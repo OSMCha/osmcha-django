@@ -40,16 +40,28 @@ def filtered_json(feature):
     }
 
 
-    if 'properties' in json.loads(feature.geojson).keys():
-        properties = json.loads(feature.geojson)['properties']
-        if 'name' in properties.keys():
-            data['name'] = properties['name']
+    try:
+        if 'properties' in json.loads(feature.geojson).keys():
+            properties = json.loads(feature.geojson)['properties']
+            if 'name' in properties.keys():
+                data['name'] = properties['name']
 
-        [
-            properties.pop(key) for key in list(properties.keys())
-            if key not in PRIMARY_TAGS
-        ]
-        data['primary_tags'] = properties
+            [
+                properties.pop(key) for key in list(properties.keys())
+                if key not in PRIMARY_TAGS
+            ]
+            data['primary_tags'] = properties
+    except TypeError:
+        if 'properties' in feature.geojson.keys():
+            properties = feature.geojson['properties']
+            if 'name' in properties.keys():
+                data['name'] = properties['name']
+
+            [
+                properties.pop(key) for key in list(properties.keys())
+                if key not in PRIMARY_TAGS
+            ]
+            data['primary_tags'] = properties
 
     return data
 
