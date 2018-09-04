@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function, unicode_literals
 from os.path import join
+from urllib.parse import quote
 import yaml
 
 from django.conf import settings
@@ -120,7 +121,7 @@ class ChangesetCommentAPI(object):
         """Post comment to changeset."""
         response = self.client.post(
             self.url,
-            data='text={}'.format(message).encode("utf-8")
+            data='text={}'.format(quote(message)).encode("utf-8")
             )
         if response.status_code == 200:
             print(
