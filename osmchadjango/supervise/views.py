@@ -14,8 +14,7 @@ from rest_framework.permissions import (
     )
 
 from ..changeset.serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
-    ChangesetSerializerUnauthenticated
+    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
     )
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
@@ -99,7 +98,7 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Only the user that created an Area of Interest has permissions to delete it.
     """
     queryset = AreaOfInterest.objects.all()
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
 
     def perform_update(self, serializer):
         serializer.save(
@@ -174,14 +173,13 @@ class AOIListChangesetsAPIView(ListAPIView):
     """
     queryset = AreaOfInterest.objects.all()
     pagination_class = StandardResultsSetPagination
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
             return ChangesetSerializerToStaff
-        elif self.request.user.is_authenticated:
-            return ChangesetSerializer
         else:
-            return ChangesetSerializerUnauthenticated
+            return ChangesetSerializer
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().changesets().select_related(
