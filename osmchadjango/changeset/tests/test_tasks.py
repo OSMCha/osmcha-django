@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from mock import patch
+from urllib.parse import quote
 
 from django.test import TestCase
 
@@ -114,6 +115,6 @@ class TestChangesetCommentAPI(TestCase):
         mock_oauth_client.assert_called_with(
             'POST',
             'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            data=b'text=Reviewed in OSMCha and set as GOOD!',
+            data='text={}'.format(quote('Reviewed in OSMCha and set as GOOD!')).encode('utf-8'),
             json=None
             )
