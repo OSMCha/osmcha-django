@@ -1,10 +1,14 @@
+import json
+
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.contrib.gis.geos import Point, LineString
 
 import factory
 
 from ..models import Changeset, SuspicionReasons, UserWhitelist, Tag
+from ...feature.models import Feature
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -74,3 +78,18 @@ class TagFactory(factory.django.DjangoModelFactory):
 class UserWhitelistFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UserWhitelist
+
+
+class FeatureFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Feature
+
+    changeset = factory.SubFactory(ChangesetFactory)
+    osm_id = factory.Sequence(lambda n: n)
+    osm_type = 'node'
+    url = factory.Sequence(lambda n: 'node-%d' % n)
+    osm_version = 1
+    geometry = Point(42.1, 13.4)
+    geojson = json.dumps(
+        {'properties': {'osm:type': 'node', 'name': 'Test', 'building':'yes'}}
+        )

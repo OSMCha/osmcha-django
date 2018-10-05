@@ -100,7 +100,7 @@ class TestAddFeatureToChangesetView(APITestCase):
                 "name": "Salvador",
                 "primary_tags": {"office": "coworking", "building": "yes"},
                 "reasons": [i.id for i in reasons]
-                }]
+            }]
         )
         self.assertEqual(
             Changeset.objects.get(id=self.data.get('changeset')).reasons.count(),
