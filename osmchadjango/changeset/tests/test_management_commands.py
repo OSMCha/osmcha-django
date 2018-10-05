@@ -132,7 +132,7 @@ class TestMigrateFeatures(TestCase):
         call_command(
             'migrate_features',
             '2018-01-01',
-            date.today().isoformat()
+            (date.today() + timedelta(days=1)).isoformat()
             )
         self.changeset.refresh_from_db()
         self.changeset_2.refresh_from_db()
@@ -156,7 +156,7 @@ class TestMigrateFeatures(TestCase):
         call_command(
             'migrate_features',
             '2018-01-02',
-            date.today().isoformat()
+            (date.today() + timedelta(days=1)).isoformat()
             )
         self.changeset.refresh_from_db()
         self.changeset_2.refresh_from_db()
@@ -169,7 +169,7 @@ class TestMigrateFeatures(TestCase):
         call_command(
             'migrate_features',
             '2018-01-01',
-            date.today().isoformat()
+            (date.today() + timedelta(days=1)).isoformat()
             )
         self.changeset.refresh_from_db()
         self.changeset_2.refresh_from_db()

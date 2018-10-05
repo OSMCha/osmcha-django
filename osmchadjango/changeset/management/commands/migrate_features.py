@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         start_date = options['start_date'][0]
-        end_date = date.fromisoformat(options['end_date'][0]) + timedelta(days=1)
+        end_date = options['end_date'][0]
         migrate_features(start_date, end_date)
 
 
