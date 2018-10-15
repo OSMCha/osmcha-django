@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.utils import timezone
 
 from ...models import Changeset
@@ -88,19 +89,21 @@ def filtered_json(feature):
 def migrate_features(start_date, end_date):
     last_changeset_date = Changeset.objects.order_by('-date')[0].date
     changesets = Changeset.objects.filter(
-        features__isnull=False,
-        date__gte=start_date,
-        date__lte=end_date,
+            features__isnull=False,
+            date__gte=start_date,
+            date__lte=end_date,
+            new_features=[]
         ).prefetch_related('features').order_by('id').distinct()
     changeset_count = changesets.count()
     migrated = 0
     print('{} changesets to migrate'.format(changesets.count()))
     while migrated < changeset_count:
-        for changeset in changesets[migrated:migrated + 1000]:
-            new_features_data = [
-                filtered_json(feature) for feature in changeset.features.all()
-                ]
-            changeset.new_features = new_features_data
-            changeset.save(update_fields=['new_features'])
+        with transaction.atomic():
+            for changeset in changesets[migrated : migrated + 1000]:
+                new_features_data = [
+                    filtered_json(feature) for feature in changeset.features.all()
+                    ]
+                changeset.new_features = new_features_data
+                changeset.save(update_fields=['new_features'])
         print('{}-{} changesets migrated'.format(migrated, migrated + 1000))
         migrated += 1000
