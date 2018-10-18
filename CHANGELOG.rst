@@ -3,6 +3,11 @@ Change Log
 
 Log of changes since the 2.0 version
 
+[4.0.0] - 2018-10-18
+
+- Change feature model to be a JSONField of the Changeset Model
+- Implement GDPR changes
+
 [3.0.4] - 2018-06-29
 
 - Fix error in changeset comments when it has special characters
