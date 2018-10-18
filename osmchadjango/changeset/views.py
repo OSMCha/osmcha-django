@@ -9,7 +9,7 @@ from django.conf import settings
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route
+    api_view, parser_classes, permission_classes, detail_route, throttle_classes
     )
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
@@ -26,14 +26,12 @@ from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import APIException
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
-from ..feature.models import Feature
 from .filters import ChangesetFilter
 from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
-    SuspicionReasonsFeatureSerializer, SuspicionReasonsSerializer,
-    TagSerializer, UserStatsSerializer, UserWhitelistSerializer,
-    ChangesetCommentSerializer
+    SuspicionReasonsSerializer, UserStatsSerializer, UserWhitelistSerializer,
+    TagSerializer, ChangesetCommentSerializer
     )
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
@@ -69,6 +67,7 @@ class ChangesetListAPIView(ListAPIView):
         ).prefetch_related(
         'tags', 'reasons', 'features', 'features__reasons'
         ).exclude(user="")
+    permission_classes = (IsAuthenticated,)
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
     bbox_filter_field = 'bbox'
@@ -88,6 +87,7 @@ class ChangesetListAPIView(ListAPIView):
 
 class ChangesetDetailAPIView(RetrieveAPIView):
     """Return details of a Changeset."""
+    permission_classes = (IsAuthenticated,)
     queryset = Changeset.objects.all().select_related(
         'check_user'
         ).prefetch_related('tags', 'reasons')
@@ -195,70 +195,6 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
             reason.changesets.remove(*serializer.data['changesets'])
             return Response(
                 {'detail': 'Suspicion Reasons removed from changesets.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
-
-
-class AddRemoveFeatureReasonsAPIView(ModelViewSet):
-    queryset = SuspicionReasons.objects.all()
-    serializer_class = SuspicionReasonsFeatureSerializer
-    permission_classes = (IsAdminUser,)
-
-    @detail_route(methods=['post'])
-    def add_reason_to_features(self, request, pk):
-        """This endpoint allows us to add Suspicion Reasons to features in a
-        batch. The use of this endpoint is restricted to staff users. The ids of
-        the features need to be sent as a list in the data form.
-        """
-        reason = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            reason.features.add(*serializer.data['features'])
-            changesets = Changeset.objects.filter(
-                features__in=serializer.data['features']
-                )
-            reason.changesets.add(*changesets)
-            return Response(
-                {'detail': 'Suspicion Reasons added to features.'},
-                status=status.HTTP_200_OK
-                )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
-
-    @detail_route(methods=['delete'])
-    def remove_reason_from_features(self, request, pk):
-        """This endpoint allows us to remove Suspicion Reasons from features
-        in a batch. The use of this endpoint is restricted to staff users. The
-        ids of the features must be sent as a list in the form data.
-        """
-        reason = self.get_object()
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            reason.features.remove(*serializer.data['features'])
-            changesets = Changeset.objects.filter(
-                features__id__in=serializer.data['features']
-                ).exclude(
-                    features__reasons=reason
-                )
-            reason.changesets.remove(*changesets)
-
-            features = Feature.objects.filter(
-                id__in=serializer.data['features']
-                )
-            for feature in features:
-                if feature.reasons.count() == 0:
-                    feature.delete()
-
-            return Response(
-                {'detail': 'Suspicion Reasons removed from features.'},
                 status=status.HTTP_200_OK
                 )
         else:
@@ -522,6 +458,7 @@ class UserStatsAPIView(ListAPIView):
     the uid of the user in OSM.
     """
     serializer_class = UserStatsSerializer
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
         return Changeset.objects.filter(uid=self.kwargs['uid'])
@@ -578,3 +515,286 @@ class ChangesetCommentAPIView(ModelViewSet):
             {}
             Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
             """.format(message, status, self.changeset.id)
+
+
+def validate_feature(feature):
+    required_fields = ['changeset', 'osm_id', 'osm_type', 'reasons']
+    missing_fields = [i for i in required_fields if i not in feature.keys()]
+    # Check for missing required fields
+    if len(missing_fields):
+        message = 'Request data is missing the following fields {}.'.format(
+            ', '.join(missing_fields)
+            )
+        return Response(
+            {'detail': message},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    # validate id and changeset fields
+    try:
+        int(feature.get('osm_id'))
+        int(feature.get('changeset'))
+    except ValueError:
+        return Response(
+            {'detail': 'osm_id or changeset values are not an integer.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    # validate osm_type
+    if feature.get('osm_type') not in ['node', 'way', 'relation']:
+        return Response(
+            {'detail': 'osm_type value should be "node", "way" or "relation".'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+    # validate reasons
+    if type(feature.get('reasons')) != list:
+        return Response(
+            {'detail': 'reasons value should be a list.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
+
+
+def filter_primary_tags(feature):
+    PRIMARY_TAGS = [
+        'aerialway',
+        'aeroway',
+        'amenity',
+        'barrier',
+        'boundary',
+        'building',
+        'craft',
+        'emergency',
+        'geological',
+        'highway',
+        'historic',
+        'landuse',
+        'leisure',
+        'man_made',
+        'military',
+        'natural',
+        'office',
+        'place',
+        'power',
+        'public_transport',
+        'railway',
+        'route',
+        'shop',
+        'tourism',
+        'waterway'
+    ]
+    tags = feature.get('primary_tags', {})
+    [
+        tags.pop(key)
+        for key in list(tags.keys())
+        if key not in PRIMARY_TAGS
+    ]
+    return tags
+
+
+@api_view(['POST'])
+@throttle_classes((NonStaffUserThrottle,))
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def add_feature(request):
+    """Add suspicious Features to Changesets, storing it as a JSONField. The
+    required fields are: 'osm_id', 'osm_type', 'reasons' and 'changeset'.
+    The optional fields are 'version', 'name', 'primary_tags' and 'note'. Any
+    other field will not be saved on the database. The permission to create
+    features is limited to staff users.
+    """
+    feature = request.data
+
+    changeset_fields_to_update = ['new_features']
+
+    # validate data
+    validation = validate_feature(feature)
+    if validation:
+        return validation
+
+    # Get reasons to add to changeset and define if it changeset will be suspect
+    suspicions = feature.get('reasons')
+    has_visible_features = False
+    if suspicions:
+        reasons = set()
+        for suspicion in suspicions:
+            try:
+                reason_id = int(suspicion)
+                reason = SuspicionReasons.objects.get(id=reason_id)
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+            except (ValueError, SuspicionReasons.DoesNotExist):
+                reason, created = SuspicionReasons.objects.get_or_create(
+                    name=suspicion
+                    )
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+
+    changeset_defaults = {
+        'is_suspect': has_visible_features
+        }
+
+    changeset, created = Changeset.objects.get_or_create(
+        id=feature.get('changeset'),
+        defaults=changeset_defaults
+        )
+
+    if type(changeset.new_features) is not list:
+        changeset.new_features = []
+    elif len(changeset.new_features) > 0:
+        for i, f in enumerate(changeset.new_features):
+            if f['url'] == '{}-{}'.format(feature['osm_type'], feature['osm_id']):
+                f['reasons'] = list(set(f['reasons'] + [i.id for i in reasons]))
+                changeset.save(update_fields=changeset_fields_to_update)
+                add_reasons_to_changeset(changeset, reasons)
+                return Response(
+                    {'detail': 'Feature added to changeset.'},
+                    status=status.HTTP_200_OK
+                    )
+
+    fields_to_save = [
+        'osm_id', 'version', 'reasons', 'name', 'note', 'primary_tags', 'url'
+        ]
+    feature['url'] = '{}-{}'.format(
+        feature.get('osm_type'),
+        feature.get('osm_id')
+        )
+    feature['reasons'] = [i.id for i in reasons]
+    primary_tags = filter_primary_tags(feature)
+    if len(primary_tags.items()):
+        feature['primary_tags'] = primary_tags
+
+    [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
+    changeset.new_features.append(feature)
+
+    if not changeset.is_suspect and has_visible_features:
+        changeset.is_suspect = True
+        changeset_fields_to_update.append('is_suspect')
+
+    changeset.save(update_fields=changeset_fields_to_update)
+    print(
+        'Changeset {} {}'.format(
+            changeset.id, 'created' if created else 'updated'
+            )
+        )
+    add_reasons_to_changeset(changeset, reasons)
+    return Response(
+        {'detail': 'Feature added to changeset.'},
+        status=status.HTTP_200_OK
+        )
+
+
+@api_view(['POST'])
+@throttle_classes((NonStaffUserThrottle,))
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def add_feature_v1(request):
+    """Fallback View to add suspicious Features to Changesets. It supports the
+    previous format of features that was generated by vandalism-dynamosm.
+    """
+    feature = {}
+    feature['osm_id'] = request.data['properties']['osm:id']
+    feature['changeset'] = request.data['properties']['osm:changeset']
+    feature['osm_type'] = request.data['properties']['osm:type']
+    feature['version'] = request.data['properties']['osm:version']
+    feature['primary_tags'] = request.data['properties']
+    feature['reasons'] = [
+        i.get('reason') for i in request.data['properties'].get('suspicions')
+        ]
+    if request.data['properties'].get('name'):
+        feature['name'] = request.data['properties'].get('name')
+    if request.data['properties'].get('osmcha:note'):
+        feature['note'] = request.data['properties'].get('osmcha:note')
+
+    changeset_fields_to_update = ['new_features']
+
+    # validate data
+    validation = validate_feature(feature)
+    if validation:
+        return validation
+
+    # Get reasons to add to changeset and define if it changeset will be suspect
+    suspicions = feature.get('reasons')
+    has_visible_features = False
+    if suspicions:
+        reasons = set()
+        for suspicion in suspicions:
+            try:
+                reason_id = int(suspicion)
+                reason = SuspicionReasons.objects.get(id=reason_id)
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+            except (ValueError, SuspicionReasons.DoesNotExist):
+                reason, created = SuspicionReasons.objects.get_or_create(
+                    name=suspicion
+                    )
+                reasons.add(reason)
+                if reason.is_visible:
+                    has_visible_features = True
+
+    changeset_defaults = {
+        'is_suspect': has_visible_features
+        }
+
+    changeset, created = Changeset.objects.get_or_create(
+        id=feature.get('changeset'),
+        defaults=changeset_defaults
+        )
+
+    if type(changeset.new_features) is not list:
+        changeset.new_features = []
+    elif len(changeset.new_features) > 0:
+        for i, f in enumerate(changeset.new_features):
+            if f['url'] == '{}-{}'.format(feature['osm_type'], feature['osm_id']):
+                f['reasons'] = list(set(f['reasons'] + [i.id for i in reasons]))
+                changeset.save(update_fields=changeset_fields_to_update)
+                add_reasons_to_changeset(changeset, reasons)
+                return Response(
+                    {'detail': 'Feature added to changeset.'},
+                    status=status.HTTP_201_CREATED
+                    )
+
+    fields_to_save = [
+        'osm_id', 'version', 'reasons', 'name', 'note', 'primary_tags', 'url'
+        ]
+    feature['url'] = '{}-{}'.format(
+        feature.get('osm_type'),
+        feature.get('osm_id')
+        )
+    feature['reasons'] = [i.id for i in reasons]
+    primary_tags = filter_primary_tags(feature)
+    if len(primary_tags.items()):
+        feature['primary_tags'] = primary_tags
+
+    [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
+    changeset.new_features.append(feature)
+
+    if not changeset.is_suspect and has_visible_features:
+        changeset.is_suspect = True
+        changeset_fields_to_update.append('is_suspect')
+
+    changeset.save(update_fields=changeset_fields_to_update)
+    print(
+        'Changeset {} {}'.format(
+            changeset.id, 'created' if created else 'updated'
+            )
+        )
+    add_reasons_to_changeset(changeset, reasons)
+    return Response(
+        {'detail': 'Feature added to changeset.'},
+        status=status.HTTP_201_CREATED
+        )
+
+
+def add_reasons_to_changeset(changeset, reasons):
+    try:
+        changeset.reasons.add(*reasons)
+    except IntegrityError:
+        # This most often happens due to a race condition,
+        # where two processes are saving to the same changeset
+        # In this case, we can safely ignore this attempted DB Insert,
+        # since what we wanted inserted has already been done through
+        # a separate web request.
+        print('IntegrityError with changeset %s' % changeset.id)
+    except ValueError as e:
+        print('ValueError with changeset %s' % changeset.id)

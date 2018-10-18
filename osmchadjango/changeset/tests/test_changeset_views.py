@@ -8,7 +8,6 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
 
 from ...users.models import User
-from ...feature.tests.modelfactories import FeatureFactory
 from ..models import SuspicionReasons, Tag, Changeset
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
@@ -24,15 +23,34 @@ class TestChangesetListView(APITestCase):
         ChangesetFactory.create_batch(26)
         # list endpoints will not list Changesets with user=""
         ChangesetFactory(user="")
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
         self.url = reverse('changeset:list')
 
-    def test_changeset_list_response(self):
+    def test_unauthenticated_changeset_list_response(self):
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data['features']), 50)
-        self.assertEqual(response.data['count'], 52)
+        self.assertEqual(response.status_code, 401)
+
+    def test_authenticated_changeset_list_response(self):
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url)
+        self.assertIn('user', response.data['features'][0]['properties'].keys())
+        self.assertIn('uid', response.data['features'][0]['properties'].keys())
+        self.assertIn(
+            'check_user',
+            response.data['features'][0]['properties'].keys()
+            )
 
     def test_pagination(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url, {'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 2)
@@ -42,28 +60,37 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
 
-    def test_filters(self):
-        response = self.client.get(self.url, {'in_bbox': '-72,43,-70,45'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 52)
+    def test_user_filters(self):
+        """Test filters in the changeset list view.
+        """
+        self.client.login(username=self.user.username, password='password')
 
-        response = self.client.get(self.url, {'in_bbox': '-3.17,-91.98,-2.1,-90.5'})
+        response = self.client.get(self.url, {'users': 'another_user'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
 
-        response = self.client.get(self.url, {'is_suspect': 'true'})
+        response = self.client.get(self.url, {'users': 'test'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 26)
+        self.assertEqual(response.data['count'], 52)
 
-        response = self.client.get(self.url, {'is_suspect': 'false'})
+        response = self.client.get(self.url, {'checked_by': 'another_user'})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 26)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'uids': '98978,43323'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(self.url, {'uids': '123123'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
 
     def test_area_lt_filter(self):
         """Test in_bbox in combination with area_lt filter field."""
         ChangesetFactory(
             bbox=Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)])
             )
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url, {'in_bbox': '0,0,1,1', 'area_lt': 10})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
@@ -81,31 +108,11 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.data['count'], 0)
 
     def test_hide_whitelist_filter(self):
-        user = User.objects.create_user(
-            username='test_user',
-            email='b@a.com',
-            password='password'
-            )
-        UserSocialAuth.objects.create(
-            user=user,
-            provider='openstreetmap',
-            uid='123123',
-            )
-        UserWhitelistFactory(user=user, whitelist_user='test')
+        UserWhitelistFactory(user=self.user, whitelist_user='test')
 
-        # test without login
-        response = self.client.get(self.url, {'hide_whitelist': 'true'})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 52)
-        response = self.client.get(
-            self.url,
-            {'hide_whitelist': 'true', 'checked': 'true'}
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 0)
-        # test with login. As all changesets in the DB are from a whitelisted
-        # user, the features count will be zero
-        self.client.login(username=user.username, password='password')
+        # As all changesets in the DB are from a whitelisted user,
+        # the features count will be zero
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
@@ -115,6 +122,7 @@ class TestChangesetListView(APITestCase):
             PaginatedCSVRenderer,
             ChangesetListAPIView().renderer_classes
             )
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
@@ -132,6 +140,17 @@ class TestChangesetFilteredViews(APITestCase):
         SuspectChangesetFactory()
         HarmfulChangesetFactory()
         GoodChangesetFactory()
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
 
     def test_suspect_changesets_view(self):
         url = reverse('changeset:suspect-list')
@@ -176,9 +195,18 @@ class TestChangesetFilteredViews(APITestCase):
 
 
 class TestChangesetListViewOrdering(APITestCase):
-
     def setUp(self):
-        SuspectChangesetFactory.create_batch(2, delete=2)
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
         HarmfulChangesetFactory.create_batch(24, form_create=20, modify=2, delete=40)
         GoodChangesetFactory.create_batch(24, form_create=1000, modify=20)
         self.url = reverse('changeset:list')
@@ -289,92 +317,55 @@ class TestChangesetListViewOrdering(APITestCase):
 
 
 class TestChangesetDetailView(APITestCase):
-
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
-        self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
-        self.reason_3 = SuspicionReasons.objects.create(
+        self.reason_2 = SuspicionReasons.objects.create(
             name='Big edit in my city',
             is_visible=False
             )
-        self.changeset = HarmfulChangesetFactory(id=31982803)
-        self.feature = FeatureFactory(changeset=self.changeset)
-        self.invisible_feature = FeatureFactory(changeset=self.changeset)
+        self.changeset = HarmfulChangesetFactory(
+            id=31982803,
+            new_features=[{
+                "osm_id": 87765444,
+                "url": "node-87765444",
+                "version": 44,
+                "reasons": [self.reason_1.id, self.reason_2.id],
+                "name": "Test"
+            }]
+            )
         self.reason_1.changesets.add(self.changeset)
         self.reason_2.changesets.add(self.changeset)
-        self.reason_2.features.add(self.feature)
-        self.reason_3.features.add(self.feature, self.invisible_feature)
-        self.reason_3.changesets.add(self.changeset)
         self.tag = Tag.objects.create(name='Vandalism')
         self.tag.changesets.add(self.changeset)
 
-    def test_changeset_detail_response(self):
+    def test_unauthenticated_changeset_detail_response(self):
         response = self.client.get(
             reverse('changeset:detail', args=[self.changeset.id])
             )
+        self.assertEqual(response.status_code, 401)
+
+    def test_authenticated_changeset_detail_response(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('changeset:detail', args=[self.changeset.id])
+            )
+
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('id'), 31982803)
-        self.assertIn('geometry', response.data.keys())
-        self.assertIn('properties', response.data.keys())
         self.assertEqual(self.changeset.uid, response.data['properties']['uid'])
-        self.assertEqual(
-            self.changeset.editor,
-            response.data['properties']['editor']
-            )
         self.assertEqual(self.changeset.user, response.data['properties']['user'])
-        self.assertEqual(
-            self.changeset.imagery_used,
-            response.data['properties']['imagery_used']
-            )
-        self.assertEqual(
-            self.changeset.source,
-            response.data['properties']['source']
-            )
-        self.assertEqual(
-            self.changeset.comment,
-            response.data['properties']['comment']
-            )
-        self.assertEqual(
-            self.changeset.create,
-            response.data['properties']['create']
-            )
-        self.assertEqual(
-            self.changeset.modify,
-            response.data['properties']['modify']
-            )
-        self.assertEqual(
-            self.changeset.delete,
-            response.data['properties']['delete']
-            )
         self.assertEqual(
             self.changeset.check_user.name,
             response.data['properties']['check_user']
-            )
-        self.assertTrue(response.data['properties']['is_suspect'])
-        self.assertTrue(response.data['properties']['checked'])
-        self.assertTrue(response.data['properties']['harmful'])
-        self.assertIn('date', response.data['properties'].keys())
-        self.assertIn('check_date', response.data['properties'].keys())
-        self.assertEqual(len(response.data['properties']['features']), 1)
-        self.assertEqual(
-            self.feature.osm_id,
-            response.data['properties']['features'][0]['osm_id']
-            )
-        self.assertEqual(
-            self.feature.url,
-            response.data['properties']['features'][0]['url']
-            )
-        self.assertEqual(
-            response.data['properties']['features'][0]['name'],
-            'Test'
-            )
-        self.assertEqual(
-            len(response.data['properties']['features'][0]['reasons']),
-            1
-            )
-        self.assertIn(
-            {'id': self.reason_2.id, 'name': 'suspect word'},
-            response.data['properties']['features'][0]['reasons']
             )
 
     def test_changeset_detail_response_with_staff_user(self):
@@ -397,41 +388,36 @@ class TestChangesetDetailView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             len(response.data['properties']['features']),
-            2
+            1
             )
         self.assertIn(
-            {'id': self.reason_2.id, 'name': 'suspect word'},
+            self.reason_2.id,
             response.data['properties']['features'][0]['reasons']
-            )
-        self.assertIn(
-            {'id': self.reason_3.id, 'name': 'Big edit in my city'},
-            response.data['properties']['features'][0]['reasons']
-            )
-
-    def test_feature_without_name_tag(self):
-        self.feature.geojson = json.dumps({'properties': {'osm:type': 'node'}})
-        self.feature.save()
-        response = self.client.get(
-            reverse('changeset:detail', args=[self.changeset.id])
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertIsNone(
-            response.data['properties']['features'][0]['name']
             )
 
 
 class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(
-            username='test',
+        self.admin_user = User.objects.create_user(
+            username='admin',
             password='password',
             email='a@a.com',
             is_staff=True
             )
         UserSocialAuth.objects.create(
-            user=self.user,
+            user=self.admin_user,
             provider='openstreetmap',
             uid='123123',
+            )
+        self.user = User.objects.create_user(
+            username='normal_user',
+            password='password',
+            email='a@a.com',
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='234312',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect word')
@@ -452,6 +438,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.tag_2.changesets.add(self.changeset)
 
     def test_detail_view_by_normal_user(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
@@ -470,7 +457,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
             )
 
     def test_detail_view_by_admin(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.login(username=self.admin_user.username, password='password')
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(
@@ -528,6 +515,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertEqual(len(response.data['properties']['features']), 0)
 
     def test_list_view_by_normal_user(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
@@ -542,7 +530,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertIn({'id': self.tag_1.id, 'name': 'Vandalism'}, tags)
 
     def test_list_view_by_admin(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.login(username=self.admin_user.username, password='password')
         response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
@@ -560,7 +548,6 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
 
 
 class TestCheckChangesetViews(APITestCase):
-
     def setUp(self):
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
         self.reason_2 = SuspicionReasons.objects.create(name='suspect_word')

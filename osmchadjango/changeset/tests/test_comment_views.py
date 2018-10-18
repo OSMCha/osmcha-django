@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from urllib.parse import quote
 
 from django.urls import reverse
 from django.test import override_settings
@@ -74,7 +75,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.harmful_changeset.id
               ),
-            data='text={}'.format(message).encode('utf-8'),
+            data='text={}'.format(quote(message)).encode('utf-8'),
             json=None
             )
 
@@ -87,8 +88,8 @@ class TestCommentChangesetAPIView(APITestCase):
         mock_oauth_client.return_value = MockResponse
 
         self.client.login(username=self.user.username, password='password')
-        comment = {'comment': 'Hello! Awesome edit! :~) óã'}
-        message = """Hello! Awesome edit! :~) óã
+        comment = {'comment': 'Hello! Awesome edit! & :~) óã'}
+        message = """Hello! Awesome edit! & :~) óã
             ---
             #REVIEWED_GOOD #OSMCHA
             Published using OSMCha: https://osmcha.mapbox.com/changesets/31982804
@@ -104,7 +105,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.good_changeset.id
               ),
-            data='text={}'.format(message).encode('utf-8'),
+            data='text={}'.format(quote(message)).encode('utf-8'),
             json=None
             )
 
@@ -135,7 +136,7 @@ class TestCommentChangesetAPIView(APITestCase):
             'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.changeset.id
               ),
-            data='text={}'.format(message).encode('utf-8'),
+            data='text={}'.format(quote(message)).encode('utf-8'),
             json=None
             )
 

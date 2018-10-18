@@ -30,10 +30,6 @@ api_urls = [
         ),
     path(
         '{}'.format(API_BASE_URL),
-        include("osmchadjango.feature.urls", namespace="feature")
-        ),
-    path(
-        '{}'.format(API_BASE_URL),
         include("osmchadjango.supervise.urls", namespace="supervise")
         ),
     path(

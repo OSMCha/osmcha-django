@@ -1,4 +1,5 @@
-from datetime import timedelta
+from datetime import timedelta, datetime, date
+import json
 
 from django.conf import settings
 from django.core.management import call_command
@@ -6,13 +7,10 @@ from django.test import TestCase
 from django.utils.six import StringIO
 from django.utils import timezone
 
-from ...feature.models import Feature
 from ..models import Changeset, SuspicionReasons
-from ...feature.tests.modelfactories import (
-    FeatureFactory, CheckedFeatureFactory
-    )
 from .modelfactories import (
-    ChangesetFactory, GoodChangesetFactory, SuspectChangesetFactory
+    ChangesetFactory, GoodChangesetFactory, SuspectChangesetFactory,
+    FeatureFactory
     )
 
 
@@ -37,40 +35,21 @@ class TestDeleteOldData(TestCase):
         self.six_months_ago = timezone.now() - timedelta(days=180)
         ChangesetFactory.create_batch(10, date=self.six_months_ago)
 
-        # a changeset and a feature that should be deleted
+        # a changeset that should be deleted
         self.old_changeset_1 = ChangesetFactory(date=self.six_months_ago)
-        self.feature = FeatureFactory(changeset=self.old_changeset_1)
-
-        # a feature that shouldn't be deleted, so the changeset shouldn't too
-        self.old_changeset_2 = ChangesetFactory(date=self.six_months_ago)
-        self.checked_feature = CheckedFeatureFactory(changeset=self.old_changeset_2)
-
-        # a changeset that shouldn't be deleted, so the feature shouldn't too
+        # a changeset that shouldn't be deleted
         self.old_checked_changeset = GoodChangesetFactory(date=self.six_months_ago)
-        self.old_feature_of_old_checked_changeset = FeatureFactory(
-            changeset=self.old_checked_changeset
-            )
         # two changesets that shouldn't be deleted
         self.changeset = ChangesetFactory()
         self.checked_changeset = GoodChangesetFactory()
         call_command('delete_old_data')
 
     def test_command(self):
-        self.assertEqual(Changeset.objects.count(), 4)
-        self.assertEqual(Feature.objects.count(), 2)
-        self.assertEqual(
-            Feature.objects.filter(
-                changeset__date__lt=(timezone.now() - timedelta(days=180)),
-                changeset__checked=False,
-                checked=False
-                ).count(),
-            0
-            )
+        self.assertEqual(Changeset.objects.count(), 3)
         self.assertEqual(
             Changeset.objects.filter(
                 date__lt=(timezone.now() - timedelta(days=180)),
                 checked=False,
-                features=None
                 ).count(),
             0
             )
@@ -78,7 +57,6 @@ class TestDeleteOldData(TestCase):
         self.assertIn(self.changeset, Changeset.objects.all())
         self.assertIn(self.old_checked_changeset, Changeset.objects.all())
         self.assertIn(self.checked_changeset, Changeset.objects.all())
-        self.assertIn(self.old_changeset_2, Changeset.objects.all())
 
 
 class TestMergeReasons(TestCase):
@@ -126,3 +104,80 @@ class TestMergeReasons(TestCase):
             )
         self.assertIn('Verify the SuspicionReasons ids.', self.out.getvalue())
         self.assertIn('One or both of them does not exist.', self.out.getvalue())
+
+
+class TestMigrateFeatures(TestCase):
+    def setUp(self):
+        self.changeset = ChangesetFactory(id=31982803, date=date(2018, 1, 1))
+        self.changeset_2 = ChangesetFactory(id=31982804)
+        self.features_1 = FeatureFactory.create_batch(
+            10,
+            changeset=self.changeset
+            )
+        self.features_2 = FeatureFactory.create_batch(
+            5,
+            changeset=self.changeset_2
+            )
+        self.reason = SuspicionReasons.objects.create(
+            name='new mapper edits'
+            )
+        self.reason_2 = SuspicionReasons.objects.create(
+            name='Vandalism'
+            )
+        for feature in self.features_1:
+            self.reason.features.add(feature)
+            self.reason_2.features.add(feature)
+
+    def test_migration(self):
+        call_command(
+            'migrate_features',
+            '2018-01-01',
+            (date.today() + timedelta(days=1)).isoformat()
+            )
+        self.changeset.refresh_from_db()
+        self.changeset_2.refresh_from_db()
+        self.assertEqual(len(self.changeset.new_features), 10)
+        self.assertEqual(len(self.changeset_2.new_features), 5)
+        self.assertEqual(
+            self.changeset.new_features[0].get('reasons'),
+            [self.reason.id, self.reason_2.id]
+            )
+        self.assertIsNotNone(self.changeset.new_features[0].get('osm_id'))
+        self.assertIn('node-', self.changeset.new_features[0].get('url'))
+        self.assertEqual(self.changeset.new_features[0].get('version'), 1)
+        self.assertEqual(self.changeset.new_features[0].get('name'), 'Test')
+        self.assertEqual(
+            self.changeset.new_features[0].get('primary_tags'),
+            {'building': 'yes'}
+            )
+        self.assertIsNotNone(self.changeset.new_features[0].get('reasons'))
+
+    def test_partial_migration(self):
+        call_command(
+            'migrate_features',
+            '2018-01-02',
+            (date.today() + timedelta(days=1)).isoformat()
+            )
+        self.changeset.refresh_from_db()
+        self.changeset_2.refresh_from_db()
+        self.assertEqual(len(self.changeset.new_features), 0)
+        self.assertEqual(len(self.changeset_2.new_features), 5)
+
+    def test_feature_without_properties(self):
+        self.changeset.features.all()[0].geojson = json.dumps({'id': 1232})
+        self.changeset.features.all()[0].save()
+        call_command(
+            'migrate_features',
+            '2018-01-01',
+            (date.today() + timedelta(days=1)).isoformat()
+            )
+        self.changeset.refresh_from_db()
+        self.changeset_2.refresh_from_db()
+        self.assertEqual(len(self.changeset.new_features), 10)
+        self.assertEqual(
+            self.changeset.new_features[0].get('reasons'),
+            [self.reason.id, self.reason_2.id]
+            )
+        self.assertIsNotNone(self.changeset.new_features[0].get('osm_id'))
+        self.assertIn('node-', self.changeset.new_features[0].get('url'))
+        self.assertEqual(self.changeset.new_features[0].get('version'), 1)

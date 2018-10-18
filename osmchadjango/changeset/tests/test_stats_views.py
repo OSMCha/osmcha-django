@@ -164,8 +164,23 @@ class TestUserStatsViews(APITestCase):
         GoodChangesetFactory(user='user_one', uid='4321')
         HarmfulChangesetFactory(user='user_one', uid='4321')
         SuspectChangesetFactory(user='user_one', uid='4321')
+        self.user = User.objects.create_user(
+            username='test_user',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+
+    def test_unauthenticated_request(self):
+        response = self.client.get(reverse('changeset:user-stats', args=['4321']))
+        self.assertEqual(response.status_code, 401)
 
     def test_user_one_stats(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:user-stats', args=['4321']))
         self.assertEqual(response.status_code, 200)
         results = response.data.get('results')
@@ -174,6 +189,7 @@ class TestUserStatsViews(APITestCase):
         self.assertEqual(results.get('harmful_changesets'), 1)
 
     def test_user_without_changesets(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:user-stats', args=['1611']))
         self.assertEqual(response.status_code, 200)
         results = response.data.get('results')

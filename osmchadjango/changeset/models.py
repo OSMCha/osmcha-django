@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext, ugettext_lazy as _
 
 from ..users.models import User
@@ -59,7 +60,7 @@ class UserWhitelist(models.Model):
 
 class Changeset(models.Model):
     user = models.CharField(max_length=1000, db_index=True)
-    uid = models.CharField(_('User ID'), max_length=255, db_index=True)
+    uid = models.CharField(_('User ID'), max_length=255, blank=True, null=True, db_index=True)
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
     comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
@@ -67,6 +68,7 @@ class Changeset(models.Model):
     imagery_used = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
     date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
+    new_features = JSONField(default=list)
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)

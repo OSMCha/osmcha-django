@@ -12,7 +12,6 @@ from ...changeset.tests.modelfactories import (
     ChangesetFactory, HarmfulChangesetFactory, GoodChangesetFactory,
     SuspicionReasonsFactory, TagFactory
     )
-from ...feature.tests.modelfactories import CheckedFeatureFactory
 from ...users.models import User
 from ..models import AreaOfInterest, BlacklistedUser
 
@@ -250,6 +249,9 @@ class TestAoIDetailAPIViews(APITestCase):
             filters={
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
+                'users': 'test',
+                'uids': '234,43',
+                'checked_by': 'qa_user',
                 'geometry': self.m_polygon.geojson
                 },
             )
@@ -264,7 +266,14 @@ class TestAoIDetailAPIViews(APITestCase):
             'name': 'Golfo da Guiné'
             }
 
-    def test_retrieve_detail(self):
+    def test_unauthenticated(self):
+        response = self.client.get(
+            reverse('supervise:aoi-detail', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 401)
+
+    def test_retrieve_detail_authenticated(self):
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -278,6 +287,9 @@ class TestAoIDetailAPIViews(APITestCase):
             {
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
+                'users': 'test',
+                'uids': '234,43',
+                'checked_by': 'qa_user',
                 'geometry': self.m_polygon.geojson
             }
             )
@@ -527,7 +539,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 0)
 
 
-class TestAoIChangesetAndFeatureListViews(APITestCase):
+class TestAoIChangesetListView(APITestCase):
     def setUp(self):
         self.m_polygon = MultiPolygon(
             Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
@@ -554,7 +566,7 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
                 },
             )
 
-    def test_aoi_list_changesets_view(self):
+    def test_authenticated_aoi_list_changesets_view(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
         ChangesetFactory(
             editor='JOSM 1.5',
@@ -566,6 +578,8 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             harmful=False,
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
+
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
@@ -575,40 +589,15 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
         self.assertIn('features', response.data.keys())
         self.assertIn('geometry', response.data['features'][0].keys())
         self.assertIn('properties', response.data['features'][0].keys())
+        self.assertIn('check_user', response.data['features'][0]['properties'])
+        self.assertIn('user', response.data['features'][0]['properties'])
+        self.assertIn('uid', response.data['features'][0]['properties'])
 
-        # test pagination
+    def test_unauthenticated_aoi_list_changesets_view(self):
         response = self.client.get(
-            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk]),
-            {'page': 2}
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 1)
-
-    def test_aoi_list_features_view(self):
-        CheckedFeatureFactory(harmful=False)
-        CheckedFeatureFactory(geometry=Point(0.5, 0.5))
-        CheckedFeatureFactory.create_batch(
-            51, geometry=Point(0.5, 0.5), harmful=False
-            )
-        response = self.client.get(
-            reverse('supervise:aoi-list-features', args=[self.aoi.pk])
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 50)
-        self.assertIn('features', response.data.keys())
-        self.assertIn('geometry', response.data['features'][0].keys())
-        self.assertIn('properties', response.data['features'][0].keys())
-
-        # test pagination
-        response = self.client.get(
-            reverse('supervise:aoi-list-features', args=[self.aoi.pk]),
-            {'page': 2}
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 1)
+        self.assertEqual(response.status_code, 401)
 
     def test_aoi_with_in_bbox_filter(self):
         aoi_with_in_bbox = AreaOfInterest.objects.create(
@@ -641,22 +630,9 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
-        # first test with changesets
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi_with_in_bbox.pk])
-            )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data['count'], 51)
-        self.assertEqual(len(response.data['features']), 50)
-
-        CheckedFeatureFactory(harmful=False)
-        CheckedFeatureFactory(geometry=Point(0.5, 0.5))
-        CheckedFeatureFactory.create_batch(
-            51, geometry=Point(0.5, 0.5), harmful=False
-            )
-        # now test with features
-        response = self.client.get(
-            reverse('supervise:aoi-list-features', args=[aoi_with_in_bbox.pk])
             )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 51)
@@ -675,6 +651,7 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             user='çãoéí',
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
@@ -703,6 +680,8 @@ class TestAoIChangesetAndFeatureListViews(APITestCase):
             'in_bbox': '0,0,2,2'
             }
         self.aoi.save()
+
+        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )

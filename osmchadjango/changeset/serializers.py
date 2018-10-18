@@ -35,37 +35,6 @@ class BasicTagSerializer(ModelSerializer):
         fields = ('id', 'name')
 
 
-class FeatureSimpleSerializerToStaff(ModelSerializer):
-    name = SerializerMethodField()
-    reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = Feature
-        fields = ('osm_id', 'url', 'name', 'reasons')
-
-    def get_name(self, obj):
-        try:
-            return obj.geojson['properties']['name']
-        except TypeError:
-            try:
-                return json.loads(obj.geojson)['properties']['name']
-            except KeyError:
-                return None
-        except KeyError:
-            return None
-
-
-class FeatureSimpleSerializer(FeatureSimpleSerializerToStaff):
-    reasons = SerializerMethodField()
-
-    def get_reasons(self, obj):
-        return BasicSuspicionReasonsSerializer(
-            obj.reasons.filter(is_visible=True),
-            many=True,
-            read_only=True
-            ).data
-
-
 class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     """Serializer with all the Changeset model fields, except the
     'powerfull_editor'.
@@ -73,12 +42,12 @@ class ChangesetSerializerToStaff(GeoFeatureModelSerializer):
     check_user = ReadOnlyField(source='check_user.name', default=None)
     reasons = BasicSuspicionReasonsSerializer(many=True, read_only=True)
     tags = BasicTagSerializer(many=True, read_only=True)
-    features = FeatureSimpleSerializerToStaff(many=True, read_only=True)
+    features = ReadOnlyField(source='new_features', default=list)
 
     class Meta:
         model = Changeset
         geo_field = 'bbox'
-        exclude = ('powerfull_editor',)
+        exclude = ('powerfull_editor', 'new_features')
 
 
 class ChangesetSerializer(ChangesetSerializerToStaff):
@@ -88,17 +57,6 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
     """
     reasons = SerializerMethodField()
     tags = SerializerMethodField()
-    features = SerializerMethodField()
-
-    def get_features(self, obj):
-        """Filter features to show only the ones that have at least one visible
-        Suspicion Reason.
-        """
-        return FeatureSimpleSerializer(
-            obj.features.filter(reasons__in=obj.reasons.filter(is_visible=True)),
-            many=True,
-            read_only=True
-            ).data
 
     def get_reasons(self, obj):
         return BasicSuspicionReasonsSerializer(
@@ -212,18 +170,6 @@ class SuspicionReasonsChangesetSerializer(ModelSerializer):
     class Meta:
         model = SuspicionReasons
         fields = ('changesets',)
-
-
-class SuspicionReasonsFeatureSerializer(ModelSerializer):
-    features = PrimaryKeyRelatedField(
-        many=True,
-        queryset=Feature.objects.all(),
-        help_text='List of features ids.'
-        )
-
-    class Meta:
-        model = SuspicionReasons
-        fields = ('features',)
 
 
 class ChangesetTagsSerializer(ModelSerializer):

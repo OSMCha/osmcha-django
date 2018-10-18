@@ -77,6 +77,16 @@ urlpatterns = [
         name='comment'
     ),
     re_path(
+        r'^changesets/add-feature/$',
+        view=views.add_feature,
+        name='add-feature'
+    ),
+    re_path(
+        r'^features/create/$',
+        view=views.add_feature_v1,
+        name='add-feature-v1'
+    ),
+    re_path(
         r'^whitelist-user/$',
         view=views.UserWhitelistListCreateAPIView.as_view(),
         name='whitelist-user'
@@ -97,13 +107,6 @@ urlpatterns = [
             {'post': 'add_reason_to_changesets', 'delete': 'remove_reason_from_changesets'}
             ),
         name='changeset-reasons'
-    ),
-    re_path(
-        r'^suspicion-reasons/(?P<pk>\w+)/features/$',
-        view=views.AddRemoveFeatureReasonsAPIView.as_view(
-            {'post': 'add_reason_to_features', 'delete': 'remove_reason_from_features'}
-            ),
-        name='feature-reasons'
     ),
     re_path(
         r'^tags/$',

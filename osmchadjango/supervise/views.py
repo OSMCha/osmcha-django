@@ -16,10 +16,12 @@ from rest_framework.permissions import (
 from ..changeset.serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
     )
-from ..feature.serializers import FeatureSerializer, FeatureSerializerToStaff
 from ..changeset.views import StandardResultsSetPagination
 from .models import AreaOfInterest, BlacklistedUser
-from .serializers import AreaOfInterestSerializer, BlacklistSerializer
+from .serializers import (
+    AreaOfInterestSerializer, BlacklistSerializer,
+    AreaOfInterestAnonymousSerializer
+    )
 
 
 def get_geometry_from_filters(data):
@@ -96,13 +98,18 @@ class AOIRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     Only the user that created an Area of Interest has permissions to delete it.
     """
     queryset = AreaOfInterest.objects.all()
-    serializer_class = AreaOfInterestSerializer
-    permission_classes = (IsOwnerOrReadOnly,)
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
 
     def perform_update(self, serializer):
         serializer.save(
             geometry=get_geometry_from_filters(self.request.data)
             )
+
+    def get_serializer_class(self):
+        if self.request and self.request.user.is_authenticated:
+            return AreaOfInterestSerializer
+        else:
+            return AreaOfInterestAnonymousSerializer
 
 
 class AOIListChangesetsFeedView(Feed):
@@ -166,6 +173,7 @@ class AOIListChangesetsAPIView(ListAPIView):
     """
     queryset = AreaOfInterest.objects.all()
     pagination_class = StandardResultsSetPagination
+    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -175,34 +183,6 @@ class AOIListChangesetsAPIView(ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_object().changesets().select_related(
-            'check_user'
-            ).prefetch_related('tags', 'reasons')
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class AOIListFeaturesAPIView(ListAPIView):
-    """List the features that matches the filters and intersects with the
-    geometry of an Area Of Interest. It supports pagination and return the data
-    in the same way as the feature list endpoint.
-    """
-    queryset = AreaOfInterest.objects.all()
-    pagination_class = StandardResultsSetPagination
-
-    def get_serializer_class(self):
-        if self.request.user.is_staff:
-            return FeatureSerializerToStaff
-        else:
-            return FeatureSerializer
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_object().features().select_related(
             'check_user'
             ).prefetch_related('tags', 'reasons')
 

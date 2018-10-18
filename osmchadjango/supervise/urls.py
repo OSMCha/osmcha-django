@@ -29,11 +29,6 @@ urlpatterns = [
         name='aoi-changesets-feed'
         ),
     re_path(
-        r'^aoi/(?P<pk>[0-9a-f-]+)/features/$',
-        view=views.AOIListFeaturesAPIView.as_view(),
-        name='aoi-list-features'
-        ),
-    re_path(
         r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
         view=views.AOIStatsAPIView.as_view(),
         name='aoi-stats'
