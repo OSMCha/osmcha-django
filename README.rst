@@ -15,6 +15,9 @@ This project provides a Django application that get the changesets from the
 OpenStreetMap API, analyses and store it in a database and finally provides a
 REST API to interact with the changeset data.
 
+This repository contains the backend code. You can report errors or request new features in the
+`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
+
 License: BSD 2-Clause
 
 Settings
@@ -170,4 +173,6 @@ Get in contact
 ---------------
 
 If you use, deploy or are interested in help to develop OSMCha, subscribe to our
-`mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_.
+`mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_. You can
+report errors or request new features in the
+`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
