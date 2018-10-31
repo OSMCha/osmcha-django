@@ -24,6 +24,7 @@ from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import APIException
+import requests
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
@@ -465,13 +466,27 @@ class UserStatsAPIView(ListAPIView):
 
 
 class ChangesetCommentAPIView(ModelViewSet):
-    """Post a comment to a changeset in the OpenStreetMap website."""
     queryset = Changeset.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangesetCommentSerializer
 
+    @detail_route(methods=['get'])
+    def get_comments(self, request, pk):
+        "List comments received by a changeset on the OpenStreetMap website."
+        self.changeset = self.get_object()
+        headers = {
+            'apiKey': settings.OSM_COMMENTS_API_KEY,
+            'Content-Type': 'application/json'
+        }
+        data = requests.get(
+            'https://osm-comments-api.mapbox.com/api/v1/changesets/{}'.format(pk),
+            headers=headers
+            )
+        return data.get('properties').get('comments')
+
     @detail_route(methods=['post'])
     def post_comment(self, request, pk):
+        "Post a comment to a changeset in the OpenStreetMap website."
         self.changeset = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
