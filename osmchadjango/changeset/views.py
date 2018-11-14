@@ -482,7 +482,16 @@ class ChangesetCommentAPIView(ModelViewSet):
             'https://osm-comments-api.mapbox.com/api/v1/changesets/{}'.format(pk),
             headers=headers
             )
-        return data.get('properties').get('comments')
+        if data.status_code != 200:
+            return Response(
+                data.json(),
+                status=data.status_code
+                )
+        else:
+            return Response(
+                data.json().get('properties').get('comments'),
+                status=status.HTTP_200_OK
+                )
 
     @detail_route(methods=['post'])
     def post_comment(self, request, pk):
