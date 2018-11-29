@@ -5,7 +5,7 @@ from django.contrib.gis.feeds import Feed
 from django.urls import reverse
 
 from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
+    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
     )
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
@@ -222,7 +222,13 @@ class BlacklistedUserListCreateAPIView(ListCreateAPIView):
     """
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
-    permission_classes = (IsAdminUser,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        if self.request:
+            return BlacklistedUser.objects.filter(added_by=self.request.user)
+        else:
+            BlacklistedUser.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(added_by=self.request.user)
@@ -234,21 +240,25 @@ class BlacklistedUserDetailAPIView(RetrieveUpdateDestroyAPIView):
     Get details about a BlacklistedUser.
     Access restricted to staff users.
     delete:
-    Delete a User from the Blacklist.
-    Only staff users can use this method.
+    Delete a User from your Blacklist.
     patch:
     Update a BlacklistedUser.
-    It's useful if you need to update the username of a User. Only staff users
-    can use this method.
+    It's useful if you need to update the username of a User.
     put:
     Update a BlacklistedUser.
-    It's useful if you need to update the username of a User. Only staff users
-    can use this method.
+    It's useful if you need to update the username of a User.
     """
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
-    permission_classes = (IsAdminUser,)
-    lookup_field = 'uid'
+    permission_classes = (IsAuthenticated, IsOwnerOrReadOnly)
 
     def perform_update(self, serializer):
         serializer.save(added_by=self.request.user)
+
+    def get_object(self):
+        queryset = self.get_queryset()
+        return get_object_or_404(
+            queryset,
+            added_by=self.request.user,
+            uid=self.kwargs['uid']
+            )
