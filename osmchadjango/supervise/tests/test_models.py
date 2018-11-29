@@ -149,7 +149,8 @@ class TestAreaOfInterestModel(TestCase):
 
 class TestBlacklistedUserModel(TestCase):
     def setUp(self):
-        self.user = UserFactory(is_staff=True)
+        self.user = UserFactory()
+        self.other_user = UserFactory()
         self.blacklisted = BlacklistedUser.objects.create(
             username='Bad User',
             uid='3434',
@@ -187,4 +188,9 @@ class TestBlacklistedUserModel(TestCase):
             uid='5643',
             added_by=self.user,
             )
-        self.assertEqual(BlacklistedUser.objects.count(), 2)
+        BlacklistedUser.objects.create(
+            username='Bad User',
+            uid='5643',
+            added_by=self.other_user,
+            )
+        self.assertEqual(BlacklistedUser.objects.count(), 3)
