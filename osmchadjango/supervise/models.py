@@ -53,7 +53,7 @@ class AreaOfInterest(models.Model):
 
 class BlacklistedUser(models.Model):
     username = models.CharField(max_length=1000)
-    uid = models.CharField(max_length=255, unique=True)
+    uid = models.CharField(max_length=255)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateTimeField(auto_now_add=True)
 
@@ -65,4 +65,5 @@ class BlacklistedUser(models.Model):
         super(BlacklistedUser, self).save(*args, **kwargs)
 
     class Meta:
+        unique_together = ('uid', 'added_by')
         ordering = ['-date']

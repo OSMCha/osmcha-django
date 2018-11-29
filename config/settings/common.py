@@ -324,6 +324,9 @@ OSM_VIZ_TOOL_LINK = env('VIZ_TOOL_LINK', default='https://osmlab.github.io/chang
 # are reviewed
 ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
 
+# Authorization token to access the OSM-COMMENTS-API
+OSM_COMMENTS_API_KEY = env('DJANGO_OSM_COMMENTS_API_KEY', default='')
+
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

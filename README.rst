@@ -60,6 +60,7 @@ DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min 
 OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
 OSMCHA_FRONTEND_VERSION                 OSMCHA_FRONTEND_VERSION           oh-pages                                  oh-pages
 DJANGO_ENABLE_CHANGESET_COMMENTS        ENABLE_POST_CHANGESET_COMMENTS    False                                     False
+DJANGO_OSM_COMMENTS_API_KEY             OSM_COMMENTS_API_KEY              ''                                        ''
 ======================================= ================================= ========================================= ===========================================
 
 You can set each of these variables with:

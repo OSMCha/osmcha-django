@@ -844,6 +844,11 @@ class TestBlacklistedUserListAPIView(APITestCase):
             uid='3435',
             added_by=self.staff_user,
             )
+        BlacklistedUser.objects.create(
+            username='New bad user',
+            uid='9888',
+            added_by=self.user,
+            )
         self.url = reverse('supervise:blacklist-list-create')
 
     def test_list_view_unauthenticated(self):
@@ -853,7 +858,8 @@ class TestBlacklistedUserListAPIView(APITestCase):
     def test_list_view_normal_user(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data.get('results')), 1)
 
     def test_list_view_staff_user(self):
         self.client.login(username=self.staff_user.username, password='password')
@@ -896,8 +902,8 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
     def test_create_view_normal_user(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.post(self.url, self.data)
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(BlacklistedUser.objects.count(), 0)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
 
     def test_create_view_staff_user(self):
         self.client.login(username=self.staff_user.username, password='password')
@@ -935,6 +941,11 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             uid='3434',
             added_by=self.staff_user,
             )
+        self.blacklisted_2 = BlacklistedUser.objects.create(
+            username='Bad User',
+            uid='3434',
+            added_by=self.user,
+            )
         self.url = reverse(
             'supervise:blacklist-detail', args=[self.blacklisted.uid]
             )
@@ -946,7 +957,23 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
     def test_normal_user_get(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('username'), 'Bad User')
+        self.assertEqual(response.data.get('added_by'), 'test_user')
+        self.assertIsNotNone(response.data.get('uid'))
+        self.assertIn('date', response.data.keys())
+
+    def test_normal_user_getting_staff_user_blacklist(self):
+        blacklisted = BlacklistedUser.objects.create(
+            username='Bad User',
+            uid='4999',
+            added_by=self.staff_user,
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:blacklist-detail', args=[4999])
+            )
+        self.assertEqual(response.status_code, 404)
 
     def test_staff_user_get(self):
         self.client.login(username=self.staff_user.username, password='password')
@@ -960,19 +987,19 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
     def test_unauthenticated_delete(self):
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(BlacklistedUser.objects.count(), 1)
+        self.assertEqual(BlacklistedUser.objects.count(), 2)
 
     def test_normal_user_delete(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 204)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
 
     def test_staff_user_delete(self):
         self.client.login(username=self.staff_user.username, password='password')
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(BlacklistedUser.objects.count(), 0)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
 
     def test_unauthenticated_patch(self):
         response = self.client.patch(self.url, {'username': 'other_user'})
@@ -982,8 +1009,9 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
     def test_normal_user_patch(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.patch(self.url, {'username': 'other_user'})
-        self.assertEqual(response.status_code, 403)
-        self.assertEqual(self.blacklisted.username, 'Bad User')
+        self.assertEqual(response.status_code, 200)
+        self.blacklisted_2.refresh_from_db()
+        self.assertEqual(self.blacklisted_2.username, 'other_user')
 
     def test_staff_user_patch(self):
         self.client.login(username=self.staff_user.username, password='password')
