@@ -81,6 +81,13 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""If True, it will exclude the changesets created by the
             users that you whitelisted."""
         )
+    blacklist = filters.BooleanFilter(
+        name=None,
+        method='filter_blacklist',
+        widget=BooleanWidget(),
+        help_text="""If True, it will get only the changesets created by the
+            users that you blacklisted."""
+        )
     area_lt = filters.CharFilter(
         name=None,
         method='filter_area_lt',
@@ -213,6 +220,16 @@ class ChangesetFilter(GeoFilterSet):
                 flat=True
                 )
             return queryset.exclude(user__in=whitelist)
+        else:
+            return queryset
+
+    def filter_blacklist(self, queryset, name, value):
+        if (self.request is None or self.request.user.is_authenticated) and value:
+            blacklist = self.request.user.blacklisteduser_set.values_list(
+                'uid',
+                flat=True
+                )
+            return queryset.filter(uid__in=blacklist)
         else:
             return queryset
 

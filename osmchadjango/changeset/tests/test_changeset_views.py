@@ -8,6 +8,7 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
 
 from ...users.models import User
+from ...supervise.models import BlacklistedUser
 from ..models import SuspicionReasons, Tag, Changeset
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
@@ -116,6 +117,36 @@ class TestChangesetListView(APITestCase):
         response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
+
+    def test_blacklisted_filter(self):
+        """Test getting changesets filtered by blacklisted users"""
+        ChangesetFactory(uid=444, user='the_user')
+        BlacklistedUser.objects.create(
+            uid='123123',
+            username='test',
+            added_by=self.user
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(self.url, {'blacklist': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 53)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 53)
+
+        response = self.client.get(self.url, {'blacklist': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+
+        BlacklistedUser.objects.create(
+            uid='444',
+            username='the_user',
+            added_by=self.user
+            )
+        response = self.client.get(self.url, {'blacklist': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 53)
 
     def test_csv_renderer(self):
         self.assertIn(
