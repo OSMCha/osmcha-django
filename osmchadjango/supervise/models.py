@@ -20,11 +20,11 @@ class AreaOfInterest(models.Model):
     def __str__(self):
         return '{} by {}'.format(self.name, self.user.username)
 
-    def changesets(self):
+    def changesets(self, request=None):
         """Return the changesets that match the filters, including the geometry
         of the AreaOfInterest.
         """
-        qs = ChangesetFilter(self.filters).qs
+        qs = ChangesetFilter(self.filters, request=request).qs
         if self.geometry is not None:
             return qs.filter(
                 bbox__intersects=self.geometry
