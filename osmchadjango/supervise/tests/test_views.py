@@ -10,7 +10,7 @@ from social_django.models import UserSocialAuth
 
 from ...changeset.tests.modelfactories import (
     ChangesetFactory, HarmfulChangesetFactory, GoodChangesetFactory,
-    SuspicionReasonsFactory, TagFactory
+    SuspicionReasonsFactory, TagFactory, UserWhitelistFactory
     )
 from ...users.models import User
 from ..models import AreaOfInterest, BlacklistedUser
@@ -637,6 +637,101 @@ class TestAoIChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 51)
         self.assertEqual(len(response.data['features']), 50)
+
+    def test_aoi_with_hide_whitelist_filter(self):
+        aoi = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            filters={
+                'editor': 'Potlatch 2',
+                'hide_whitelist': 'True'
+                },
+            )
+        UserWhitelistFactory(user=self.user, whitelist_user='test')
+        ChangesetFactory()
+        ChangesetFactory(user='other_user', uid='333')
+        ChangesetFactory(user='another_user', uid='4333')
+
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['features']), 2)
+
+    def test_aoi_with_false_hide_whitelist_filter(self):
+        aoi = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            filters={
+                'editor': 'Potlatch 2',
+                'hide_whitelist': 'False'
+                },
+            )
+        UserWhitelistFactory(user=self.user, whitelist_user='test')
+        ChangesetFactory()
+        ChangesetFactory(user='other_user', uid='333')
+        ChangesetFactory(user='another_user', uid='4333')
+
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(len(response.data['features']), 3)
+
+    def test_aoi_with_blacklist_filter(self):
+        aoi = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            filters={
+                'editor': 'Potlatch 2',
+                'blacklist': 'True'
+                },
+            )
+        BlacklistedUser.objects.create(
+            username='test',
+            uid='123123',
+            added_by=self.user,
+            )
+        ChangesetFactory()
+        ChangesetFactory(user='other_user', uid='333')
+        ChangesetFactory(user='another_user', uid='4333')
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['features']), 1)
+
+    def test_aoi_with_false_blacklist_filter(self):
+        aoi = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            filters={
+                'editor': 'Potlatch 2',
+                'blacklist': 'False'
+                },
+            )
+        BlacklistedUser.objects.create(
+            username='test',
+            uid='123123',
+            added_by=self.user,
+            )
+        ChangesetFactory()
+        ChangesetFactory(user='other_user', uid='333')
+        ChangesetFactory(user='another_user', uid='4333')
+
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(len(response.data['features']), 3)
 
     def test_aoi_changesets_feed_view(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
