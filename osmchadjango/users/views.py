@@ -5,12 +5,18 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 
 from rest_framework.authtoken.models import Token
+from rest_framework import status
 from rest_framework.generics import RetrieveUpdateAPIView, GenericAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import (
+    api_view, parser_classes, permission_classes
+    )
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
 from requests_oauthlib import OAuth1Session
 
+from ..changeset.models import Changeset
 from .serializers import UserSerializer, SocialSignUpSerializer
 
 User = get_user_model()
@@ -95,3 +101,37 @@ class SocialAuthAPIView(GenericAPIView):
                 request.data['oauth_verifier']
                 )
             return Response(self.get_user_token(request, access_token))
+
+
+@api_view(['POST'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def update_deleted_users(request):
+    """Receive a list of user ids and remove the related user metadata. It will
+    replace the username in the changesets by the string 'user_<uid>' and also
+    rename it on the User model. It's intended to receive the list of uids of
+    the users that deleted themselves in the OpenStreetMap website. Only staff
+    users have permissions to use this endpoint.
+    """
+
+    if request.data and request.data.get('uids'):
+        uids = [str(uid) for uid in request.data.get('uids')]
+        for uid in uids:
+            Changeset.objects.filter(uid=uid).update(
+                user='user_{}'.format(uid)
+                )
+            try:
+                user = User.objects.get(social_auth__uid=uid)
+                user.username = 'user_{}'.format(uid)
+                user.save()
+            except User.DoesNotExist:
+                pass
+        return Response(
+            {'detail': 'Changesets updated.'},
+            status=status.HTTP_200_OK
+            )
+    else:
+        return Response(
+            {'detail': 'Changeset was already checked.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )

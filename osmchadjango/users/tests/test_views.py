@@ -4,6 +4,8 @@ from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
 
 from ..models import User
+from ...changeset.tests.modelfactories import ChangesetFactory
+from ...changeset.models import Changeset
 
 
 class TestCurrentUserDetailAPIView(APITestCase):
@@ -100,3 +102,93 @@ class TestSocialAuthAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('oauth_token', response.data.keys())
         self.assertIn('oauth_token_secret', response.data.keys())
+
+
+class TestUpdateDeletedUsersView(APITestCase):
+    def setUp(self):
+        self.url = reverse('users:update-deleted-users')
+        ChangesetFactory.create_batch(50, uid="1769", user="test_user")
+        ChangesetFactory.create_batch(50, uid="1234", user="old_user")
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.staff_user = User.objects.create_user(
+            username='staff',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        UserSocialAuth.objects.create(
+            user=self.staff_user,
+            provider='openstreetmap',
+            uid='123456',
+            )
+
+    def test_unauthenticated(self):
+        request = self.client.post(self.url, data={'uids': [1769, 1234]})
+        self.assertEqual(request.status_code, 401)
+
+    def test_non_staff_user(self):
+        self.client.login(username=self.user.username, password='password')
+        request = self.client.post(self.url, data={'uids': [1769, 1234]})
+        self.assertEqual(request.status_code, 403)
+
+    def test_bad_request(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        request = self.client.post(self.url)
+        self.assertEqual(request.status_code, 400)
+        request = self.client.post(self.url, data={'uid': [1769, 1234]})
+        self.assertEqual(request.status_code, 400)
+
+    def test_view(self):
+        user = User.objects.create_user(
+            username='test_user',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=user,
+            provider='openstreetmap',
+            uid='1769',
+            )
+        user_2 = User.objects.create_user(
+            username='old_user',
+            password='password',
+            email='a@a.com'
+            )
+        UserSocialAuth.objects.create(
+            user=user_2,
+            provider='openstreetmap',
+            uid='1234',
+            )
+        self.client.login(username=self.staff_user.username, password='password')
+        request = self.client.post(self.url, data={'uids': [1769, 1234]})
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(uid='1769').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='user_1769').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='test_user').count(), 0)
+        self.assertEqual(Changeset.objects.filter(uid='1234').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='user_1234').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='old_user').count(), 0)
+        self.assertEqual(User.objects.filter(username='old_user').count(), 0)
+        self.assertEqual(User.objects.filter(username='test_user').count(), 0)
+        self.assertEqual(User.objects.filter(username='user_1234').count(), 1)
+        self.assertEqual(User.objects.filter(username='user_1769').count(), 1)
+
+    def test_view_as_strings(self):
+        self.client.login(username=self.staff_user.username, password='password')
+        request = self.client.post(self.url, data={'uids': ['1769', '1234']})
+        self.assertEqual(request.status_code, 200)
+        self.assertEqual(Changeset.objects.filter(uid='1769').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='user_1769').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='test_user').count(), 0)
+        self.assertEqual(Changeset.objects.filter(uid='1234').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='user_1234').count(), 50)
+        self.assertEqual(Changeset.objects.filter(user='old_user').count(), 0)
