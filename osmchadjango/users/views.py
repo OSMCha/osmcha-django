@@ -127,11 +127,11 @@ def update_deleted_users(request):
             except User.DoesNotExist:
                 pass
         return Response(
-            {'detail': 'Changesets updated.'},
+            {'detail': 'Changesets updated and user renamed.'},
             status=status.HTTP_200_OK
             )
     else:
         return Response(
-            {'detail': 'Changeset was already checked.'},
+            {'detail': 'Payload is missing the `uids` field or it has an incorrect value.'},
             status=status.HTTP_400_BAD_REQUEST
             )
