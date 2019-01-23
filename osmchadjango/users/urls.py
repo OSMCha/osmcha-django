@@ -13,5 +13,14 @@ urlpatterns = [
         view=views.CurrentUserDetailAPIView.as_view(),
         name='detail'
         ),
-    re_path(r'^social-auth/$', views.SocialAuthAPIView.as_view(), name="social-auth"),
+    re_path(
+        r'^social-auth/$',
+        views.SocialAuthAPIView.as_view(),
+        name="social-auth"
+        ),
+    re_path(
+        r'^mapping-team/$',
+        views.MappingTeamListCreateAPIView.as_view(),
+        name="mapping-team"
+        ),
     ]

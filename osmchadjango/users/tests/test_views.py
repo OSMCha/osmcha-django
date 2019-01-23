@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
 
-from ..models import User
+from ..models import User, MappingTeam
 
 
 class TestCurrentUserDetailAPIView(APITestCase):
@@ -100,3 +100,69 @@ class TestSocialAuthAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('oauth_token', response.data.keys())
         self.assertIn('oauth_token_secret', response.data.keys())
+
+
+class TestMappingTeamListCreateAPIView(APITestCase):
+    def setUp(self):
+        self.url = reverse('users:mapping-team')
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        self.social_auth = UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.payload = {
+            "name": "Map Company",
+            "users": [
+                {
+                    "username" : "test_1",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "989",
+                    "dol" : ""
+                },
+                {
+                    "username" : "test_2",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "987",
+                    "dol" : ""
+                }
+            ],
+            "trusted": True
+        }
+
+    def test_unauthenticated(self):
+        response = self.client.post(self.url, data=self.payload)
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_create_authenticated(self):
+        self.client.login(username='test', password='password')
+        response = self.client.post(self.url, data=self.payload)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(MappingTeam.objects.count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 0)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data.get('results')), 1)
+        self.assertTrue("name" in response.json().get('results')[0].keys())
+        self.assertTrue("users" in response.json().get('results')[0].keys())
+        self.assertTrue("trusted" in response.json().get('results')[0].keys())
+
+    def test_filters(self):
+        self.client.login(username='test', password='password')
+        self.client.post(self.url, data=self.payload)
+        response = self.client.get(self.url, {'trusted': 'true'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 0)
+
+        response = self.client.get(self.url, {'trusted': 'false'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 1)

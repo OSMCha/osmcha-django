@@ -5,13 +5,20 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 
 from rest_framework.authtoken.models import Token
-from rest_framework.generics import RetrieveUpdateAPIView, GenericAPIView
+from rest_framework.generics import (
+    ListCreateAPIView, RetrieveUpdateAPIView, GenericAPIView
+    )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
 from requests_oauthlib import OAuth1Session
+from django_filters import rest_framework as filters
+from django_filters.widgets import BooleanWidget
 
-from .serializers import UserSerializer, SocialSignUpSerializer
+from .serializers import (
+    UserSerializer, SocialSignUpSerializer, MappingTeamSerializer
+    )
+from .models import MappingTeam
 
 User = get_user_model()
 
@@ -95,3 +102,33 @@ class SocialAuthAPIView(GenericAPIView):
                 request.data['oauth_verifier']
                 )
             return Response(self.get_user_token(request, access_token))
+
+
+class MappingTeamFilter(filters.FilterSet):
+    trusted = filters.BooleanFilter(
+        widget=BooleanWidget(),
+        help_text="""Filter Mapping Teams that were trusted by a staff user."""
+        )
+    name = filters.CharFilter(
+        name='name',
+        lookup_expr='icontains',
+        help_text="""Filter Mapping Teams by its name field using the icontains
+            lookup expression."""
+        )
+    class Meta:
+        model = MappingTeam
+        fields = []
+
+
+class MappingTeamListCreateAPIView(ListCreateAPIView):
+    """List and create Mapping teams."""
+    queryset = MappingTeam.objects.all()
+    serializer_class = MappingTeamSerializer
+    permission_classes = (IsAuthenticated,)
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = MappingTeamFilter
+
+    def perform_create(self, serializer):
+        serializer.save(
+            created_by=self.request.user,
+            )
