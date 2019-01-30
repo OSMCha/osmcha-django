@@ -13,8 +13,11 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import (
     IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
     )
-from rest_framework.decorators import detail_route
 from rest_framework import status
+from rest_framework.decorators import (
+    api_view, parser_classes, permission_classes, detail_route
+    )
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
 from requests_oauthlib import OAuth1Session
@@ -25,6 +28,7 @@ from .serializers import (
     UserSerializer, SocialSignUpSerializer, MappingTeamSerializer
     )
 from .models import MappingTeam
+from ..changeset.models import Changeset
 
 User = get_user_model()
 
@@ -201,3 +205,37 @@ class MappingTeamTrustingAPIView(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
                 )
         return self.update_team(team, request, trusted=False)
+
+
+@api_view(['POST'])
+@parser_classes((JSONParser, MultiPartParser, FormParser))
+@permission_classes((IsAuthenticated, IsAdminUser))
+def update_deleted_users(request):
+    """Receive a list of user ids and remove the related user metadata. It will
+    replace the username in the changesets by the string 'user_<uid>' and also
+    rename it on the User model. It's intended to receive the list of uids of
+    the users that deleted themselves in the OpenStreetMap website. Only staff
+    users have permissions to use this endpoint.
+    """
+
+    if request.data and request.data.get('uids'):
+        uids = [str(uid) for uid in request.data.get('uids')]
+        for uid in uids:
+            Changeset.objects.filter(uid=uid).update(
+                user='user_{}'.format(uid)
+                )
+            try:
+                user = User.objects.get(social_auth__uid=uid)
+                user.username = 'user_{}'.format(uid)
+                user.save()
+            except User.DoesNotExist:
+                pass
+        return Response(
+            {'detail': 'Changesets updated and user renamed.'},
+            status=status.HTTP_200_OK
+            )
+    else:
+        return Response(
+            {'detail': 'Payload is missing the `uids` field or it has an incorrect value.'},
+            status=status.HTTP_400_BAD_REQUEST
+            )
