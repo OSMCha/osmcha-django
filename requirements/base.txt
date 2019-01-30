@@ -1,6 +1,6 @@
 # Bleeding edge Django
 
-django==2.0.9
+django==2.0.10
 
 # Configuration
 django-environ==0.4.4
@@ -42,7 +42,7 @@ django-redis==4.9.0
 redis>=2.10.5
 
 # Your custom requirements go here
-PyYAML==3.13
+PyYAML==4.2b1
 osmcha==0.4.8
 
 # git python is required by the frontend management command
