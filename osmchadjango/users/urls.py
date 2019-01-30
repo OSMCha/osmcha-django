@@ -23,4 +23,19 @@ urlpatterns = [
         views.MappingTeamListCreateAPIView.as_view(),
         name="mapping-team"
         ),
+    re_path(
+        r'^mapping-team/(?P<pk>\d+)/$',
+        views.MappingTeamDetailAPIView.as_view(),
+        name="mapping-team-detail"
+        ),
+    re_path(
+        r'^mapping-team/(?P<pk>\d+)/trust/$',
+        view=views.MappingTeamTrustingAPIView.as_view({'put': 'set_trusted'}),
+        name='trust-mapping-team'
+    ),
+    re_path(
+        r'^mapping-team/(?P<pk>\d+)/untrust/$',
+        view=views.MappingTeamTrustingAPIView.as_view({'put': 'set_untrusted'}),
+        name='untrust-mapping-team'
+    ),
     ]

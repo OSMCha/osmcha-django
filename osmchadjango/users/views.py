@@ -6,9 +6,15 @@ from django.conf import settings
 
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
-    ListCreateAPIView, RetrieveUpdateAPIView, GenericAPIView
+    ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView,
+    GenericAPIView
     )
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import (
+    IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
+    )
+from rest_framework.decorators import detail_route
+from rest_framework import status
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
 from requests_oauthlib import OAuth1Session
@@ -21,6 +27,18 @@ from .serializers import (
 from .models import MappingTeam
 
 User = get_user_model()
+
+
+class IsOwnerAdminOrReadOnly(BasePermission):
+    """Object-level permission to only allow owners of an object to edit it."""
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in SAFE_METHODS:
+            return True
+        else:
+            return obj.created_by == request.user or request.user.is_staff
 
 
 class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
@@ -132,3 +150,54 @@ class MappingTeamListCreateAPIView(ListCreateAPIView):
         serializer.save(
             created_by=self.request.user,
             )
+
+
+class MappingTeamDetailAPIView(RetrieveUpdateDestroyAPIView):
+    """List and create Mapping teams."""
+    queryset = MappingTeam.objects.all()
+    serializer_class = MappingTeamSerializer
+    permission_classes = (IsAuthenticated, IsOwnerAdminOrReadOnly,)
+
+
+class MappingTeamTrustingAPIView(ModelViewSet):
+    queryset = MappingTeam.objects.all()
+    serializer_class = MappingTeamSerializer
+    permission_classes = (IsAdminUser,)
+
+    def update_team(self, team, request, trusted):
+        """Update 'checked', 'harmful', 'check_user', 'check_date' fields of the
+        changeset and return a 200 response"""
+        team.trusted = trusted
+        team.save(
+            update_fields=['trusted']
+            )
+        return Response(
+            {'detail': 'Mapping Team set as {}.'.format('trusted' if trusted else 'untrusted')},
+            status=status.HTTP_200_OK
+            )
+
+    @detail_route(methods=['put'])
+    def set_trusted(self, request, pk):
+        """Set a Mapping Team as trusted. You don't need to send data,
+        just make an empty PUT request.
+        """
+        team = self.get_object()
+        if team.trusted:
+            return Response(
+                {'detail': 'Mapping team is already trusted.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        return self.update_team(team, request, trusted=True)
+
+    @detail_route(methods=['put'])
+    def set_untrusted(self, request, pk):
+        """Set a Mapping Team as untrusted. You don't need to send data,
+        just make an empty PUT request.
+        """
+        team = self.get_object()
+        if team.trusted == False:
+            return Response(
+                {'detail': 'Mapping team is already untrusted.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+        return self.update_team(team, request, trusted=False)

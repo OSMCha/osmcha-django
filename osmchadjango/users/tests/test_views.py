@@ -166,3 +166,216 @@ class TestMappingTeamListCreateAPIView(APITestCase):
         response = self.client.get(self.url, {'trusted': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), 1)
+
+
+class TestMappingTeamDetailAPIView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        self.social_auth = UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.payload = {
+            "name": "Map Company",
+            "users": [
+                {
+                    "username" : "test_1",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "989",
+                    "dol" : ""
+                },
+                {
+                    "username" : "test_2",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "987",
+                    "dol" : ""
+                }
+            ],
+            "trusted": True
+        }
+        self.team = MappingTeam.objects.create(
+            name="Group of Users",
+            users=self.payload,
+            created_by=self.user
+            )
+
+    def test_unauthenticated(self):
+        url = reverse('users:mapping-team-detail', args=[self.team.id])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.put(url, data=self.payload)
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.patch(url, data=self.payload)
+        self.assertEqual(response.status_code, 401)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_with_owner(self):
+        url = reverse('users:mapping-team-detail', args=[self.team.id])
+        self.client.login(username='test', password='password')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(url, data=self.payload)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.patch(url, data=self.payload)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 0)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(MappingTeam.objects.count(), 0)
+
+    def test_with_staff_user(self):
+        user = User.objects.create_user(
+            username='staff_user',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        url = reverse('users:mapping-team-detail', args=[self.team.id])
+        self.client.login(username='staff_user', password='password')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(url, data=self.payload)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.patch(url, data=self.payload)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 204)
+
+    def test_with_other_user(self):
+        user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        url = reverse('users:mapping-team-detail', args=[self.team.id])
+        self.client.login(username='test_2', password='password')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.put(url, data=self.payload)
+        self.assertEqual(response.status_code, 403)
+
+        response = self.client.patch(url, data=self.payload)
+        self.assertEqual(response.status_code, 403)
+
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, 403)
+
+
+class TestMappingTeamTrustingAPIView(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        self.social_auth = UserSocialAuth.objects.create(
+            user=self.user,
+            provider='openstreetmap',
+            uid='123123',
+            )
+        self.payload = {
+            "name": "Map Company",
+            "users": [
+                {
+                    "username" : "test_1",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "989",
+                    "dol" : ""
+                },
+                {
+                    "username" : "test_2",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "987",
+                    "dol" : ""
+                }
+            ],
+            "trusted": True
+        }
+        self.team = MappingTeam.objects.create(
+            name="Group of Users",
+            users=self.payload,
+            created_by=self.user
+            )
+
+    def test_unauthenticated(self):
+        url = reverse('users:trust-mapping-team', args=[self.team.id])
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 401)
+
+        url = reverse('users:untrust-mapping-team', args=[self.team.id])
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 401)
+
+    def test_with_owner(self):
+        url = reverse('users:trust-mapping-team', args=[self.team.id])
+        self.client.login(username='test', password='password')
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 403)
+
+        url = reverse('users:untrust-mapping-team', args=[self.team.id])
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 403)
+
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 0)
+
+    def test_with_staff_user(self):
+        user = User.objects.create_user(
+            username='staff_user',
+            password='password',
+            email='a@a.com',
+            is_staff=True
+            )
+        url = reverse('users:trust-mapping-team', args=[self.team.id])
+        self.client.login(username='staff_user', password='password')
+
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 200)
+        self.team.refresh_from_db()
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 0)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 1)
+
+        url = reverse('users:untrust-mapping-team', args=[self.team.id])
+
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 200)
+        self.team.refresh_from_db()
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 0)
+
+    def test_with_other_user(self):
+        user = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        self.client.login(username='test_2', password='password')
+
+        url = reverse('users:trust-mapping-team', args=[self.team.id])
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 403)
+
+        url = reverse('users:untrust-mapping-team', args=[self.team.id])
+        response = self.client.put(url)
+        self.assertEqual(response.status_code, 403)
+
+        self.assertEqual(MappingTeam.objects.filter(trusted=False).count(), 1)
+        self.assertEqual(MappingTeam.objects.filter(trusted=True).count(), 0)
