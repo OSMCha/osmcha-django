@@ -137,6 +137,7 @@ class MappingTeamFilter(filters.FilterSet):
         help_text="""Filter Mapping Teams by its name field using the icontains
             lookup expression."""
         )
+
     class Meta:
         model = MappingTeam
         fields = []
@@ -176,7 +177,11 @@ class MappingTeamTrustingAPIView(ModelViewSet):
             update_fields=['trusted']
             )
         return Response(
-            {'detail': 'Mapping Team set as {}.'.format('trusted' if trusted else 'untrusted')},
+            {
+                'detail': 'Mapping Team set as {}.'.format(
+                    'trusted' if trusted else 'untrusted'
+                    )
+            },
             status=status.HTTP_200_OK
             )
 
@@ -199,7 +204,7 @@ class MappingTeamTrustingAPIView(ModelViewSet):
         just make an empty PUT request.
         """
         team = self.get_object()
-        if team.trusted == False:
+        if team.trusted is False:
             return Response(
                 {'detail': 'Mapping team is already untrusted.'},
                 status=status.HTTP_403_FORBIDDEN

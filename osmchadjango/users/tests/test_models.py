@@ -105,12 +105,15 @@ class TestMappingTeamModel(TransactionTestCase):
             password='password',
             email='a@a.com'
             )
-        MappingTeam.objects.create(
-            name="Group of Users",
-            users=[],
-            created_by=self.user_2
-            )
-        self.assertEqual(MappingTeam.objects.count(), 3)
+        with self.assertRaises(IntegrityError):
+            MappingTeam.objects.create(
+                name="Group of Users",
+                users=[],
+                created_by=self.user_2
+                )
+
+        self.assertEqual(MappingTeam.objects.count(), 2)
+
         with self.assertRaises(IntegrityError):
             MappingTeam.objects.create(
                 name="Group of Users",
@@ -122,5 +125,5 @@ class TestMappingTeamModel(TransactionTestCase):
             MappingTeam.objects.create(
                 name="Map Company",
                 trusted=True,
-                created_by=self.user
+                created_by=self.user_2
                 )

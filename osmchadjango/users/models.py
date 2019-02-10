@@ -29,7 +29,7 @@ class User(AbstractUser):
 
 
 class MappingTeam(models.Model):
-    name = models.CharField(max_length=255, db_index=True)
+    name = models.CharField(max_length=255, db_index=True, unique=True)
     date = models.DateTimeField("Creation Date", auto_now_add=True)
     trusted = models.BooleanField(default=False)
     users = JSONField(default=list)
@@ -39,7 +39,6 @@ class MappingTeam(models.Model):
         return '{} by {}'.format(self.name, self.created_by.username)
 
     class Meta:
-        unique_together = ('created_by', 'name',)
         ordering = ['date']
         verbose_name = 'Mapping Team'
         verbose_name_plural = 'Mapping Teams'

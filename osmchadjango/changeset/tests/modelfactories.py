@@ -9,6 +9,7 @@ import factory
 
 from ..models import Changeset, SuspicionReasons, UserWhitelist, Tag
 from ...feature.models import Feature
+from ...users.models import MappingTeam
 
 
 class UserFactory(factory.django.DjangoModelFactory):
@@ -93,3 +94,13 @@ class FeatureFactory(factory.django.DjangoModelFactory):
     geojson = json.dumps(
         {'properties': {'osm:type': 'node', 'name': 'Test', 'building':'yes'}}
         )
+
+
+class MappingTeamFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = MappingTeam
+
+    name = "Map Company"
+    trusted = True
+    created_by = factory.SubFactory(UserFactory)
+    users = []
