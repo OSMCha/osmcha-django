@@ -5,19 +5,19 @@ from django.contrib.gis.feeds import Feed
 from django.urls import reverse
 
 from rest_framework.generics import (
-    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
+    ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView,
+    get_object_or_404
     )
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import (
-    IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
+    IsAuthenticated, BasePermission, SAFE_METHODS
     )
 
 from ..changeset.serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer
     )
 from ..changeset.views import StandardResultsSetPagination
-from ..changeset.filters import ChangesetFilter
 from .models import AreaOfInterest, BlacklistedUser
 from .serializers import (
     AreaOfInterestSerializer, BlacklistSerializer,
