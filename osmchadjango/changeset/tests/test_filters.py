@@ -282,7 +282,8 @@ class TestChangesetFilter(TestCase):
                 "doj": "2017-02-13T00:00:00Z",
                 "uid": "3476",
                 "dol": ""
-                }])
+                },
+                ])
             )
         self.team = MappingTeamFactory(
             users=json.dumps([{

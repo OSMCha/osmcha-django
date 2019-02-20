@@ -13,7 +13,8 @@ from ..models import SuspicionReasons, Tag, Changeset
 from ..views import ChangesetListAPIView, PaginatedCSVRenderer
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, GoodChangesetFactory,
-    HarmfulChangesetFactory, TagFactory, UserWhitelistFactory
+    HarmfulChangesetFactory, TagFactory, UserWhitelistFactory,
+    MappingTeamFactory
     )
 
 
@@ -147,6 +148,82 @@ class TestChangesetListView(APITestCase):
         response = self.client.get(self.url, {'blacklist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 53)
+
+    def test_mapping_team_filter(self):
+        ChangesetFactory(uid=444, user='the_user')
+        self.team = MappingTeamFactory(
+            name="TestCompany",
+            users=json.dumps([{
+                "username": "test",
+                "doj": "2017-02-13T00:00:00Z",
+                "uid": "123123",
+                "dol": ""
+                }])
+            )
+        self.team_2 = MappingTeamFactory(
+            name="MapCompany",
+            trusted=False,
+            users=json.dumps([{
+                "username": "the_user",
+                "doj": "2017-02-13T00:00:00Z",
+                "uid": "444",
+                "dol": ""
+                }])
+            )
+        self.client.login(username=self.user.username, password='password')
+        # mapping_teams tests
+        response = self.client.get(self.url, {'mapping_teams': self.team.name})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+
+        response = self.client.get(self.url, {'mapping_teams': self.team_2.name})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+        response = self.client.get(
+            self.url,
+            {'mapping_teams': 'TestCompany,MapCompany'}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 53)
+
+        response = self.client.get(
+            self.url,
+            {'mapping_teams': 'TestCompany, MapCompany'}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 53)
+
+        # exclude_teams tests
+        response = self.client.get(self.url, {'exclude_teams': self.team.name})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+
+        response = self.client.get(self.url, {'exclude_teams': self.team_2.name})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+
+        response = self.client.get(
+            self.url,
+            {'exclude_teams': 'TestCompany,MapCompany'}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        response = self.client.get(
+            self.url,
+            {'exclude_teams': 'TestCompany, MapCompany'}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
+        # exclude trusted teams
+        response = self.client.get(
+            self.url,
+            {'exclude_trusted_teams': 'true'}
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
 
     def test_csv_renderer(self):
         self.assertIn(

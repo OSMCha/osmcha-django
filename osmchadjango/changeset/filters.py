@@ -258,7 +258,10 @@ class ChangesetFilter(GeoFilterSet):
     def get_username_from_teams(self, teams):
         users = []
         for i in teams.values_list('users', flat=True):
-            for e in json.loads(i):
+            values = i
+            if type(values) in[str, bytes, bytearray]:
+                values = json.loads(values)
+            for e in values:
                 users.append(e.get('username'))
         return users
 
@@ -266,7 +269,7 @@ class ChangesetFilter(GeoFilterSet):
         try:
             # added `if team` to avoid empty strings
             teams = MappingTeam.objects.filter(
-                name__in=[team for team in value.split(',') if team]
+                name__in=[team.strip() for team in value.split(',') if team]
                 )
             users = self.get_username_from_teams(teams)
             return queryset.filter(user__in=users)
@@ -276,7 +279,7 @@ class ChangesetFilter(GeoFilterSet):
     def exclude_mapping_team(self, queryset, name, value):
         try:
             teams = MappingTeam.objects.filter(
-                name__in=[team for team in value.split(',') if team]
+                name__in=[team.strip() for team in value.split(',') if team]
                 )
             users = self.get_username_from_teams(teams)
             return queryset.exclude(user__in=users)
