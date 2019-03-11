@@ -170,6 +170,26 @@ class TestMappingTeamListCreateAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('count'), 1)
 
+        response = self.client.get(self.url, {'name': 'Map Company'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 1)
+        response = self.client.get(self.url, {'name': 'Map'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 1)
+        response = self.client.get(self.url, {'name': 'Other'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 0)
+
+        response = self.client.get(self.url, {'owner': 'test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 1)
+        response = self.client.get(self.url, {'owner': 'other user'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 0)
+        response = self.client.get(self.url, {'owner': 'Test'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data.get('count'), 0)
+
 
 class TestMappingTeamDetailAPIView(APITestCase):
     def setUp(self):
@@ -393,7 +413,6 @@ class TestMappingTeamTrustingAPIView(APITestCase):
             provider='openstreetmap',
             uid='123456',
             )
-
 
 
 class TestUpdateDeletedUsersView(APITestCase):

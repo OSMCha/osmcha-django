@@ -137,6 +137,12 @@ class MappingTeamFilter(filters.FilterSet):
         help_text="""Filter Mapping Teams by its name field using the icontains
             lookup expression."""
         )
+    owner = filters.CharFilter(
+        name='created_by__username',
+        lookup_expr='exact',
+        help_text="""Filter Mapping Teams by the username of the user that
+            created it. This field uses the exact lookup expression."""
+        )
 
     class Meta:
         model = MappingTeam
