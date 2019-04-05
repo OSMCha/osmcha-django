@@ -5,6 +5,8 @@ from rest_framework.serializers import (
     )
 from rest_framework.fields import SerializerMethodField
 
+from .models import MappingTeam
+
 
 class UserSerializer(ModelSerializer):
     uid = SerializerMethodField()
@@ -50,3 +52,10 @@ class SocialSignUpSerializer(Serializer):
     oauth_token = CharField()
     oauth_verifier = CharField()
     oauth_token_secret = CharField()
+
+
+class MappingTeamSerializer(ModelSerializer):
+    class Meta:
+        model = MappingTeam
+        fields = ('id', 'name', 'users', 'trusted')
+        read_only_fields = ('trusted',)

@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.gis.geos import Polygon
 from django.db.models import Count
 
@@ -8,6 +10,7 @@ from rest_framework_gis.fields import GeometryField
 from django_filters.widgets import BooleanWidget
 
 from .models import Changeset
+from ..users.models import MappingTeam
 
 
 class ChangesetFilter(GeoFilterSet):
@@ -87,6 +90,25 @@ class ChangesetFilter(GeoFilterSet):
         widget=BooleanWidget(),
         help_text="""If True, it will get only the changesets created by the
             users that you blacklisted."""
+        )
+    mapping_teams = filters.CharFilter(
+        name='user',
+        method='filter_mapping_team',
+        help_text="""Filter changesets created by users that are on a Mapping
+            Team. It accepts a list of teams separated by commas."""
+        )
+    exclude_teams = filters.CharFilter(
+        name='user',
+        method='exclude_mapping_team',
+        help_text="""Exclude changesets created by users that are on a Mapping
+            Team. It accepts a list of teams separated by commas."""
+        )
+    exclude_trusted_teams = filters.BooleanFilter(
+        name=None,
+        method='filter_hide_trusted_teams',
+        widget=BooleanWidget(),
+        help_text="""If True, it will exclude the changesets created by the
+            users that are part of trusted teams."""
         )
     area_lt = filters.CharFilter(
         name=None,
@@ -230,6 +252,45 @@ class ChangesetFilter(GeoFilterSet):
                 flat=True
                 )
             return queryset.filter(uid__in=blacklist)
+        else:
+            return queryset
+
+    def get_username_from_teams(self, teams):
+        users = []
+        for i in teams.values_list('users', flat=True):
+            values = i
+            if type(values) in[str, bytes, bytearray]:
+                values = json.loads(values)
+            for e in values:
+                users.append(e.get('username'))
+        return users
+
+    def filter_mapping_team(self, queryset, name, value):
+        try:
+            # added `if team` to avoid empty strings
+            teams = MappingTeam.objects.filter(
+                name__in=[team.strip() for team in value.split(',') if team]
+                )
+            users = self.get_username_from_teams(teams)
+            return queryset.filter(user__in=users)
+        except MappingTeam.DoesNotExist:
+            return queryset
+
+    def exclude_mapping_team(self, queryset, name, value):
+        try:
+            teams = MappingTeam.objects.filter(
+                name__in=[team.strip() for team in value.split(',') if team]
+                )
+            users = self.get_username_from_teams(teams)
+            return queryset.exclude(user__in=users)
+        except MappingTeam.DoesNotExist:
+            return queryset
+
+    def filter_hide_trusted_teams(self, queryset, name, value):
+        teams = MappingTeam.objects.filter(trusted=True)
+        users = self.get_username_from_teams(teams)
+        if users:
+            return queryset.exclude(user__in=users)
         else:
             return queryset
 

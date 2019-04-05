@@ -1,8 +1,8 @@
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
-from django.test import TestCase
+from django.test import TestCase, TransactionTestCase
 
-from ..models import User
+from ..models import User, MappingTeam
 
 
 class TestUserModel(TestCase):
@@ -36,3 +36,94 @@ class TestUserModel(TestCase):
             'Hello! I found some errors in your changeset...'
             )
         self.assertTrue(self.user_complete.comment_feature)
+
+
+class TestMappingTeamModel(TransactionTestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='test',
+            password='password',
+            email='a@a.com'
+            )
+        self.team = MappingTeam.objects.create(
+            name="Group of Users",
+            users=[],
+            created_by=self.user
+        )
+        self.team_2 = MappingTeam.objects.create(
+            name="Map Company",
+            trusted=True,
+            created_by=self.user,
+            users=[
+                {
+                    "username" : "test_1",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "989",
+                    "dol" : ""
+                },
+                {
+                    "username" : "test_2",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "987",
+                    "dol" : ""
+                }
+            ],
+        )
+
+    def test_creation(self):
+        self.assertEqual(MappingTeam.objects.count(), 2)
+        self.assertEqual(self.team.trusted, False)
+        self.assertEqual(self.team.users, [])
+        self.assertEqual(self.team.name, "Group of Users")
+        self.assertEqual(self.team.created_by, self.user)
+        self.assertIsNotNone(self.team.date)
+
+        self.assertEqual(self.team_2.trusted, True)
+        self.assertEqual(
+            self.team_2.users,
+            [
+                {
+                    "username" : "test_1",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "989",
+                    "dol" : ""
+                },
+                {
+                    "username" : "test_2",
+                    "doj" : "2017-02-13T00:00:00Z",
+                    "uid" : "987",
+                    "dol" : ""
+                }
+            ]
+            )
+        self.assertEqual(self.team_2.name, "Map Company")
+        self.assertEqual(self.team_2.__str__(), "Map Company by test")
+
+    def test_unique_name_validation(self):
+        self.user_2 = User.objects.create_user(
+            username='test_2',
+            password='password',
+            email='a@a.com'
+            )
+        with self.assertRaises(IntegrityError):
+            MappingTeam.objects.create(
+                name="Group of Users",
+                users=[],
+                created_by=self.user_2
+                )
+
+        self.assertEqual(MappingTeam.objects.count(), 2)
+
+        with self.assertRaises(IntegrityError):
+            MappingTeam.objects.create(
+                name="Group of Users",
+                users=[],
+                created_by=self.user
+                )
+
+        with self.assertRaises(IntegrityError):
+            MappingTeam.objects.create(
+                name="Map Company",
+                trusted=True,
+                created_by=self.user_2
+                )

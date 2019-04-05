@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import json
 
 from django.contrib.gis.geos import Polygon
 from django.utils import timezone
@@ -9,7 +10,7 @@ from ..filters import Changeset
 from .modelfactories import (
     ChangesetFactory, SuspectChangesetFactory, UserFactory,
     HarmfulChangesetFactory, GoodChangesetFactory, SuspicionReasonsFactory,
-    TagFactory
+    TagFactory, MappingTeamFactory
     )
 
 
@@ -264,6 +265,61 @@ class TestChangesetFilter(TestCase):
                 {'all_tags': '{},{}'.format(tag_1.id, tag_3.id)}
                 ).qs.count(),
             0
+            )
+
+    def test_mapping_team_filter(self):
+        self.changeset = ChangesetFactory(
+            user='mapbox_user',
+            uid=3476,
+            id=9876,
+            editor='iD 2.0.2',
+            comment='My first edit',
+            )
+        self.mapbox_team = MappingTeamFactory(
+            name="Mapbox",
+            users=json.dumps([{
+                "username": "mapbox_user",
+                "doj": "2017-02-13T00:00:00Z",
+                "uid": "3476",
+                "dol": ""
+                },
+                ])
+            )
+        self.team = MappingTeamFactory(
+            users=json.dumps([{
+                "username": "test",
+                "doj": "2017-02-13T00:00:00Z",
+                "uid": "123123",
+                "dol": ""
+                }])
+            )
+        self.assertEqual(
+            ChangesetFilter({'mapping_teams': self.team.name}).qs.count(),
+            3
+            )
+        self.assertEqual(
+            ChangesetFilter({'mapping_teams': self.mapbox_team.name}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({
+                'mapping_teams': "{},{}".format(self.team.name, self.mapbox_team.name)
+                }).qs.count(),
+            4
+            )
+        self.assertEqual(
+            ChangesetFilter({'exclude_teams': self.team.name}).qs.count(),
+            2
+            )
+        self.assertEqual(
+            ChangesetFilter(
+                {'exclude_teams': "{},{}".format(self.team.name, self.mapbox_team.name)}
+                ).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'exclude_trusted_teams': 'true'}).qs.count(),
+            1
             )
 
 
