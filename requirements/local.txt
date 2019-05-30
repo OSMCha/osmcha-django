@@ -10,4 +10,4 @@ django-debug-toolbar==1.11
 sqlparse==0.3.0
 
 #shell
-bpython==0.17.1
+bpython==0.18
