@@ -3,7 +3,7 @@
 coverage==4.5.3
 Sphinx==2.0.1
 django-extensions==2.1.7
-Werkzeug==0.14.1
+Werkzeug==0.15.4
 
 # django-debug-toolbar that works with Django 1.5+
 django-debug-toolbar==1.9.1
