@@ -3,13 +3,13 @@
 django==2.0.13
 
 # Configuration
-django-environ==0.4.4
+django-environ==0.4.5
 
 # Forms
-django-braces==1.12.0
+django-braces==1.13.0
 
 # Models
-django-model-utils==3.1.1
+django-model-utils==3.1.2
 
 # For authentication with OSM
 social-auth-app-django==2.1.0
@@ -20,30 +20,30 @@ djangorestframework==3.7.7
 djangorestframework-gis==0.12
 djangorestframework-csv==2.1.0
 django-filter==1.0.4
-django-rest-swagger==2.1.2
 django-cors-headers==2.2.0
+django-rest-swagger==2.2.0
 # coreapi==2.3.0
 
 # For the persistence stores
-psycopg2-binary==2.7.4
+psycopg2-binary==2.8.2
 
 # Unicode slugification
 unicode-slugify==0.1.3
-django-autoslug==1.9.3
+django-autoslug==1.9.4
 
 # Time zones support
-pytz==2018.4
+pytz==2019.1
 
 # Celery support
 celery==3.1.25
 
 # Redis support
-django-redis==4.9.0
+django-redis==4.10.0
 redis>=2.10.5
 
 # Your custom requirements go here
-PyYAML==4.2b1
+PyYAML==5.1
 osmcha==0.4.8
 
 # git python is required by the frontend management command
-GitPython==2.1.9
+GitPython==2.1.11
