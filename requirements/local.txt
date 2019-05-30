@@ -6,7 +6,7 @@ django-extensions==2.1.7
 Werkzeug==0.15.4
 
 # django-debug-toolbar that works with Django 1.5+
-django-debug-toolbar==1.9.1
+django-debug-toolbar==1.11
 sqlparse==0.2.4
 
 #shell
