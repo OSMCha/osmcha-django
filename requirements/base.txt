@@ -46,4 +46,4 @@ PyYAML==5.1.1
 osmcha==0.4.10
 
 # git python is required by the frontend management command
-GitPython==2.1.11
+GitPython==2.1.12
