@@ -16,7 +16,7 @@ social-auth-app-django==2.1.0
 social-auth-core==1.7.0
 
 # DRF and DRF-gis
-djangorestframework==3.7.7
+djangorestframework==3.10.1
 djangorestframework-gis==0.12
 djangorestframework-csv==2.1.0
 django-filter==1.0.4
