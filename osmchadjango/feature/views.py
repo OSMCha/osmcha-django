@@ -11,7 +11,7 @@ from rest_framework.generics import (
     ListAPIView, RetrieveAPIView, get_object_or_404
     )
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route, throttle_classes
+    api_view, parser_classes, permission_classes, action, throttle_classes
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -237,7 +237,7 @@ class CheckFeature(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_harmful(self, request, changeset, slug):
         """Mark a feature as harmful. You can set the tags of the feature by sending
         a list of tag ids inside a field named 'tags' in the request data. If
@@ -266,7 +266,7 @@ class CheckFeature(ModelViewSet):
                     )
         return self.update_feature(feature, request, harmful=True)
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_good(self, request, changeset, slug):
         """Mark a feature as good. You can set the tags of the feature by sending
         a list of tag ids inside a field named 'tags' in the request data. If
@@ -335,7 +335,7 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
     # docs schema generation.
     serializer_class = FeatureTagsSerializer
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def add_tag(self, request, changeset, slug, tag_pk):
         """Add a tag to a feature. If the feature is unchecked, any user can
         add and remove tags. After the feature got checked, only staff users
@@ -370,7 +370,7 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['delete'])
+    @action(detail=True, methods=['delete'])
     def remove_tag(self, request, changeset, slug, tag_pk):
         """Remove a tag from a feature. If the feature is unchecked, any user can
         add and remove tags. After the feature got checked, only staff users
