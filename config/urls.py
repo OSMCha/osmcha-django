@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views import defaults
 from django.views import static as static_views
+from django.views.generic import TemplateView
 
 from .docs import SwaggerSchemaView
 
@@ -44,10 +45,14 @@ urlpatterns += [
 
     # api docs
     path(
-        'api-docs/',
+        'swagger/',
         SwaggerSchemaView.as_view(url_pattern=api_urls),
-        name='api-docs'
+        name='swagger'
         ),
+    path('api-docs/', TemplateView.as_view(
+        template_name='redoc.html',
+        extra_context={'schema_url':'swagger'}
+    ), name='redoc'),
 
     # include api_urls
     path(

@@ -55,10 +55,7 @@ THIRD_PARTY_APPS = (
     'rest_framework_gis',
     'rest_framework.authtoken',
     'social_django',
-    'rest_framework_swagger',
     'corsheaders',
-    'coreapi',
-    'coreschema',
     'django_filters',
 )
 

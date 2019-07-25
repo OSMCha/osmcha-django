@@ -9,7 +9,6 @@ class SwaggerSchemaView(APIView):
     permission_classes = [AllowAny]
     renderer_classes = [
         renderers.OpenAPIRenderer,
-        renderers.SwaggerUIRenderer
         ]
 
     @classmethod
@@ -21,7 +20,7 @@ class SwaggerSchemaView(APIView):
     def get(self, request):
         generator = SchemaGenerator(
             patterns=self.url_pattern,
-            title='OSMCHA API'
+            title='OSMCha API'
             )
         schema = generator.get_schema()
 

@@ -9,7 +9,7 @@ from django.conf import settings
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route, throttle_classes
+    api_view, parser_classes, permission_classes, action, throttle_classes
     )
 from rest_framework.generics import (
     ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
@@ -164,7 +164,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
     serializer_class = SuspicionReasonsChangesetSerializer
     permission_classes = (IsAdminUser,)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def add_reason_to_changesets(self, request, pk):
         """This endpoint allows us to add Suspicion Reasons to changesets in a
         batch. The use of this endpoint is restricted to staff users. The ids of
@@ -184,7 +184,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
                 )
 
-    @detail_route(methods=['delete'])
+    @action(detail=True, methods=['delete'])
     def remove_reason_from_changesets(self, request, pk):
         """This endpoint allows us to remove Suspicion Reasons from changesets
         in a batch. The use of this endpoint is restricted to staff users. The
@@ -237,7 +237,7 @@ class CheckChangeset(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_harmful(self, request, pk):
         """Mark a changeset as harmful. You can set the tags of the changeset by
         sending a list of tag ids inside a field named 'tags' in the request
@@ -266,7 +266,7 @@ class CheckChangeset(ModelViewSet):
                     )
         return self.update_changeset(changeset, request, harmful=True)
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_good(self, request, pk):
         """Mark a changeset as good. You can set the tags of the changeset by
         sending a list of tag ids inside a field named 'tags' in the request
@@ -337,7 +337,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
     # in docs schema generation.
     serializer_class = ChangesetStatsSerializer
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def add_tag(self, request, pk, tag_pk):
         """Add a tag to a changeset. If the changeset is unchecked, any user can
         add tags. After the changeset got checked, only staff users and the user
@@ -365,7 +365,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['delete'])
+    @action(detail=True, methods=['delete'])
     def remove_tag(self, request, pk, tag_pk):
         """Remove a tag from a changeset. If the changeset is unchecked, any user
         can remove tags. After the changeset got checked, only staff users and
@@ -470,7 +470,7 @@ class ChangesetCommentAPIView(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangesetCommentSerializer
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def get_comments(self, request, pk):
         "List comments received by a changeset on the OpenStreetMap website."
         self.changeset = self.get_object()
@@ -493,7 +493,7 @@ class ChangesetCommentAPIView(ModelViewSet):
                 status=status.HTTP_200_OK
                 )
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def post_comment(self, request, pk):
         "Post a comment to a changeset in the OpenStreetMap website."
         self.changeset = self.get_object()

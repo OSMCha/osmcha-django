@@ -15,7 +15,7 @@ from rest_framework.permissions import (
     )
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, detail_route
+    api_view, parser_classes, permission_classes, action
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -128,17 +128,18 @@ class SocialAuthAPIView(GenericAPIView):
 
 class MappingTeamFilter(filters.FilterSet):
     trusted = filters.BooleanFilter(
+        field_name='trusted',
         widget=BooleanWidget(),
         help_text="""Filter Mapping Teams that were trusted by a staff user."""
         )
     name = filters.CharFilter(
-        name='name',
+        field_name='name',
         lookup_expr='icontains',
         help_text="""Filter Mapping Teams by its name field using the icontains
             lookup expression."""
         )
     owner = filters.CharFilter(
-        name='created_by__username',
+        field_name='created_by__username',
         lookup_expr='exact',
         help_text="""Filter Mapping Teams by the username of the user that
             created it. This field uses the exact lookup expression."""
@@ -191,7 +192,7 @@ class MappingTeamTrustingAPIView(ModelViewSet):
             status=status.HTTP_200_OK
             )
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_trusted(self, request, pk):
         """Set a Mapping Team as trusted. You don't need to send data,
         just make an empty PUT request.
@@ -204,7 +205,7 @@ class MappingTeamTrustingAPIView(ModelViewSet):
                 )
         return self.update_team(team, request, trusted=True)
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def set_untrusted(self, request, pk):
         """Set a Mapping Team as untrusted. You don't need to send data,
         just make an empty PUT request.
