@@ -41,7 +41,7 @@ django-redis==4.10.0
 redis>=2.10.5
 
 # Your custom requirements go here
-PyYAML==5.1.1
+PyYAML==5.1.2
 osmcha==0.4.11
 
 # git python is required by the frontend management command
