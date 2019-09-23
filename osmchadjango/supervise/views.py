@@ -138,7 +138,7 @@ class AOIListChangesetsFeedView(Feed):
         return item.bbox
 
     def item_link(self, item):
-        return reverse('frontend:changeset-detail', args=[item.id])
+        return reverse('frontend:changeset-detail', args=[item.id], kwargs={'aoi':obj.id})
 
     def item_pubdate(self, item):
         return item.date
