@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.serializers import (
     ModelSerializer, Serializer, CharField, SlugRelatedField
     )
+from rest_framework.fields import ReadOnlyField
 from rest_framework.fields import SerializerMethodField
 
 from .models import MappingTeam
@@ -55,7 +56,9 @@ class SocialSignUpSerializer(Serializer):
 
 
 class MappingTeamSerializer(ModelSerializer):
+    owner = ReadOnlyField(source='created_by.username', default=None)
+
     class Meta:
         model = MappingTeam
-        fields = ('id', 'name', 'users', 'trusted')
-        read_only_fields = ('trusted',)
+        fields = ('id', 'name', 'users', 'trusted', 'owner')
+        read_only_fields = ('trusted', 'owner')

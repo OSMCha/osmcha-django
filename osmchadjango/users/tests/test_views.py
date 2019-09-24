@@ -158,6 +158,8 @@ class TestMappingTeamListCreateAPIView(APITestCase):
         self.assertTrue("name" in response.json().get('results')[0].keys())
         self.assertTrue("users" in response.json().get('results')[0].keys())
         self.assertTrue("trusted" in response.json().get('results')[0].keys())
+        self.assertTrue("owner" in response.json().get('results')[0].keys())
+        self.assertEqual(response.json().get('results')[0].get('owner'), 'test')
 
     def test_filters(self):
         self.client.login(username='test', password='password')
