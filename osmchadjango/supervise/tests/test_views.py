@@ -754,6 +754,11 @@ class TestAoIChangesetListView(APITestCase):
         rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
+        link = [i for i in items[0].getchildren() if i.tag == 'link'][0]
+        self.assertIn(
+            "?aoi=",
+            link.text
+            )
         self.assertEqual(
             title.text,
             'Changesets of Area of Interest {} by {}'.format(
