@@ -1,6 +1,6 @@
 # Local development dependencies go here
 -r test.txt
-django-extensions==2.2.1
+django-extensions==2.2.2
 coverage==4.5.4
 Sphinx==2.2.0
 Werkzeug==0.15.5
