@@ -118,6 +118,7 @@ class AOIListChangesetsFeedView(Feed):
     """
 
     def get_object(self, request, pk):
+        self.feed_id = pk
         return AreaOfInterest.objects.get(pk=pk)
 
     def title(self, obj):
@@ -138,7 +139,10 @@ class AOIListChangesetsFeedView(Feed):
         return item.bbox
 
     def item_link(self, item):
-        return reverse('frontend:changeset-detail', args=[item.id])
+        return '{}{}'.format(reverse(
+            'frontend:changeset-detail',
+            args=[item.id]
+            ), '?aoi={}'.format(self.feed_id))
 
     def item_pubdate(self, item):
         return item.date
