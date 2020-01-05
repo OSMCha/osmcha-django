@@ -1,15 +1,22 @@
 language: python
-dist: trusty
+dist: xenial
 sudo: false
 python:
+  - "3.7"
   - "3.6"
   - "3.5"
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.5"
   apt:
     packages:
-    - postgresql-9.4-postgis-2.3
+    - postgresql-9.5-postgis-2.4
+    - binutils
+    - libproj-dev
+    - python3-gdal
+    - libgeos-dev
+    - libyaml-dev
+    - libgnutls28-dev
 
 install:
   - "pip install coveralls"
