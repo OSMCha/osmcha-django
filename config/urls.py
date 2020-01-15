@@ -2,14 +2,16 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.urls import include, path
+from django.urls import include, path, re_path
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.views import defaults
 from django.views import static as static_views
-from django.views.generic import TemplateView
 
-from .docs import SwaggerSchemaView
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
 
 API_BASE_URL = 'api/v1/'
 
@@ -18,7 +20,8 @@ urlpatterns = []
 # If static files are not intercepted by the web-server, serve them with the dev-server:
 if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
     urlpatterns += [
-        path('static/<path>',
+        path(
+            'static/<path>',
             static_views.serve,
             {'document_root': settings.STATIC_ROOT}
             ),
@@ -39,20 +42,33 @@ api_urls = [
         ),
     ]
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="OSMCha API",
+        default_version='v1',
+        description="OSMCha API Documentation",
+        contact=openapi.Contact(email="osmcha-dev@openstreetmap.org"),
+        license=openapi.License(name="Data © OpenStreetMap Contributors, ODBL license"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
 urlpatterns += [
     # Django Admin
     path('admin/', admin.site.urls),
 
     # api docs
-    path(
-        'swagger/',
-        SwaggerSchemaView.as_view(url_pattern=api_urls),
-        name='swagger'
+    re_path(
+        r'^swagger(?P<format>\.json|\.yaml)$',
+        schema_view.without_ui(cache_timeout=0),
+        name='schema-json'
         ),
-    path('api-docs/', TemplateView.as_view(
-        template_name='redoc.html',
-        extra_context={'schema_url':'swagger'}
-    ), name='redoc'),
+    re_path(
+        r'^api-docs/$',
+        schema_view.with_ui('swagger', cache_timeout=0),
+        name='schema-swagger-ui'
+        ),
 
     # include api_urls
     path(

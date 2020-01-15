@@ -57,6 +57,7 @@ THIRD_PARTY_APPS = (
     'social_django',
     'corsheaders',
     'django_filters',
+    'drf_yasg',
 )
 
 # Apps specific for this project go here.
