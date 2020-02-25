@@ -63,7 +63,7 @@ class TestCommentChangesetAPIView(APITestCase):
         message = """Hello! I found an error in your edit
             ---
             #REVIEWED_BAD #OSMCHA
-            Published using OSMCha: https://osmcha.mapbox.com/changesets/31982803
+            Published using OSMCha: https://osmcha.org/changesets/31982803
             """
         response = self.client.post(
             reverse('changeset:comment', args=[self.harmful_changeset.id]),
@@ -92,7 +92,7 @@ class TestCommentChangesetAPIView(APITestCase):
         message = """Hello! Awesome edit! & :~) óã
             ---
             #REVIEWED_GOOD #OSMCHA
-            Published using OSMCha: https://osmcha.mapbox.com/changesets/31982804
+            Published using OSMCha: https://osmcha.org/changesets/31982804
             """
         response = self.client.post(
             reverse('changeset:comment', args=[self.good_changeset.id]),
@@ -123,7 +123,7 @@ class TestCommentChangesetAPIView(APITestCase):
         self.client.login(username=self.user.username, password='password')
         comment = {'comment': 'Hello! Do you know this area?'}
         message = """Hello! Do you know this area?
-            ---\n            \n            Published using OSMCha: https://osmcha.mapbox.com/changesets/31982802
+            ---\n            \n            Published using OSMCha: https://osmcha.org/changesets/31982802
             """
         response = self.client.post(
             reverse('changeset:comment', args=[self.changeset.id]),

@@ -537,7 +537,7 @@ class ChangesetCommentAPIView(ModelViewSet):
         return """{}
             ---
             {}
-            Published using OSMCha: https://osmcha.mapbox.com/changesets/{}
+            Published using OSMCha: https://osmcha.org/changesets/{}
             """.format(message, status, self.changeset.id)
 
 
