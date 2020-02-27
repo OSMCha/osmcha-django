@@ -159,10 +159,10 @@ Instances
 
 We have some instances running ``osmcha-django``:
 
-The main instance is https://osmcha.mapbox.com/. You can check the API
-documentation at https://osmcha.mapbox.com/api-docs/.
+The main instance is https://osmcha.org/. You can check the API
+documentation at https://osmcha.org/api-docs/.
 
-Furthermore, we have a test instance running at https://osmcha-django-staging.tilestream.net/.
+Furthermore, we have a test instance running at http://osmcha-org-staging.osmcha.org/.
 
 Deployment
 ------------
