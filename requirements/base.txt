@@ -13,7 +13,7 @@ django-model-utils==4.0.0
 
 # For authentication with OSM
 social-auth-app-django==2.1.0
-social-auth-core==1.7.0
+social-auth-core==3.3.0
 
 # DRF and DRF-gis
 djangorestframework==3.10.3
