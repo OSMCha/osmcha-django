@@ -3,6 +3,8 @@ Change Log
 
 Log of changes since the 2.0 version
 
+Check https://github.com/willemarcel/osmcha-django/releases for recent updates.
+
 [4.0.0] - 2018-10-18
 
 - Change feature model to be a JSONField of the Changeset Model
