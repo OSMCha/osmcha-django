@@ -647,11 +647,34 @@ class TestAoIChangesetListView(APITestCase):
                 'hide_whitelist': 'True'
                 },
             )
+        user_2 = User.objects.create_user(
+            username='user_2',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=user_2,
+            provider='openstreetmap',
+            uid='42344',
+            )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
+        UserWhitelistFactory(user=user_2, whitelist_user='other_user')
+        UserWhitelistFactory(user=user_2, whitelist_user='another_user')
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 2)
+        self.assertEqual(len(response.data['features']), 2)
+        self.client.logout()
+
+        # test with a second user to assure the results of the hide_whitelist filter
+        # are the same, it doesn't matter the user that is accessing
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
@@ -669,12 +692,35 @@ class TestAoIChangesetListView(APITestCase):
                 'hide_whitelist': 'False'
                 },
             )
+        user_2 = User.objects.create_user(
+            username='user_2',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=user_2,
+            provider='openstreetmap',
+            uid='42344',
+            )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
+        UserWhitelistFactory(user=user_2, whitelist_user='other_user')
+        UserWhitelistFactory(user=user_2, whitelist_user='another_user')
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
         self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(len(response.data['features']), 3)
+        self.client.logout()
+
+        # test with a second user to assure the results of the hide_whitelist=False
+        # filter are the same, it doesn't matter the user that is accessing
+        self.client.login(username=user_2.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -696,10 +742,41 @@ class TestAoIChangesetListView(APITestCase):
             uid='123123',
             added_by=self.user,
             )
+        user_2 = User.objects.create_user(
+            username='user_2',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=user_2,
+            provider='openstreetmap',
+            uid='42344',
+            )
+        BlacklistedUser.objects.create(
+            username='other_user',
+            uid='333',
+            added_by=user_2,
+            )
+        BlacklistedUser.objects.create(
+            username='another_user',
+            uid='4333',
+            added_by=user_2,
+            )
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
         self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(len(response.data['features']), 1)
+        self.client.logout()
+
+        # test with a second user to assure the results of the blacklist filter
+        # are the same, it doesn't matter the user that is accessing
+        self.client.login(username=user_2.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -721,11 +798,40 @@ class TestAoIChangesetListView(APITestCase):
             uid='123123',
             added_by=self.user,
             )
+        user_2 = User.objects.create_user(
+            username='user_2',
+            email='b@a.com',
+            password='password'
+            )
+        UserSocialAuth.objects.create(
+            user=user_2,
+            provider='openstreetmap',
+            uid='42344',
+            )
+        BlacklistedUser.objects.create(
+            username='other_user',
+            uid='333',
+            added_by=user_2,
+            )
+        BlacklistedUser.objects.create(
+            username='another_user',
+            uid='4333',
+            added_by=user_2,
+            )
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
         self.client.login(username=self.user.username, password='password')
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 3)
+        self.assertEqual(len(response.data['features']), 3)
+        self.client.logout()
+
+        self.client.login(username=user_2.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -746,7 +852,6 @@ class TestAoIChangesetListView(APITestCase):
             user='çãoéí',
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
-        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
@@ -781,7 +886,6 @@ class TestAoIChangesetListView(APITestCase):
             }
         self.aoi.save()
 
-        self.client.login(username=self.user.username, password='password')
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
@@ -796,6 +900,74 @@ class TestAoIChangesetListView(APITestCase):
                 )
             )
         self.assertEqual(len(items), 1)
+
+    def test_feed_view_of_aoi_with_blacklist_filter(self):
+        BlacklistedUser.objects.create(
+            username='test_1',
+            uid='123123',
+            added_by=self.user,
+            )
+        ChangesetFactory(
+            user="test_2",
+            editor='JOSM 1.5',
+            bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10)))
+            )
+        HarmfulChangesetFactory(
+            user="test_1",
+            editor='JOSM 1.5',
+            bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
+            )
+        self.aoi.name = ''
+        self.aoi.filters = {
+            'editor': 'JOSM 1.5',
+            'blacklist': 'True',
+            }
+        self.aoi.save()
+
+        response = self.client.get(
+            reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        title = [i for i in rss_data if i.tag == 'title'][0]
+        items = [i for i in rss_data if i.tag == 'item']
+        self.assertEqual(
+            title.text,
+            'Changesets of Area of Interest Unnamed by {}'.format(
+                self.aoi.user.username
+                )
+            )
+        self.assertEqual(len(items), 1)
+
+    def test_feed_view_of_aoi_with_hide_whitelist_filter(self):
+        aoi = AreaOfInterest.objects.create(
+            name='Another place in the world',
+            user=self.user,
+            filters={
+                'editor': 'Potlatch 2',
+                'hide_whitelist': 'True'
+                },
+            )
+        UserWhitelistFactory(user=self.user, whitelist_user='test')
+        ChangesetFactory()
+        ChangesetFactory(user='other_user', uid='333')
+        ChangesetFactory(user='another_user', uid='4333')
+
+
+        response = self.client.get(
+            reverse('supervise:aoi-changesets-feed', args=[aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        title = [i for i in rss_data if i.tag == 'title'][0]
+        items = [i for i in rss_data if i.tag == 'item']
+        self.assertEqual(
+            title.text,
+            'Changesets of Area of Interest Another place in the world by {}'.format(
+                self.aoi.user.username
+                )
+            )
+        self.assertEqual(len(items), 2)
 
 
 class TestAoIStatsAPIViews(APITestCase):

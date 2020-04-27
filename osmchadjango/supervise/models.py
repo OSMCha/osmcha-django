@@ -2,6 +2,7 @@ import uuid
 
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
+from django.http.request import HttpRequest
 
 from osmchadjango.changeset.filters import ChangesetFilter
 from osmchadjango.feature.filters import FeatureFilter
@@ -22,8 +23,11 @@ class AreaOfInterest(models.Model):
 
     def changesets(self, request=None):
         """Return the changesets that match the filters, including the geometry
-        of the AreaOfInterest.
+        of the AreaOfInterest. Fake a request object in order to execute the
+        query with the user that created the AoI, not with the request user.
         """
+        request = HttpRequest
+        request.user = self.user
         qs = ChangesetFilter(self.filters, request=request).qs
         if self.geometry is not None:
             return qs.filter(
