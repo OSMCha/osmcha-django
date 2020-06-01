@@ -820,5 +820,5 @@ def add_reasons_to_changeset(changeset, reasons):
         # since what we wanted inserted has already been done through
         # a separate web request.
         print('IntegrityError with changeset %s' % changeset.id)
-    except ValueError as e:
+    except ValueError:
         print('ValueError with changeset %s' % changeset.id)

@@ -40,6 +40,10 @@ api_urls = [
         '{}'.format(API_BASE_URL),
         include("osmchadjango.users.urls", namespace="users")
         ),
+    path(
+        '{}'.format(API_BASE_URL),
+        include("osmchadjango.roulette_integration.urls", namespace="challenge")
+        ),
     ]
 
 schema_view = get_schema_view(

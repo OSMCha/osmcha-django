@@ -67,6 +67,7 @@ LOCAL_APPS = (
     'osmchadjango.feature',
     'osmchadjango.supervise',
     'osmchadjango.frontend',
+    'osmchadjango.roulette_integration',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
