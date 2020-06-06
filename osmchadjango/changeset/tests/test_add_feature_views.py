@@ -1,6 +1,9 @@
 import json
 from datetime import datetime
+from unittest import mock
+import requests
 
+from django.test import override_settings
 from django.urls import reverse
 from django.conf import settings
 
@@ -9,6 +12,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
 from ...users.models import User
+from ...roulette_integration.models import ChallengeIntegration
+from ...roulette_integration.utils import format_challenge_task_payload
+
 from ..models import SuspicionReasons, Tag, Changeset
 from .modelfactories import ChangesetFactory
 
@@ -417,3 +423,38 @@ class TestCreateFeatureV1(APITestCase):
 
         self.assertEqual(len(changeset.new_features[0].get('reasons')), 3)
         self.assertEqual(SuspicionReasons.objects.count(), 3)
+
+    @override_settings(MAP_ROULETTE_API_KEY='xyz')
+    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org')
+    @mock.patch.object(requests, 'post')
+    def test_maproulette_integration(self, mocked_post):
+        reason = SuspicionReasons.objects.create(name="new mapper edits")
+        integration = ChallengeIntegration.objects.create(challenge_id=1234, user=self.user)
+        integration.reasons.add(reason)
+
+        class MockResponse():
+            status_code = 200
+        mocked_post.return_value = MockResponse
+
+        self.client.post(
+            reverse('changeset:add-feature-v1'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        mocked_post.assert_called_with(
+            'https://maproulette.org/task',
+            headers={
+                "accept": "application/json",
+                "apiKey": "xyz"
+                },
+            data=format_challenge_task_payload(
+                {
+                    "geometry": self.fixture.get('geometry'),
+                    "properties": self.fixture.get('properties')
+                },
+                1234,
+                169218447,
+                ["new mapper edits", "moved an object a significant amount"]
+                )
+        )

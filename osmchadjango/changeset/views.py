@@ -36,6 +36,8 @@ from .serializers import (
     )
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
+from ..roulette_integration.utils import push_feature_to_maproulette
+from ..roulette_integration.models import ChallengeIntegration
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
@@ -748,6 +750,7 @@ def add_feature_v1(request):
                 reasons.add(reason)
                 if reason.is_visible:
                     has_visible_features = True
+
             except (ValueError, SuspicionReasons.DoesNotExist):
                 reason, created = SuspicionReasons.objects.get_or_create(
                     name=suspicion
@@ -755,6 +758,17 @@ def add_feature_v1(request):
                 reasons.add(reason)
                 if reason.is_visible:
                     has_visible_features = True
+        challenges = ChallengeIntegration.objects.filter(active=True).filter(reasons__in=reasons)
+        for challenge in challenges:
+            push_feature_to_maproulette(
+                {
+                    "geometry": request.data.get('geometry'),
+                    "properties": request.data.get('properties')
+                },
+                challenge.challenge_id,
+                feature.get('osm_id'),
+                [r.name for r in reasons]
+                )
 
     changeset_defaults = {
         'is_suspect': has_visible_features
