@@ -1,6 +1,7 @@
+import sys
 import json
 from datetime import datetime
-from unittest import mock
+from unittest import mock, skipIf
 import requests
 
 from django.test import override_settings
@@ -424,10 +425,174 @@ class TestCreateFeatureV1(APITestCase):
         self.assertEqual(len(changeset.new_features[0].get('reasons')), 3)
         self.assertEqual(SuspicionReasons.objects.count(), 3)
 
+    @skipIf(
+        sys.version_info < (3,6),
+        "Python 3.5 has a different dict ordering that makes this test to fail"
+        )
     @override_settings(MAP_ROULETTE_API_KEY='xyz')
-    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org')
+    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org/api/v2')
     @mock.patch.object(requests, 'post')
     def test_maproulette_integration(self, mocked_post):
+        """Only one Challenge and only one suspicion reason assigned to it,
+            so it should trigger only one request.
+        """
+        reason_1 = SuspicionReasons.objects.create(name="new mapper edits")
+        integration_1 = ChallengeIntegration.objects.create(
+            challenge_id=1234, user=self.user
+            )
+        integration_1.reasons.add(reason_1)
+
+        class MockResponse():
+            status_code = 200
+        mocked_post.return_value = MockResponse
+
+        self.client.post(
+            reverse('changeset:add-feature-v1'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        mocked_post.assert_called_once_with(
+            'https://maproulette.org/api/v2/task',
+            headers={
+                "Content-Type": "application/json",
+                "apiKey": "xyz"
+                },
+            data=format_challenge_task_payload(
+                {
+                    "type": "Feature",
+                    "geometry": self.fixture.get('geometry'),
+                    "properties": self.fixture.get('properties')
+                },
+                1234,
+                169218447,
+                ["new mapper edits", "moved an object a significant amount"]
+                )
+        )
+
+    @skipIf(
+        sys.version_info < (3,6),
+        "Python 3.5 has a different dict ordering that makes this test to fail"
+        )
+    @override_settings(MAP_ROULETTE_API_KEY='xyz')
+    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org/api/v2')
+    @mock.patch.object(requests, 'post')
+    def test_maproulette_integration_with_two_reasons(self, mocked_post):
+        """Two suspicion reasons assigned to one Challenge,
+            so it should trigger only one request.
+        """
+        reason_1 = SuspicionReasons.objects.create(name="new mapper edits")
+        reason_2 = SuspicionReasons.objects.create(
+            name="moved an object a significant amount"
+            )
+        integration_1 = ChallengeIntegration.objects.create(
+            challenge_id=1234, user=self.user
+            )
+        integration_1.reasons.add(reason_1)
+        integration_1.reasons.add(reason_2)
+
+        class MockResponse():
+            status_code = 200
+        mocked_post.return_value = MockResponse
+
+        self.client.post(
+            reverse('changeset:add-feature-v1'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        mocked_post.assert_called_once_with(
+            'https://maproulette.org/api/v2/task',
+            headers={
+                "Content-Type": "application/json",
+                "apiKey": "xyz"
+                },
+            data=format_challenge_task_payload(
+                {
+                    "type": "Feature",
+                    "geometry": self.fixture.get('geometry'),
+                    "properties": self.fixture.get('properties')
+                },
+                1234,
+                169218447,
+                ["new mapper edits", "moved an object a significant amount"]
+                )
+        )
+
+    @skipIf(
+        sys.version_info < (3,6),
+        "Python 3.5 has a different dict ordering that makes this test to fail"
+        )
+    @override_settings(MAP_ROULETTE_API_KEY='xyz')
+    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org/api/v2')
+    @mock.patch.object(requests, 'post')
+    def test_maproulette_integration_called_twice(self, mocked_post):
+        """If a feature has two suspicion reasons and each of them are assigned
+        to different Challenges, it should make two requests to MapRoulette API.
+        """
+        reason_1 = SuspicionReasons.objects.create(name="new mapper edits")
+        reason_2 = SuspicionReasons.objects.create(
+            name="moved an object a significant amount"
+            )
+        integration_1 = ChallengeIntegration.objects.create(
+            challenge_id=1234, user=self.user
+            )
+        integration_1.reasons.add(reason_1)
+        integration_2 = ChallengeIntegration.objects.create(
+            challenge_id=4321, user=self.user
+            )
+        integration_2.reasons.add(reason_2)
+
+        class MockResponse():
+            status_code = 200
+        mocked_post.return_value = MockResponse
+
+        self.client.post(
+            reverse('changeset:add-feature-v1'),
+            data=json.dumps(self.fixture),
+            content_type="application/json",
+            HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
+            )
+        calls = [
+            mock.call(
+                'https://maproulette.org/api/v2/task',
+                headers={
+                    "Content-Type": "application/json",
+                    "apiKey": "xyz"
+                    },
+                data=format_challenge_task_payload(
+                    {
+                        "type": "Feature",
+                        "geometry": self.fixture.get('geometry'),
+                        "properties": self.fixture.get('properties')
+                    },
+                    4321,
+                    169218447,
+                    ["moved an object a significant amount", "new mapper edits"]
+                    )
+            ),
+            mock.call(
+                'https://maproulette.org/api/v2/task',
+                headers={
+                    "Content-Type": "application/json",
+                    "apiKey": "xyz"
+                    },
+                data=format_challenge_task_payload(
+                    {
+                        "type": "Feature",
+                        "geometry": self.fixture.get('geometry'),
+                        "properties": self.fixture.get('properties')
+                    },
+                    1234,
+                    169218447,
+                    ["moved an object a significant amount", "new mapper edits"]
+                    )
+            )
+        ]
+        mocked_post.assert_has_calls(calls, any_order=True )
+
+    @mock.patch.object(requests, 'post')
+    def test_maproulette_integration_not_called(self, mocked_post):
         reason = SuspicionReasons.objects.create(name="new mapper edits")
         integration = ChallengeIntegration.objects.create(challenge_id=1234, user=self.user)
         integration.reasons.add(reason)
@@ -442,19 +607,4 @@ class TestCreateFeatureV1(APITestCase):
             content_type="application/json",
             HTTP_AUTHORIZATION='Token {}'.format(self.token.key)
             )
-        mocked_post.assert_called_with(
-            'https://maproulette.org/task',
-            headers={
-                "accept": "application/json",
-                "apiKey": "xyz"
-                },
-            data=format_challenge_task_payload(
-                {
-                    "geometry": self.fixture.get('geometry'),
-                    "properties": self.fixture.get('properties')
-                },
-                1234,
-                169218447,
-                ["new mapper edits", "moved an object a significant amount"]
-                )
-        )
+        mocked_post.assert_not_called()

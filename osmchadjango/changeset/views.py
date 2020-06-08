@@ -758,10 +758,14 @@ def add_feature_v1(request):
                 reasons.add(reason)
                 if reason.is_visible:
                     has_visible_features = True
-        challenges = ChallengeIntegration.objects.filter(active=True).filter(reasons__in=reasons)
+
+        challenges = ChallengeIntegration.objects.filter(
+            active=True
+            ).filter(reasons__in=reasons).distinct()
         for challenge in challenges:
             push_feature_to_maproulette(
                 {
+                    "type": "Feature",
                     "geometry": request.data.get('geometry'),
                     "properties": request.data.get('properties')
                 },

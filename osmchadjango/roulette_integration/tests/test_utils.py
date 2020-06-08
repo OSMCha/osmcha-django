@@ -56,7 +56,7 @@ class TestFormatChallengePayload(TestCase):
             )
 
     @override_settings(MAP_ROULETTE_API_KEY='xyz')
-    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org')
+    @override_settings(MAP_ROULETTE_API_URL='https://maproulette.org/api/v2')
     @mock.patch.object(requests, 'post')
     def test_push_feature_to_maproulette(self, mocked_post):
         class MockResponse():
@@ -65,9 +65,9 @@ class TestFormatChallengePayload(TestCase):
 
         push_feature_to_maproulette(self.feature, 1234, 987)
         mocked_post.assert_called_with(
-            'https://maproulette.org/task',
+            'https://maproulette.org/api/v2/task',
             headers={
-                "accept": "application/json",
+                "Content-Type": "application/json",
                 "apiKey": "xyz"
                 },
             data=format_challenge_task_payload(self.feature, 1234, 987)

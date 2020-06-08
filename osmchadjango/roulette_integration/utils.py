@@ -39,7 +39,7 @@ def push_feature_to_maproulette(feature, challenge_id, name, reasons=[]):
             feature, challenge_id, name, reasons
             )
         headers = {
-            "accept": "application/json",
+            "Content-Type": "application/json",
             "apiKey": settings.MAP_ROULETTE_API_KEY
             }
         return requests.post(
