@@ -67,6 +67,7 @@ LOCAL_APPS = (
     'osmchadjango.feature',
     'osmchadjango.supervise',
     'osmchadjango.frontend',
+    'osmchadjango.roulette_integration',
 )
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
@@ -368,6 +369,10 @@ CACHALOT_ENABLED = True
 # -----------------------------------------------------------------------------
 # Version or any valid git branch tag of front-end code
 OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
+
+# MapRoulette API CONFIG
+MAP_ROULETTE_API_KEY = env('MAP_ROULETTE_API_KEY', default=None)
+MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.org/api/v2/")
 
 # Define the URL to where the user will be redirected after the authentication
 # in OSM website
