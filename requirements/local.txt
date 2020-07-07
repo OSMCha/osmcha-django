@@ -1,7 +1,7 @@
 # Local development dependencies go here
 -r test.txt
 django-extensions==3.0.2
-coverage==5.1
+coverage==5.2
 Sphinx==3.1.2
 Werkzeug==1.0.1
 
