@@ -82,6 +82,7 @@ class Changeset(models.Model):
         User, on_delete=models.SET_NULL, null=True, blank=True, db_index=True
         )
     check_date = models.DateTimeField(null=True, blank=True)
+    metadata = JSONField(default=dict)
 
     def __str__(self):
         return '%s' % self.id

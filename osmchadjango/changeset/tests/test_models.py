@@ -133,7 +133,6 @@ class TestChangesetModel(TestCase):
     def test_empty_new_feature_field(self):
         self.assertEqual(self.changeset.new_features, [])
 
-
     def test_new_feature_field(self):
         json_content = [
             {"osm_id": 123, "url": "node-123", "reasons": [1, 2], },
@@ -145,6 +144,12 @@ class TestChangesetModel(TestCase):
             )
         self.assertEqual(Changeset.objects.all().count(), 2)
         self.assertEqual(changeset.new_features, json_content)
+
+    def test_metadata_field(self):
+        self.assertEqual(
+            self.changeset.metadata,
+            {'changesets_count': 99, 'host': 'https://ideditor.netlify.app'}
+            )
 
 
 class TestChangesetModelOrdering(TestCase):

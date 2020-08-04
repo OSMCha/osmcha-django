@@ -43,6 +43,7 @@ class ChangesetFactory(factory.django.DjangoModelFactory):
         (-71.0048652, 44.2430624), (-71.0646843, 44.2430624),
         (-71.0646843, 44.2371354)
         ])
+    metadata = {'changesets_count': 99, 'host': 'https://ideditor.netlify.app'}
 
 
 class SuspectChangesetFactory(ChangesetFactory):
