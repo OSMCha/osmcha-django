@@ -225,6 +225,18 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
 
+    def test_metadata_filters(self):
+        """Test filters by metadata field in the changeset list view.
+        """
+        self.client.login(username=self.user.username, password='password')
+
+        response = self.client.get(self.url, {'metadata': 'changesets_count__min=100'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+        response = self.client.get(self.url, {'metadata': 'changesets_count__min=99', 'is_suspect': True})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 26)
+
     def test_csv_renderer(self):
         self.assertIn(
             PaginatedCSVRenderer,

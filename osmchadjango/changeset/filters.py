@@ -238,6 +238,37 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets that have ALL the Tags of a list. Inform
             the Tags ids separated by commas."""
         )
+    metadata = filters.CharFilter(
+        field_name='metadata',
+        method='filter_metadata',
+        help_text="""Filter changesets by the metadata fields."""
+        )
+
+    def filter_metadata(self, queryset, name, value):
+        values = [
+            [i.strip() for i in t.split('=')]  # remove leading and ending spaces
+            for t in value.split(',')
+            if len(t.split('=')) == 2
+            ]
+        for query in values:
+            if '__' in query[0]:
+                # handle both int values and other lookup options like __exact or __contains
+                key = 'metadata__{}'.format(
+                    query[0].replace('__min', '__gte').replace('__max', '__lte')
+                    )
+                try:
+                    value = int(query[1])
+                except ValueError:
+                    value = query[1]
+            elif query[1] == '*':
+                key = 'metadata__has_key'
+                value = query[0]
+            else:
+                # default option is to use the icontains condition
+                key = key = 'metadata__{}__icontains'.format(query[0])
+                value = query[1]
+            queryset = queryset.filter(**{key: value})
+        return queryset
 
     def filter_whitelist(self, queryset, name, value):
         if value:
@@ -263,7 +294,7 @@ class ChangesetFilter(GeoFilterSet):
         users = []
         for i in teams.values_list('users', flat=True):
             values = i
-            if type(values) in[str, bytes, bytearray]:
+            if type(values) in [str, bytes, bytearray]:
                 values = json.loads(values)
             for e in values:
                 users.append(e.get('username'))

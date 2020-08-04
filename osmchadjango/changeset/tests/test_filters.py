@@ -27,17 +27,20 @@ class TestChangesetFilter(TestCase):
             user='suspect_user',
             uid='343',
             source='Bing',
-            imagery_used='Bing'
+            imagery_used='Bing',
+            metadata={'changesets_count': 50, 'host': 'https://www.openstreetmap.org/edit'}
             )
         self.harmful_changeset = HarmfulChangesetFactory(
             check_user=self.user,
             editor='JOSM 1.5',
             powerfull_editor=True,
-            imagery_used='Mapbox, Mapillary'
+            imagery_used='Mapbox, Mapillary',
+            metadata={'changesets_count': 500, 'host': 'https://www.openstreetmap.org/edit'}
             )
         self.good_changeset = GoodChangesetFactory(
             check_user=self.user_2,
-            source='Mapbox'
+            source='Mapbox',
+            metadata={'changesets_count': 10, 'locale': 'en'}
             )
         self.reason_1 = SuspicionReasonsFactory(name='possible import')
         self.reason_1.changesets.add(self.suspect_changeset)
@@ -321,6 +324,34 @@ class TestChangesetFilter(TestCase):
             ChangesetFilter({'exclude_trusted_teams': 'true'}).qs.count(),
             1
             )
+
+    def test_metadata_filter(self):
+        self.assertEqual(
+            ChangesetFilter({'metadata': 'changesets_count__min=101,host=openstreetmap.org'}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'metadata': 'changesets_count__min=101 , host=openstreetmap.org '}).qs.count(),
+            1
+            )
+        self.assertEqual(
+            ChangesetFilter({'metadata': 'changesets_count__max=99'}).qs.count(),
+            3
+            )
+        self.assertEqual(ChangesetFilter({'metadata': 'host=*'}).qs.count(), 3)
+        self.assertEqual(ChangesetFilter({'metadata': 'host__exact=.org'}).qs.count(), 0)
+        self.assertEqual(
+            ChangesetFilter({'metadata': 'host__exact=https://www.openstreetmap.org/edit'}).qs.count(),
+            2
+            )
+        self.assertEqual(ChangesetFilter({'metadata': 'locale=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'metadata': 'locale=* '}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'metadata': 'locale=en'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'metadata': 'locale=pt'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'metadata': 'wrongtag=pt'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'metadata': 'wrongtag=*'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'metadata': 'wrongtag'}).qs.count(), 4)
+        self.assertEqual(ChangesetFilter({'metadata': 'wrongtag__min=abc'}).qs.count(), 0)
 
 
 class TestChangesetAreaLowerThan(TestCase):
