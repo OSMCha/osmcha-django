@@ -1,5 +1,6 @@
 import json
-from unittest import mock
+import sys
+from unittest import mock, skipIf
 import requests
 
 from django.test import TestCase, override_settings
@@ -47,6 +48,10 @@ class TestFormatChallengePayload(TestCase):
                 ]}
             }
 
+    @skipIf(
+        sys.version_info < (3,6),
+        "Python 3.5 has a different dict ordering that makes this test to fail"
+        )
     def test_format_challenge_task_payload(self):
         self.assertEqual(
             format_challenge_task_payload(
