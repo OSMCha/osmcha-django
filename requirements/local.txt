@@ -6,7 +6,7 @@ Sphinx==3.2.0
 Werkzeug==1.0.1
 
 # django-debug-toolbar that works with Django 1.5+
-django-debug-toolbar==2.1
+django-debug-toolbar==3.1.1
 sqlparse==0.3.1
 
 #shell
