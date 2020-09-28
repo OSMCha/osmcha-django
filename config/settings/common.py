@@ -347,7 +347,7 @@ REST_FRAMEWORK = {
     }
 
 # Allow cross domain requests
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS = True
 
 # SWAGGER SETTINGS
 SWAGGER_SETTINGS = {
