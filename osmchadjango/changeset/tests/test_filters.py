@@ -28,17 +28,20 @@ class TestChangesetFilter(TestCase):
             uid='343',
             source='Bing',
             imagery_used='Bing',
+            comments_count=0,
             metadata={'changesets_count': 50, 'host': 'https://www.openstreetmap.org/edit'}
             )
         self.harmful_changeset = HarmfulChangesetFactory(
             check_user=self.user,
             editor='JOSM 1.5',
             powerfull_editor=True,
+            comments_count=10,
             imagery_used='Mapbox, Mapillary',
             metadata={'changesets_count': 500, 'host': 'https://www.openstreetmap.org/edit'}
             )
         self.good_changeset = GoodChangesetFactory(
             check_user=self.user_2,
+            comments_count=5,
             source='Mapbox',
             metadata={'changesets_count': 10, 'locale': 'en'}
             )
@@ -113,6 +116,11 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'delete__lte': 10}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'modify__gte': 30}).qs.count(), 0)
         self.assertEqual(ChangesetFilter({'modify__lte': 10}).qs.count(), 4)
+        self.assertEqual(ChangesetFilter({'comments_count__lte': 0}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'comments_count__lte': 1}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'comments_count__gte': 1}).qs.count(), 3)
+        self.assertEqual(ChangesetFilter({'comments_count__gte': 5}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'comments_count__gte': 11}).qs.count(), 0)
 
     def test_date_field_filter(self):
         tomorrow = date.today() + timedelta(days=1)

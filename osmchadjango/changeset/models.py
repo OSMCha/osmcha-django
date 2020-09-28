@@ -64,6 +64,7 @@ class Changeset(models.Model):
     editor = models.CharField(max_length=255, blank=True, null=True, db_index=True)
     powerfull_editor = models.BooleanField(_('Powerfull Editor'), default=False)
     comment = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    comments_count = models.IntegerField(null=True, db_index=True)
     source = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
     imagery_used = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
     date = models.DateTimeField(null=True, db_index=True)

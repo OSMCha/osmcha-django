@@ -159,6 +159,18 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets whose number of elements deleted are
             lower than or equal to a number."""
         )
+    comments_count__gte = filters.NumberFilter(
+        field_name='comments_count',
+        lookup_expr='gte',
+        help_text="""Filter changesets whose number of comments are greater than
+            or equal to a number."""
+        )
+    comments_count__lte = filters.NumberFilter(
+        field_name='comments_count',
+        lookup_expr='lte',
+        help_text="""Filter changesets whose number of comments are lower than
+            or equal to a number."""
+        )
     date__gte = filters.DateTimeFilter(
         field_name='date',
         lookup_expr='gte',
@@ -379,7 +391,8 @@ class ChangesetFilter(GeoFilterSet):
         allowed_fields = [
             'date', '-date', 'id', 'check_date', '-check_date', 'create',
             'modify', 'delete', '-create', '-modify', '-delete',
-            'number_reasons', '-number_reasons'
+            'number_reasons', '-number_reasons', 'comments_count',
+            '-comments_count'
             ]
         if value in allowed_fields:
             if value in ['number_reasons', '-number_reasons']:

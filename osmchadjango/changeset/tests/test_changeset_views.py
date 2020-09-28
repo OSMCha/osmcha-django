@@ -237,6 +237,24 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 26)
 
+    def test_comments_count_filters(self):
+        """Test filters by comments_count field in the changeset list view.
+        """
+        self.client.login(username=self.user.username, password='password')
+
+        response = self.client.get(self.url, {'comments_count__gte': 2})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+        response = self.client.get(self.url, {'comments_count__gte': 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+        response = self.client.get(self.url, {'comments_count__lte': 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 52)
+        response = self.client.get(self.url, {'comments_count__lte': 0})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 0)
+
     def test_csv_renderer(self):
         self.assertIn(
             PaginatedCSVRenderer,
@@ -327,7 +345,9 @@ class TestChangesetListViewOrdering(APITestCase):
             uid='123123',
             )
         self.client.login(username=self.user.username, password='password')
-        HarmfulChangesetFactory.create_batch(24, form_create=20, modify=2, delete=40)
+        HarmfulChangesetFactory.create_batch(
+            24, form_create=20, modify=2, delete=40, comments_count=3
+            )
         GoodChangesetFactory.create_batch(24, form_create=1000, modify=20)
         self.url = reverse('changeset:list')
 
@@ -403,6 +423,18 @@ class TestChangesetListViewOrdering(APITestCase):
         self.assertEqual(
             [i['id'] for i in response.data.get('features')],
             [i.id for i in Changeset.objects.order_by('-delete')]
+            )
+        # ascending comments_count ordering
+        response = self.client.get(self.url, {'order_by': 'comments_count'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('comments_count')]
+            )
+        # descending comments_count ordering
+        response = self.client.get(self.url, {'order_by': '-comments_count'})
+        self.assertEqual(
+            [i['id'] for i in response.data.get('features')],
+            [i.id for i in Changeset.objects.order_by('-comments_count')]
             )
 
     def test_invalid_ordering_field(self):
@@ -483,6 +515,7 @@ class TestChangesetDetailView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(self.changeset.uid, response.data['properties']['uid'])
         self.assertEqual(self.changeset.user, response.data['properties']['user'])
+        self.assertEqual(response.data['properties']['comments_count'], 1)
         self.assertEqual(
             self.changeset.check_user.name,
             response.data['properties']['check_user']
