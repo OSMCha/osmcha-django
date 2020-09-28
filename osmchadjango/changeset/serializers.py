@@ -1,5 +1,3 @@
-import json
-
 from rest_framework.fields import ReadOnlyField, SerializerMethodField, CharField
 from rest_framework.serializers import (
     ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField,
@@ -7,7 +5,6 @@ from rest_framework.serializers import (
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
-from osmchadjango.feature.models import Feature
 from .models import Changeset, Tag, SuspicionReasons, UserWhitelist
 
 

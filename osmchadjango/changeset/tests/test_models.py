@@ -97,6 +97,7 @@ class TestChangesetModel(TestCase):
         self.assertEqual(Changeset.objects.all().count(), 1)
 
         self.assertFalse(self.changeset.checked)
+        self.assertEqual(self.changeset.comments_count, 1)
         self.assertEqual(
             self.changeset.viz_tool_link(),
             'https://osmlab.github.io/changeset-map/#31982803'
