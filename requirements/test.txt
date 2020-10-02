@@ -2,4 +2,4 @@
 -r base.txt
 flake8==3.8.3
 django-test-plus==1.4.0
-factory-boy==3.0.1
+factory-boy==3.1.0
