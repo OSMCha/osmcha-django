@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-from django.urls import re_path
+from django.urls import re_path, path
 
 from . import views
 
@@ -91,8 +91,8 @@ urlpatterns = [
         view=views.UserWhitelistListCreateAPIView.as_view(),
         name='whitelist-user'
     ),
-    re_path(
-        r'^whitelist-user/(?P<whitelist_user>\w+)/$',
+    path(
+        'whitelist-user/<str:whitelist_user>/',
         view=views.UserWhitelistDestroyAPIView.as_view(),
         name='delete-whitelist-user'
     ),
