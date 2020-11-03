@@ -1,0 +1,59 @@
+name: Django CI
+
+on:
+  [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup PostgreSQL with Postgis
+      uses: huaxk/postgis-action@v1.0.0
+      with:
+        postgresql version: latest
+        postgresql db: osmcha
+        postgresql user: ${{ secrets.POSTGRES_USER }}
+        postgresql password: ${{ secrets.POSTGRES_PASSWORD }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install Dependencies
+      run: |
+        sudo apt-get install -y binutils libproj-dev python3-gdal libgeos-dev libyaml-dev
+        python -m pip install --upgrade pip
+        pip install --upgrade coveralls
+        pip install -r requirements/test.txt
+    - name: Run Tests
+      run: |
+        coverage run manage.py test --settings=config.settings.tests
+      env:
+        OAUTH_OSM_KEY: ${{ secrets.OAUTH_OSM_KEY }}
+        OAUTH_OSM_SECRET: ${{ secrets.OAUTH_OSM_SECRET }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+    - name: Upload Coverage
+      run: coveralls
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        COVERALLS_FLAG_NAME: ${{ matrix.test-name }}
+        COVERALLS_PARALLEL: true
+
+  coveralls:
+    name: Finish Coveralls
+    needs: build
+    runs-on: ubuntu-latest
+    container: python:3-slim
+    steps:
+    - name: Finished
+      run: |
+        pip install --upgrade coveralls
+        coveralls --finish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
