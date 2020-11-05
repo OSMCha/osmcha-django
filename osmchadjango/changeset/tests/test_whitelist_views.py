@@ -88,6 +88,7 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
             uid='123123',
             )
         UserWhitelist.objects.create(user=self.user, whitelist_user='good_user')
+        UserWhitelist.objects.create(user=self.user, whitelist_user='good user#23 %7á')
         self.user_2 = User.objects.create_user(
             username='test_user',
             password='password',
@@ -114,6 +115,11 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.delete(
             reverse('changeset:delete-whitelist-user', args=['good_user'])
+            )
+        self.assertEqual(response.status_code, 204)
+        # test username with blankspaces and special chars
+        response = self.client.delete(
+            reverse('changeset:delete-whitelist-user', args=['good user#23 %7á'])
             )
         self.assertEqual(response.status_code, 204)
         # test delete a whitelist of another user
