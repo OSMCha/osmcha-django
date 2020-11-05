@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('changeset', '0053_changeset_comments_count_null_to_zero'),
+        ('changeset', '0052_changeset_comments_count'),
     ]
 
     operations = [
