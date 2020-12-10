@@ -7,6 +7,9 @@ osmcha-django
 .. image:: https://coveralls.io/repos/github/willemarcel/osmcha-django/badge.svg?branch=master
     :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
+.. image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
+    :target: code_of_conduct.md
+
 
 The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
 It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
