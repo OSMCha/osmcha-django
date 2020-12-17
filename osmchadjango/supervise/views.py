@@ -50,6 +50,29 @@ class IsOwnerOrReadOnly(BasePermission):
         else:
             return obj.user == request.user
 
+class AOIListCreateAPIViewReleased(ListAPIView):
+    """
+    get:
+    List the released Areas of Interest of the request user.
+    """
+    permission_classes = (IsAuthenticated,)
+    serializer_class = AreaOfInterestSerializer
+
+    def get_queryset(self):
+        allAreaOfInterests = AreaOfInterest.objects.all()
+        releasedAreas = []
+        for areaOfInterest in allAreaOfInterests:
+            if 'filterMember' in areaOfInterest.filters:
+                filterMembersString = areaOfInterest.filters['filterMember']
+                filterMembers = filterMembersString.split(',')
+                for filterMember in filterMembers:
+                    if str(self.request.user) == filterMember.strip():
+                        releasedAreas.append(areaOfInterest)
+
+        if releasedAreas is not None:
+            return releasedAreas
+        else:
+            AreaOfInterest.objects.none()
 
 class AOIListCreateAPIView(ListCreateAPIView):
     """

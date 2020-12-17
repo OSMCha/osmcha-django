@@ -14,6 +14,11 @@ urlpatterns = [
         name='aoi-list-create'
         ),
     re_path(
+        r'^aoi/released/$',
+        view=views.AOIListCreateAPIViewReleased.as_view(),
+        name='aoi-get-released'
+        ),
+    re_path(
         r'^aoi/(?P<pk>[0-9a-f-]+)/$',
         view=views.AOIRetrieveUpdateDestroyAPIView.as_view(),
         name='aoi-detail'
