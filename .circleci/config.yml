@@ -1,0 +1,32 @@
+version: 2.1
+
+jobs:
+  tests:
+    docker:
+      - image: circleci/python:3.8.7
+        environment:
+          POSTGRES_USER: osmcha
+          POSTGRES_PASSWORD: osmcha
+          POSTGRES_DB: osmcha
+          COVERALLS_REPO_TOKEN: $COVERALLS_REPO_TOKEN
+      - image: circleci/postgres:13-postgis
+        environment:
+          POSTGRES_USER: osmcha
+          POSTGRES_PASSWORD: osmcha
+          POSTGRES_DB: osmcha
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo apt-get install -y binutils libproj-dev python3-gdal libgeos-dev libyaml-dev
+            python -m pip install --upgrade pip
+            pip install --user -r requirements/test.txt
+            pip install coveralls==2.2.0
+      - run: coverage run manage.py test --settings=config.settings.tests
+      - run: coveralls
+
+workflows:
+  main:
+    jobs:
+      - tests
