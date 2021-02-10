@@ -20,7 +20,7 @@ djangorestframework==3.11.2
 djangorestframework-gis==0.16
 djangorestframework-csv==2.1.0
 django-filter==2.4.0
-django-cors-headers==3.5.0
+django-cors-headers==3.7.0
 drf-yasg==1.17.1
 
 # For the persistence stores
