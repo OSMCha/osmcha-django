@@ -472,29 +472,6 @@ class ChangesetCommentAPIView(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangesetCommentSerializer
 
-    @action(detail=True, methods=['get'])
-    def get_comments(self, request, pk):
-        "List comments received by a changeset on the OpenStreetMap website."
-        self.changeset = self.get_object()
-        headers = {
-            'apiKey': settings.OSM_COMMENTS_API_KEY,
-            'Content-Type': 'application/json'
-        }
-        data = requests.get(
-            'https://osm-comments-api.mapbox.com/api/v1/changesets/{}'.format(pk),
-            headers=headers
-            )
-        if data.status_code != 200:
-            return Response(
-                data.json(),
-                status=data.status_code
-                )
-        else:
-            return Response(
-                data.json().get('properties').get('comments'),
-                status=status.HTTP_200_OK
-                )
-
     @action(detail=True, methods=['post'])
     def post_comment(self, request, pk):
         "Post a comment to a changeset in the OpenStreetMap website."

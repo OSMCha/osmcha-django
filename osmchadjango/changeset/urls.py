@@ -72,7 +72,7 @@ urlpatterns = [
     re_path(
         r'^changesets/(?P<pk>\w+)/comment/$',
         view=views.ChangesetCommentAPIView.as_view(
-            {'post': 'post_comment', 'get': 'get_comments'}
+            {'post': 'post_comment'}
             ),
         name='comment'
     ),
