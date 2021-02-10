@@ -28,7 +28,6 @@ jobs:
       run: |
         sudo apt-get install -y binutils libproj-dev python3-gdal libgeos-dev libyaml-dev
         python -m pip install --upgrade pip
-        pip install --upgrade coveralls
         pip install -r requirements/test.txt
     - name: Run Tests
       run: |
@@ -38,22 +37,19 @@ jobs:
         OAUTH_OSM_SECRET: ${{ secrets.OAUTH_OSM_SECRET }}
         POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-    - name: Upload Coverage
-      run: coveralls
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        COVERALLS_FLAG_NAME: ${{ matrix.test-name }}
-        COVERALLS_PARALLEL: true
+    - name: Coveralls Parallel
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        flag-name: run-${{ matrix.test_number }}
+        parallel: true
 
-  coveralls:
-    name: Finish Coveralls
-    needs: build
+  finish:
+    needs: test
     runs-on: ubuntu-latest
-    container: python:3-slim
     steps:
-    - name: Finished
-      run: |
-        pip install --upgrade coveralls
-        coveralls --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.github_token }}
+        parallel-finished: true
