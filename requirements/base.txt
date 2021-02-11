@@ -1,6 +1,6 @@
 # Bleeding edge Django
 
-django==2.2.13
+django==2.2.18
 
 # Configuration
 django-environ==0.4.5
@@ -9,7 +9,7 @@ django-environ==0.4.5
 django-braces==1.14.0
 
 # Models
-django-model-utils==4.0.0
+django-model-utils==4.1.1
 
 # For authentication with OSM
 social-auth-app-django==4.0.0
@@ -21,7 +21,7 @@ djangorestframework-gis==0.16
 djangorestframework-csv==2.1.0
 django-filter==2.4.0
 django-cors-headers==3.5.0
-drf-yasg==1.17.1
+drf-yasg==1.20.0
 
 # For the persistence stores
 psycopg2-binary==2.8.6
@@ -45,4 +45,4 @@ PyYAML==5.3.1
 osmcha==0.8.2
 
 # git python is required by the frontend management command
-GitPython==3.1.12
+GitPython==3.1.13
