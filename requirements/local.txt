@@ -1,13 +1,12 @@
 # Local development dependencies go here
 -r test.txt
-django-extensions==3.1.0
-coverage==5.3
+django-extensions==3.1.1
 Sphinx==3.4.3
 Werkzeug==1.0.1
 
 # django-debug-toolbar that works with Django 1.5+
-django-debug-toolbar==3.1.1
+django-debug-toolbar==3.2
 sqlparse==0.4.1
 
 #shell
-bpython==0.20.1
+bpython==0.21
