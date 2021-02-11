@@ -1,0 +1,45 @@
+version: 2.0
+
+jobs:
+  tests:
+    docker:
+    - image: circleci/python:3.8.7
+      environment:
+        POSTGRES_USER: osmcha
+        POSTGRES_PASSWORD: osmcha
+        POSTGRES_DB: osmcha
+        COVERALLS_REPO_TOKEN: $COVERALLS_REPO_TOKEN
+    - image: circleci/postgres:13-postgis
+      environment:
+        POSTGRES_USER: osmcha
+        POSTGRES_PASSWORD: osmcha
+        POSTGRES_DB: osmcha
+    steps:
+    - checkout
+    - restore_cache:
+        key: deps-{{ .Branch }}-{{ checksum "requirements/test.txt" }}
+    - run:
+        name: Install Dependencies
+        command: |
+          sudo apt-get install -y binutils libproj-dev python3-gdal libgeos-dev libyaml-dev
+          python3 -m venv osmcha_venv
+          . osmcha_venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements/test.txt
+          pip install coveralls==2.2.0
+    - save_cache:
+        key: deps-{{ .Branch }}-{{ checksum "requirements/test.txt" }}
+        paths:
+        - osmcha_venv
+    - run:
+        name: coverage tests
+        command: |
+          . osmcha_venv/bin/activate
+          coverage run manage.py test --settings=config.settings.tests
+          coveralls
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - tests
