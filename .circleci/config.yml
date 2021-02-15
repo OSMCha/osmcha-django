@@ -17,7 +17,7 @@ jobs:
     steps:
     - checkout
     - restore_cache:
-        key: deps-{{ .Branch }}-{{ checksum "requirements/test.txt" }}
+        key: deps-{{ .Branch }}-{{ checksum "requirements/local.txt" }}-{{ checksum "requirements/base.txt" }}-{{ checksum "requirements/test.txt" }}-{{ checksum "requirements/production.txt" }}
     - run:
         name: Install Dependencies
         command: |
@@ -28,7 +28,7 @@ jobs:
           pip install -r requirements/test.txt
           pip install coveralls==2.2.0
     - save_cache:
-        key: deps-{{ .Branch }}-{{ checksum "requirements/test.txt" }}
+        key: deps-{{ .Branch }}-{{ checksum "requirements/local.txt" }}-{{ checksum "requirements/base.txt" }}-{{ checksum "requirements/test.txt" }}-{{ checksum "requirements/production.txt" }}
         paths:
         - osmcha_venv
     - run:
