@@ -43,7 +43,7 @@ class TestChangesetFilter(TestCase):
             check_user=self.user_2,
             comments_count=5,
             source='Mapbox',
-            metadata={'changesets_count': 10, 'locale': 'en'}
+            metadata={'changesets_count': 10, 'locale': 'en', 'closed:improveosm': 'tr:44.09753/-70.22611'}
             )
         self.reason_1 = SuspicionReasonsFactory(name='possible import')
         self.reason_1.changesets.add(self.suspect_changeset)
@@ -360,6 +360,7 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag=*'}).qs.count(), 0)
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag'}).qs.count(), 4)
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag__min=abc'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'metadata': 'closed:improveosm=*'}).qs.count(), 1)
 
 
 class TestChangesetAreaLowerThan(TestCase):
