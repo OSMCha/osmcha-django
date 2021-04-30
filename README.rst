@@ -56,7 +56,6 @@ POSTGRES_PASSWORD                       POSTGRES_PASSWORD                 None  
 PGHOST                                  PGHOST                            localhost                                 localhost
 OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
 OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
-OSM_VIZ_TOOL_LINK                       VIZ_TOOL_LINK                     https://osmlab.github.io/changeset-map/#  https://osmlab.github.io/changeset-map/#
 DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
 DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
 DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
