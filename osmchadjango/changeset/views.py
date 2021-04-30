@@ -24,7 +24,6 @@ from rest_framework_gis.filters import InBBoxFilter
 from rest_framework_gis.pagination import GeoJsonPagination
 from rest_framework_csv.renderers import CSVRenderer
 from rest_framework.exceptions import APIException
-import requests
 
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
