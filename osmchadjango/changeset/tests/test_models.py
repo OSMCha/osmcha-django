@@ -131,6 +131,7 @@ class TestChangesetModel(TestCase):
         self.assertEqual(self.changeset.new_features, [])
 
     def test_new_feature_field(self):
+        self.assertEqual(self.changeset.new_features, [])
         json_content = [
             {"osm_id": 123, "url": "node-123", "reasons": [1, 2], },
             {"osm_id": 321, "url": "way-321", "reasons": [13], 'note': 'Test'}
@@ -141,6 +142,19 @@ class TestChangesetModel(TestCase):
             )
         self.assertEqual(Changeset.objects.all().count(), 2)
         self.assertEqual(changeset.new_features, json_content)
+
+    def test_reviewed_feature_field(self):
+        self.assertEqual(self.changeset.reviewed_features, [])
+        json_content = [
+            {"id": "node-123", "user": "test"},
+            {"id": "way-321", "user": "test"}
+        ]
+        changeset = ChangesetFactory(
+            id=31982804,
+            reviewed_features=json_content
+            )
+        self.assertEqual(Changeset.objects.all().count(), 2)
+        self.assertEqual(changeset.reviewed_features, json_content)
 
     def test_metadata_field(self):
         self.assertEqual(

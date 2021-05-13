@@ -62,6 +62,13 @@ urlpatterns = [
         view=views.uncheck_changeset,
         name='uncheck'
     ),
+    path(
+        'changesets/<int:pk>/review-feature/<str:type>-<int:id>/',
+        view=views.ReviewFeature.as_view(
+            {'put': 'set_harmful_feature', 'delete': 'remove_harmful_feature'}
+            ),
+        name='review-harmful-feature'
+    ),
     re_path(
         r'^changesets/(?P<pk>\w+)/tags/(?P<tag_pk>\w+)/$',
         view=views.AddRemoveChangesetTagsAPIView.as_view(

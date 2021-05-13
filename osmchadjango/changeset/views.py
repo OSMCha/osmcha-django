@@ -31,7 +31,7 @@ from .serializers import (
     ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
     ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
     SuspicionReasonsSerializer, UserStatsSerializer, UserWhitelistSerializer,
-    TagSerializer, ChangesetCommentSerializer
+    TagSerializer, ChangesetCommentSerializer, ReviewedFeatureSerializer
     )
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
@@ -217,6 +217,69 @@ class TagListAPIView(ListAPIView):
             return Tag.objects.filter(is_visible=True)
 
 
+class ReviewFeature(ModelViewSet):
+    queryset = Changeset.objects.all()
+    permission_classes = (IsAuthenticated,)
+    throttle_classes = [NonStaffUserThrottle]
+
+    def add_reviewed_feature(self, type, id, harmful):
+        changeset = self.get_object()
+        is_feature_present = len([f for f in changeset.reviewed_features if f["id"] == f"{type}-{id}"]) > 0
+        if is_feature_present:
+            return Response(
+                f"Feature {type}-{id} is already added to the changeset",
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+        changeset.reviewed_features.append(
+            {"id": f"{type}-{id}", "user": self.request.user.username}
+        )
+        changeset.save(update_fields=["reviewed_features"])
+        return Response(
+            {'detail': f"Feature {type}-{id} added to changeset review list."},
+            status=status.HTTP_200_OK
+            )
+
+    @action(detail=True, methods=['put'])
+    def set_harmful_feature(self, request, pk, type, id):
+        serializer = ReviewedFeatureSerializer(data={"type": type, "id": id})
+        if serializer.is_valid():
+            return self.add_reviewed_feature(type, id, True)
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+    @action(detail=True, methods=['delete'])
+    def remove_harmful_feature(self, request, pk, type, id):
+        serializer = ReviewedFeatureSerializer(data={"type": type, "id": id})
+        if serializer.is_valid():
+            changeset = self.get_object()
+            feature_index = None
+            for i, feature in enumerate(changeset.reviewed_features):
+                if feature["id"] == f"{type}-{id}":
+                    feature_index = i
+                    break
+            if feature_index is not None:
+                changeset.reviewed_features.pop(feature_index)
+                changeset.save(update_fields=["reviewed_features"])
+                return Response(
+                    {'detail': f"Feature {type}-{id} removed from changeset review list."},
+                    status=status.HTTP_200_OK
+                    )
+            else:
+                return Response(
+                    f"Feature {type}-{id} is not present on the changeset review list.",
+                    status=status.HTTP_400_BAD_REQUEST
+                    )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+                )
+
+
 class CheckChangeset(ModelViewSet):
     queryset = Changeset.objects.all()
     serializer_class = ChangesetTagsSerializer
@@ -354,7 +417,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
-            request.user != changeset.check_user and not request.user.is_staff):
+                request.user != changeset.check_user and not request.user.is_staff):
             return Response(
                 {'detail': 'User can not add tags to a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN
@@ -382,7 +445,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
-            request.user != changeset.check_user and not request.user.is_staff):
+                request.user != changeset.check_user and not request.user.is_staff):
             return Response(
                 {'detail': 'User can not remove tags from a changeset checked by another user.'},
                 status=status.HTTP_403_FORBIDDEN

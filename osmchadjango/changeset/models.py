@@ -70,6 +70,7 @@ class Changeset(models.Model):
     date = models.DateTimeField(null=True, db_index=True)
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     new_features = JSONField(default=list)
+    reviewed_features = JSONField(default=list)
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)
@@ -97,10 +98,6 @@ class Changeset(models.Model):
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
         return 'https://www.openstreetmap.org/changeset/{}'.format(self.id)
-
-    def viz_tool_link(self):
-        """Return link to the changeset visualization tool."""
-        return '{}{}'.format(settings.OSM_VIZ_TOOL_LINK, self.id)
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""

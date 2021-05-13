@@ -1,7 +1,7 @@
 from rest_framework.fields import ReadOnlyField, SerializerMethodField, CharField
 from rest_framework.serializers import (
     ModelSerializer, ListSerializer, BaseSerializer, PrimaryKeyRelatedField,
-    Serializer
+    Serializer, ChoiceField, IntegerField
     )
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 
@@ -183,3 +183,8 @@ class ChangesetTagsSerializer(ModelSerializer):
 
 class ChangesetCommentSerializer(Serializer):
     comment = CharField(max_length=1000)
+
+
+class ReviewedFeatureSerializer(Serializer):
+    type = ChoiceField(choices=['node', 'way', 'relation'], allow_blank=False)
+    id = IntegerField()
