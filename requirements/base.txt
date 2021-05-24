@@ -34,7 +34,7 @@ django-autoslug==1.9.8
 pytz==2021.1
 
 # Celery support
-celery==3.1.25
+celery==5.1.0
 
 # Redis support
 django-redis==4.11.0
