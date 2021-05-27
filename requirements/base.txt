@@ -42,7 +42,7 @@ redis>=2.10.5
 
 # Your custom requirements go here
 PyYAML==5.4.1
-osmcha==0.8.3
+osmcha==0.8.4
 
 # git python is required by the frontend management command
 GitPython==3.1.15
