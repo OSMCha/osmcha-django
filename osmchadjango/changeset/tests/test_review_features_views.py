@@ -27,9 +27,9 @@ class TestReviewFeaturesAPIView(APITestCase):
         UserSocialAuth.objects.create(
             user=self.user,
             provider='openstreetmap',
-            uid='123123',
+            uid='345',
             extra_data={
-                'id': '123123',
+                'id': '345',
                 'access_token': {
                     'oauth_token': 'aaaa',
                     'oauth_token_secret': 'bbbb'
@@ -87,3 +87,30 @@ class TestReviewFeaturesAPIView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.changeset.refresh_from_db()
         self.assertEqual(self.changeset.reviewed_features, [])
+
+    def test_review_feature_own_changeset(self):
+        changeset = ChangesetFactory(id=457890, uid="345", user="test_2")
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.put(
+            reverse(
+                'changeset:review-harmful-feature',
+                args=[changeset.id, "node", 1234]
+                )
+            )
+        self.assertEqual(response.status_code, 403)
+
+    def test_remove_review_feature_own_changeset(self):
+        changeset = ChangesetFactory(
+            id=457890,
+            uid="345",
+            user="test_2",
+            reviewed_features=[{"id": "node-1234", "user": "test"}]
+            )
+        self.client.login(username=self.user.username, password='password')
+        response = self.client.delete(
+            reverse(
+                'changeset:review-harmful-feature',
+                args=[changeset.id, "node", 1234]
+                )
+            )
+        self.assertEqual(response.status_code, 403)

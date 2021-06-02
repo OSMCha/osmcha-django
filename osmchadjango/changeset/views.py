@@ -231,6 +231,12 @@ class ReviewFeature(ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
                 )
 
+        if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
+            return Response(
+                {'detail': 'User can not check features on his own changeset.'},
+                status=status.HTTP_403_FORBIDDEN
+                )
+
         changeset.reviewed_features.append(
             {"id": f"{type}-{id}", "user": self.request.user.username}
         )
@@ -256,6 +262,13 @@ class ReviewFeature(ModelViewSet):
         serializer = ReviewedFeatureSerializer(data={"type": type, "id": id})
         if serializer.is_valid():
             changeset = self.get_object()
+
+            if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
+                return Response(
+                    {'detail': 'User can not check features on his own changeset.'},
+                    status=status.HTTP_403_FORBIDDEN
+                    )
+
             feature_index = None
             for i, feature in enumerate(changeset.reviewed_features):
                 if feature["id"] == f"{type}-{id}":
