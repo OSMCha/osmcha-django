@@ -17,7 +17,7 @@ social-auth-core==3.3.3
 
 # DRF and DRF-gis
 djangorestframework==3.11.2
-djangorestframework-gis==0.16
+djangorestframework-gis==0.17
 djangorestframework-csv==2.1.1
 django-filter==2.4.0
 django-cors-headers==3.7.0
@@ -42,7 +42,7 @@ redis>=2.10.5
 
 # Your custom requirements go here
 PyYAML==5.4.1
-osmcha==0.8.4
+osmcha==0.8.5
 
 # git python is required by the frontend management command
 GitPython==3.1.17
