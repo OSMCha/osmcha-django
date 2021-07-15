@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
 from django.urls import reverse
-from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
+from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString, GEOSGeometry
 
 from rest_framework.test import APITestCase
 from social_django.models import UserSocialAuth
@@ -228,10 +228,13 @@ class TestAoICreateView(APITestCase):
 
 class TestAoIDetailAPIViews(APITestCase):
     def setUp(self):
-        self.m_polygon = MultiPolygon(
-            Polygon(((0, 0), (0, 1), (1, 1), (0, 0))),
-            Polygon(((1, 1), (1, 2), (2, 2), (1, 1)))
-            )
+        self.m_polygon = {
+            "type": "MultiPolygon",
+            "coordinates": [
+                [ [ [ 0.0, 0.0 ], [ 0.0, 1.0 ], [ 1.0, 1.0 ], [ 0.0, 0.0 ] ] ],
+                [ [ [ 1.0, 1.0 ], [ 1.0, 2.0 ], [ 2.0, 2.0 ], [ 1.0, 1.0 ] ] ]
+                ]
+            }
         self.user = User.objects.create_user(
             username='test_user',
             email='b@a.com',
@@ -245,14 +248,14 @@ class TestAoIDetailAPIViews(APITestCase):
         self.aoi = AreaOfInterest.objects.create(
             name='Best place in the world',
             user=self.user,
-            geometry=self.m_polygon,
+            geometry=GEOSGeometry(f'{self.m_polygon}'),
             filters={
                 'editor': 'Potlatch 2',
                 'harmful': 'False',
                 'users': 'test',
                 'uids': '234,43',
                 'checked_by': 'qa_user',
-                'geometry': self.m_polygon.geojson
+                'geometry': self.m_polygon
                 },
             )
         self.m_polygon_2 = MultiPolygon(
@@ -290,7 +293,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 'users': 'test',
                 'uids': '234,43',
                 'checked_by': 'qa_user',
-                'geometry': self.m_polygon.geojson
+                'geometry': self.m_polygon
             }
             )
         self.assertEqual(
