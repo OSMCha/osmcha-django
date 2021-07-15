@@ -122,6 +122,31 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'comments_count__gte': 5}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'comments_count__gte': 11}).qs.count(), 0)
 
+    def test_last_days_filter(self):
+        ChangesetFactory(date=date.today() - timedelta(days=5))
+
+        self.assertEqual(
+            ChangesetFilter({'last_days': 0}).qs.count(), 4
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 1}).qs.count(), 4
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 2}).qs.count(), 4
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 3}).qs.count(), 4
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 4}).qs.count(), 4
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 5}).qs.count(), 5
+            )
+        self.assertEqual(
+            ChangesetFilter({'last_days': 6}).qs.count(), 5
+            )
+
     def test_date_field_filter(self):
         tomorrow = date.today() + timedelta(days=1)
         yesterday = date.today() - timedelta(days=1)

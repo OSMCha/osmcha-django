@@ -1,4 +1,5 @@
 import json
+from datetime import date, timedelta
 
 from django.contrib.gis.geos import Polygon
 from django.db.models import Count
@@ -171,6 +172,11 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Filter changesets whose number of comments are lower than
             or equal to a number."""
         )
+    last_days = filters.NumberFilter(
+        field_name='date',
+        method='get_past_n_days',
+        help_text="Filter changesets whose date is not older than a determined number of days"
+        )
     date__gte = filters.DateTimeFilter(
         field_name='date',
         lookup_expr='gte',
@@ -255,6 +261,10 @@ class ChangesetFilter(GeoFilterSet):
         method='filter_metadata',
         help_text="""Filter changesets by the metadata fields."""
         )
+
+    def get_past_n_days(self, queryset, field_name, value):
+        start_date = date.today() - timedelta(days=int(value))
+        return queryset.filter(date__gte=start_date)
 
     def filter_metadata(self, queryset, name, value):
         values = [
