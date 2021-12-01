@@ -37,7 +37,7 @@ pytz==2021.1
 celery==3.1.25
 
 # Redis support
-django-redis==4.11.0
+django-redis==5.1.0
 redis>=2.10.5
 
 # Your custom requirements go here
