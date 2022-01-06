@@ -1,5 +1,5 @@
 # Test dependencies go here.
 -r base.txt
-flake8==3.9.2
+flake8==4.0.1
 coverage==5.5
 factory-boy==3.2.1
