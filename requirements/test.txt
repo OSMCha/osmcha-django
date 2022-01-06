@@ -2,5 +2,4 @@
 -r base.txt
 flake8==3.9.2
 coverage==5.5
-django-test-plus==2.2.0
-factory-boy==3.2.0
+factory-boy==3.2.1
