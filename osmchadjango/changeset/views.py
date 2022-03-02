@@ -105,6 +105,7 @@ class SuspectChangesetListAPIView(ChangesetListAPIView):
     """Return the suspect changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(is_suspect=True)
 
@@ -113,6 +114,7 @@ class NoSuspectChangesetListAPIView(ChangesetListAPIView):
     """Return the changesets that were not flagged as suspect. Accepts the same
     filter and pagination parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(is_suspect=False)
 
@@ -121,6 +123,7 @@ class HarmfulChangesetListAPIView(ChangesetListAPIView):
     """Return the harmful changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(harmful=True)
 
@@ -129,6 +132,7 @@ class NoHarmfulChangesetListAPIView(ChangesetListAPIView):
     """Return the not harmful changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(harmful=False)
 
@@ -137,6 +141,7 @@ class CheckedChangesetListAPIView(ChangesetListAPIView):
     """Return the checked changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(checked=True)
 
@@ -145,6 +150,7 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
     """Return the unchecked changesets. Accepts the same filter and pagination
     parameters of ChangesetListAPIView.
     """
+
     def get_queryset(self):
         return self.queryset.filter(checked=False)
 
@@ -665,6 +671,44 @@ def filter_primary_tags(feature):
         if key not in PRIMARY_TAGS
     ]
     return tags
+
+
+class SetChangesetTagChangesAPIView(ModelViewSet):
+    queryset = Changeset.objects.all()
+    permission_classes = (IsAdminUser,)
+    # The serializer is not used in this view. It's here only to avoid errors
+    # in docs schema generation.
+    serializer_class = ChangesetStatsSerializer
+
+    @action(detail=True, methods=['post'])
+    def set_tag_changes(self, request, pk):
+        """Update the tag_changes field of a Changeset"""
+        if self.validate_tag_changes(self.request.data) is False:
+            return Response(
+                {'detail': 'Payload does not match validation rules.'},
+                status=status.HTTP_400_BAD_REQUEST
+                )
+        changeset = self.get_object()
+        changeset.tag_changes = request.data
+        changeset.save(update_fields=['tag_changes'])
+        return Response(
+            {'detail': 'Updated tag_changes field of changeset.'},
+            status=status.HTTP_200_OK
+            )
+
+    def validate_tag_changes(self, tag_changes):
+        """Check the integrity of the tag_changes payload."""
+        if type(tag_changes) != dict:
+            return False
+        for key in tag_changes.keys():
+            if type(tag_changes[key]) != list:
+                return False
+            for change in tag_changes[key]:
+                if type(change) != dict:
+                    return False
+                if change.get('new') is None and change.get('old') is None:
+                    return False
+        return True
 
 
 @api_view(['POST'])

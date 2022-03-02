@@ -71,6 +71,7 @@ class Changeset(models.Model):
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     new_features = JSONField(default=list)
     reviewed_features = JSONField(default=list)
+    tag_changes = JSONField(default=dict)
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)
