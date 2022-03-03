@@ -424,6 +424,7 @@ class TestChangesetFilter(TestCase):
     def test_tag_changes_filter(self):
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=*'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'amenity=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'surface=grass'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=primary'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link'}).qs.count(), 1)

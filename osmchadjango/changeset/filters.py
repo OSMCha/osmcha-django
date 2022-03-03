@@ -2,7 +2,7 @@ import json
 from datetime import date, timedelta
 
 from django.contrib.gis.geos import Polygon
-from django.db.models import Count
+from django.db.models import Count, Q
 
 from rest_framework_gis.filterset import GeoFilterSet
 from rest_framework_gis.filters import GeometryFilter
@@ -265,7 +265,8 @@ class ChangesetFilter(GeoFilterSet):
         field_name='tag_changes',
         method='filter_tag_changes',
         help_text="""Filter changesets by the tag_changes field. It supports a
-            combination of OSM tags. To query by any value use key=*.
+            combination of OSM tags and will query using both the old and new
+            values. To query by any value use key=*.
         """
         )
 
@@ -281,20 +282,20 @@ class ChangesetFilter(GeoFilterSet):
             ]
 
     def filter_tag_changes(self, queryset, name, value):
-        values = self.split_values(value)
-        for query in values:
+        for query in self.split_values(value):
             if query[1] == '*':
                 key = 'tag_changes__has_key'
                 value = query[0]
+                queryset = queryset.filter(**{key: value})
             else:
                 key = 'tag_changes__{}__contains'.format(query[0])
-                value = [{'new': query[1]}]
-            queryset = queryset.filter(**{key: value})
+                new_list = [{'new': query[1]}]
+                old_list = [{'old': query[1]}]
+                queryset = queryset.filter(Q(**{key: new_list}) | Q(**{key: old_list}))
         return queryset
 
     def filter_metadata(self, queryset, name, value):
-        values = self.split_values(value)
-        for query in values:
+        for query in self.split_values(value):
             if '__' in query[0]:
                 # handle both int values and other lookup options like __exact or __contains
                 key = 'metadata__{}'.format(
