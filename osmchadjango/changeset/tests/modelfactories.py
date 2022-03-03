@@ -52,6 +52,17 @@ class SuspectChangesetFactory(ChangesetFactory):
     modify = 10
     delete = 30
     is_suspect = True
+    tag_changes = {
+        "shop": [
+            {"new": "supermarket", "old": "convenience_store"},
+            {"new": "bicycle"},
+            {"old": "car"}
+            ],
+        "lanes": [
+            {"new": "2", "old": "4"},
+            {"new": "1"}
+            ]
+        }
 
 
 class HarmfulChangesetFactory(SuspectChangesetFactory):
@@ -94,7 +105,7 @@ class FeatureFactory(factory.django.DjangoModelFactory):
     osm_version = 1
     geometry = Point(42.1, 13.4)
     geojson = json.dumps(
-        {'properties': {'osm:type': 'node', 'name': 'Test', 'building':'yes'}}
+        {'properties': {'osm:type': 'node', 'name': 'Test', 'building': 'yes'}}
         )
 
 

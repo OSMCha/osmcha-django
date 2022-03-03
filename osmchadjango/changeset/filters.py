@@ -261,17 +261,39 @@ class ChangesetFilter(GeoFilterSet):
         method='filter_metadata',
         help_text="""Filter changesets by the metadata fields."""
         )
+    tag_changes = filters.CharFilter(
+        field_name='tag_changes',
+        method='filter_tag_changes',
+        help_text="""Filter changesets by the tag_changes field. It supports a
+            combination of OSM tags. To query by any value use key=*.
+        """
+        )
 
     def get_past_n_days(self, queryset, field_name, value):
         start_date = date.today() - timedelta(days=int(value))
         return queryset.filter(date__gte=start_date)
 
-    def filter_metadata(self, queryset, name, value):
-        values = [
+    def split_values(self, value):
+        return [
             [i.strip() for i in t.split('=')]  # remove leading and ending spaces
             for t in value.split(',')
             if len(t.split('=')) == 2
             ]
+
+    def filter_tag_changes(self, queryset, name, value):
+        values = self.split_values(value)
+        for query in values:
+            if query[1] == '*':
+                key = 'tag_changes__has_key'
+                value = query[0]
+            else:
+                key = 'tag_changes__{}__contains'.format(query[0])
+                value = [{'new': query[1]}]
+            queryset = queryset.filter(**{key: value})
+        return queryset
+
+    def filter_metadata(self, queryset, name, value):
+        values = self.split_values(value)
         for query in values:
             if '__' in query[0]:
                 # handle both int values and other lookup options like __exact or __contains
@@ -287,7 +309,7 @@ class ChangesetFilter(GeoFilterSet):
                 value = query[0]
             else:
                 # default option is to use the icontains condition
-                key = key = 'metadata__{}__icontains'.format(query[0])
+                key = 'metadata__{}__icontains'.format(query[0])
                 value = query[1]
             queryset = queryset.filter(**{key: value})
         return queryset

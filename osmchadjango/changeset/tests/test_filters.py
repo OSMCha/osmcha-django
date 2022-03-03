@@ -29,7 +29,18 @@ class TestChangesetFilter(TestCase):
             source='Bing',
             imagery_used='Bing',
             comments_count=0,
-            metadata={'changesets_count': 50, 'host': 'https://www.openstreetmap.org/edit'}
+            metadata={'changesets_count': 50, 'host': 'https://www.openstreetmap.org/edit'},
+            tag_changes={
+                "surface": [
+                    {"new": "paved", "old": "unpaved"},
+                    {"new": "asphalt"},
+                    {"old": "grass"}
+                    ],
+                "highway": [
+                    {"new": "tertiary", "old": "residential"},
+                    {"new": "tertiary_link"}
+                    ]
+                }
             )
         self.harmful_changeset = HarmfulChangesetFactory(
             check_user=self.user,
@@ -37,13 +48,36 @@ class TestChangesetFilter(TestCase):
             powerfull_editor=True,
             comments_count=10,
             imagery_used='Mapbox, Mapillary',
-            metadata={'changesets_count': 500, 'host': 'https://www.openstreetmap.org/edit'}
+            metadata={'changesets_count': 500, 'host': 'https://www.openstreetmap.org/edit'},
+            tag_changes={
+                "name": [
+                    {"new": "The Store", "old": "Store"},
+                    {"new": "Peace's Pub"},
+                    {"old": "The Cheese"}
+                    ],
+                "highway": [
+                    {"new": "tertiary", "old": "residential"},
+                    {"new": "primary"}
+                    ]
+                }
             )
         self.good_changeset = GoodChangesetFactory(
             check_user=self.user_2,
             comments_count=5,
             source='Mapbox',
-            metadata={'changesets_count': 10, 'locale': 'en', 'closed:improveosm': 'tr:44.09753/-70.22611'}
+            metadata={'changesets_count': 10, 'locale': 'en', 'closed:improveosm': 'tr:44.09753/-70.22611'},
+            tag_changes={
+                "name": [
+                    {"new": "The Store", "old": "Store"},
+                    {"new": "Peace's Pub"},
+                    {"old": "The Cheese"}
+                    ],
+                "amenity": [
+                    {"new": "pub", "old": "bar"},
+                    {"new": "school"},
+                    {"old": "restaurant"}
+                    ]
+                }
             )
         self.reason_1 = SuspicionReasonsFactory(name='possible import')
         self.reason_1.changesets.add(self.suspect_changeset)
@@ -386,6 +420,17 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag'}).qs.count(), 4)
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag__min=abc'}).qs.count(), 0)
         self.assertEqual(ChangesetFilter({'metadata': 'closed:improveosm=*'}).qs.count(), 1)
+
+    def test_tag_changes_filter(self):
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=*'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'amenity=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=primary'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary,name=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,surface=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 0)
 
 
 class TestChangesetAreaLowerThan(TestCase):
