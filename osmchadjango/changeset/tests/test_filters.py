@@ -31,15 +31,8 @@ class TestChangesetFilter(TestCase):
             comments_count=0,
             metadata={'changesets_count': 50, 'host': 'https://www.openstreetmap.org/edit'},
             tag_changes={
-                "surface": [
-                    {"new": "paved", "old": "unpaved"},
-                    {"new": "asphalt"},
-                    {"old": "grass"}
-                    ],
-                "highway": [
-                    {"new": "tertiary", "old": "residential"},
-                    {"new": "tertiary_link"}
-                    ]
+                "surface": ["paved", "unpaved", "asphalt", "grass"],
+                "highway": ["tertiary", "residential", "tertiary_link"]
                 }
             )
         self.harmful_changeset = HarmfulChangesetFactory(
@@ -50,15 +43,8 @@ class TestChangesetFilter(TestCase):
             imagery_used='Mapbox, Mapillary',
             metadata={'changesets_count': 500, 'host': 'https://www.openstreetmap.org/edit'},
             tag_changes={
-                "name": [
-                    {"new": "The Store", "old": "Store"},
-                    {"new": "Peace's Pub"},
-                    {"old": "The Cheese"}
-                    ],
-                "highway": [
-                    {"new": "tertiary", "old": "residential"},
-                    {"new": "primary"}
-                    ]
+                "name": ["The Store", "Store", "Peace's Pub", "The Cheese"],
+                "highway": ["tertiary", "residential", "primary"]
                 }
             )
         self.good_changeset = GoodChangesetFactory(
@@ -67,16 +53,8 @@ class TestChangesetFilter(TestCase):
             source='Mapbox',
             metadata={'changesets_count': 10, 'locale': 'en', 'closed:improveosm': 'tr:44.09753/-70.22611'},
             tag_changes={
-                "name": [
-                    {"new": "The Store", "old": "Store"},
-                    {"new": "Peace's Pub"},
-                    {"old": "The Cheese"}
-                    ],
-                "amenity": [
-                    {"new": "pub", "old": "bar"},
-                    {"new": "school"},
-                    {"old": "restaurant"}
-                    ]
+                "name": ["The Store", "Store", "Peace's Pub", "The Cheese"],
+                "amenity": ["pub", "bar", "school", "restaurant"]
                 }
             )
         self.reason_1 = SuspicionReasonsFactory(name='possible import')

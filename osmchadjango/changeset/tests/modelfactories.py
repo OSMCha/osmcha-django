@@ -3,7 +3,7 @@ import json
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.contrib.gis.geos import Point, LineString
+from django.contrib.gis.geos import Point
 
 import factory
 
@@ -53,15 +53,8 @@ class SuspectChangesetFactory(ChangesetFactory):
     delete = 30
     is_suspect = True
     tag_changes = {
-        "shop": [
-            {"new": "supermarket", "old": "convenience_store"},
-            {"new": "bicycle"},
-            {"old": "car"}
-            ],
-        "lanes": [
-            {"new": "2", "old": "4"},
-            {"new": "1"}
-            ]
+        "shop": ["supermarket", "convenience_store", "bicycle", "car"],
+        "lanes": ["2", "4", "1"]
         }
 
 

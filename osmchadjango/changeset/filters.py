@@ -289,9 +289,7 @@ class ChangesetFilter(GeoFilterSet):
                 queryset = queryset.filter(**{key: value})
             else:
                 key = 'tag_changes__{}__contains'.format(query[0])
-                new_list = [{'new': query[1]}]
-                old_list = [{'old': query[1]}]
-                queryset = queryset.filter(Q(**{key: new_list}) | Q(**{key: old_list}))
+                queryset = queryset.filter(**{key: query[1]})
         return queryset
 
     def filter_metadata(self, queryset, name, value):

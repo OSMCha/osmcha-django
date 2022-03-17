@@ -241,17 +241,7 @@ class TestChangesetListView(APITestCase):
         """Test filters by metadata field in the changeset list view.
         """
         ChangesetFactory(
-            tag_changes={
-                "oneway": [
-                    {"new": "yes", "old": "no"},
-                    {"new": "yes"},
-                    {"old": "yes"}
-                    ],
-                "lanes": [
-                    {"new": "2", "old": "4"},
-                    {"new": "1"}
-                    ]
-                }
+            tag_changes={"oneway": ["yes", "no"], "lanes": ["2", "4", "1"]}
             )
         self.client.login(username=self.user.username, password='password')
 
@@ -265,6 +255,9 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
         response = self.client.get(self.url, {'tag_changes': 'lanes=*'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 27)
+        response = self.client.get(self.url, {'tag_changes': 'lanes=2'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 27)
         response = self.client.get(self.url, {'tag_changes': 'shop=*'})

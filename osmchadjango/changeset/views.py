@@ -704,9 +704,7 @@ class SetChangesetTagChangesAPIView(ModelViewSet):
             if type(tag_changes[key]) != list:
                 return False
             for change in tag_changes[key]:
-                if type(change) != dict:
-                    return False
-                if change.get('new') is None and change.get('old') is None:
+                if type(change) is not str:
                     return False
         return True
 

@@ -158,13 +158,7 @@ class TestChangesetModel(TestCase):
 
     def test_tag_changes_field(self):
         self.assertEqual(self.changeset.tag_changes, {})
-        tag_changes = {
-            "surface": [
-                {"new": "paved", "old": "unpaved"},
-                {"new": "asphalt"},
-                {"old": "grass"}
-                ]
-            }
+        tag_changes = {"surface": ["paved", "unpaved", "asphalt", "grass"]}
         changeset = ChangesetFactory(
             id=31982805,
             tag_changes=tag_changes

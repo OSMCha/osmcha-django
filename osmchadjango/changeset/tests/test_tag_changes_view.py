@@ -4,7 +4,6 @@ from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
 
 from ...users.models import User
-from ..models import SuspicionReasons, Tag
 from .modelfactories import ChangesetFactory
 
 
@@ -24,11 +23,9 @@ class TestSetChangesetTagChanges(APITestCase):
 
         self.changeset = ChangesetFactory()
         self.valid_payload = {
-            "surface": [
-                {"new": "paved", "old": "unpaved"},
-                {"new": "asphalt"},
-                {"old": "grass"}
-                ]
+            "surface": ["paved", "unpaved", "asphalt", "grass"],
+            "lanes": ["1", "2"],
+            "height": ["1.5"]
             }
 
     def test_unathenticated_request(self):
@@ -78,7 +75,7 @@ class TestSetChangesetTagChanges(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.post(
             reverse('changeset:set-tag-changes', args=[self.changeset.id]),
-            data=[{"new": "paved", "old": "unpaved"}]
+            data=["paved", "unpaved"]
             )
         self.assertEqual(response.status_code, 400)
         response = self.client.post(
@@ -89,12 +86,15 @@ class TestSetChangesetTagChanges(APITestCase):
         response = self.client.post(
             reverse('changeset:set-tag-changes', args=[self.changeset.id]),
             data={
-                "surface": [
-                    {"new": "paved", "old": "unpaved"},
-                    {"new": "asphalt"},
-                    {"old": "grass"}
-                    ],
-                "highway": [{"newValue": "tertiary"}],
+                "surface": ["paved", "unpaved", "asphalt", "grass"],
+                "highway": [{"newValue": "tertiary"}]
+                }
+            )
+        self.assertEqual(response.status_code, 400)
+        response = self.client.post(
+            reverse('changeset:set-tag-changes', args=[self.changeset.id]),
+            data={
+                "lanes": [2, 4, 1],
                 }
             )
         self.assertEqual(response.status_code, 400)
