@@ -1,6 +1,6 @@
 # Bleeding edge Django
 
-django==2.2.27
+django==2.2.28
 
 # Configuration
 django-environ==0.4.5
