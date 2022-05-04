@@ -1,5 +1,5 @@
-from django.conf import settings
 from django.contrib.gis.db import models
+from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext, ugettext_lazy as _
 
@@ -71,6 +71,7 @@ class Changeset(models.Model):
     reasons = models.ManyToManyField(SuspicionReasons, related_name='changesets')
     new_features = JSONField(default=list)
     reviewed_features = JSONField(default=list)
+    tag_changes = JSONField(default=dict)
     create = models.IntegerField(db_index=True, null=True)
     modify = models.IntegerField(db_index=True, null=True)
     delete = models.IntegerField(db_index=True, null=True)
@@ -120,6 +121,9 @@ class Changeset(models.Model):
 
     class Meta:
         ordering = ['-id']
+        indexes = [
+            GinIndex(fields=['tag_changes'])
+        ]
 
 
 class Import(models.Model):

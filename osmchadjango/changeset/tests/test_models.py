@@ -156,6 +156,16 @@ class TestChangesetModel(TestCase):
         self.assertEqual(Changeset.objects.all().count(), 2)
         self.assertEqual(changeset.reviewed_features, json_content)
 
+    def test_tag_changes_field(self):
+        self.assertEqual(self.changeset.tag_changes, {})
+        tag_changes = {"surface": ["paved", "unpaved", "asphalt", "grass"]}
+        changeset = ChangesetFactory(
+            id=31982805,
+            tag_changes=tag_changes
+            )
+        self.assertEqual(Changeset.objects.all().count(), 2)
+        self.assertEqual(changeset.tag_changes, tag_changes)
+
     def test_metadata_field(self):
         self.assertEqual(
             self.changeset.metadata,

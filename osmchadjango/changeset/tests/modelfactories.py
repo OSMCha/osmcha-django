@@ -3,7 +3,7 @@ import json
 from django.contrib.gis.geos import Polygon
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.contrib.gis.geos import Point, LineString
+from django.contrib.gis.geos import Point
 
 import factory
 
@@ -52,6 +52,10 @@ class SuspectChangesetFactory(ChangesetFactory):
     modify = 10
     delete = 30
     is_suspect = True
+    tag_changes = {
+        "shop": ["supermarket", "convenience_store", "bicycle", "car"],
+        "lanes": ["2", "4", "1"]
+        }
 
 
 class HarmfulChangesetFactory(SuspectChangesetFactory):
@@ -94,7 +98,7 @@ class FeatureFactory(factory.django.DjangoModelFactory):
     osm_version = 1
     geometry = Point(42.1, 13.4)
     geojson = json.dumps(
-        {'properties': {'osm:type': 'node', 'name': 'Test', 'building':'yes'}}
+        {'properties': {'osm:type': 'node', 'name': 'Test', 'building': 'yes'}}
         )
 
 
