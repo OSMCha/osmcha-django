@@ -95,18 +95,18 @@ class ChangesetListStatsSerializer(ListSerializer):
 
         reasons_list = [
             {'name': reason.name,
-            'changesets': data.filter(reasons=reason).count(),
-            'checked_changesets': checked_changesets.filter(reasons=reason).count(),
-            'harmful_changesets': harmful_changesets.filter(reasons=reason).count(),
-            }
+             'changesets': data.filter(reasons=reason).count(),
+             'checked_changesets': checked_changesets.filter(reasons=reason).count(),
+             'harmful_changesets': harmful_changesets.filter(reasons=reason).count(),
+             }
             for reason in reasons
             ]
         tags_list = [
             {'name': tag.name,
-            'changesets': data.filter(tags=tag).count(),
-            'checked_changesets': checked_changesets.filter(tags=tag).count(),
-            'harmful_changesets': harmful_changesets.filter(tags=tag).count(),
-            }
+             'changesets': data.filter(tags=tag).count(),
+             'checked_changesets': checked_changesets.filter(tags=tag).count(),
+             'harmful_changesets': harmful_changesets.filter(tags=tag).count(),
+             }
             for tag in tags
             ]
 
@@ -129,30 +129,6 @@ class ChangesetListStatsSerializer(ListSerializer):
 class ChangesetStatsSerializer(BaseSerializer):
     class Meta:
         list_serializer_class = ChangesetListStatsSerializer
-
-
-class UserStatsListSerializer(ListSerializer):
-    read_only = True
-
-    def to_representation(self, data):
-        data = Changeset.objects.filter(id__in=[i.id for i in data])
-        checked_changesets = data.filter(checked=True)
-        harmful_changesets = data.filter(harmful=True)
-
-        return {
-            'changesets_in_osmcha': data.count(),
-            'checked_changesets': checked_changesets.count(),
-            'harmful_changesets': harmful_changesets.count()
-            }
-
-    @property
-    def data(self):
-        return super(ListSerializer, self).data
-
-
-class UserStatsSerializer(BaseSerializer):
-    class Meta:
-        list_serializer_class = UserStatsListSerializer
 
 
 # the following serializers are used only to validate input data in endpoints

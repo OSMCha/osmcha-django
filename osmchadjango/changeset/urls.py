@@ -130,9 +130,9 @@ urlpatterns = [
         view=views.ChangesetStatsAPIView.as_view(),
         name='stats'
     ),
-    re_path(
-        r'^user-stats/(?P<uid>\w+)/$',
-        view=views.UserStatsAPIView.as_view(),
+    path(
+        'user-stats/<int:uid>/',
+        view=views.user_stats,
         name='user-stats'
     ),
 ]
