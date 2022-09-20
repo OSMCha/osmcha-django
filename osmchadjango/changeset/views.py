@@ -546,17 +546,15 @@ def user_stats(request, uid):
     """
     query = """
         SELECT
-            count(*),
             count(*) filter (where checked),
             count(*) filter (where harmful)
         FROM changeset_changeset
-        WHERE uid = %s
+        WHERE uid = %s AND checked = TRUE
         """
     with connection.cursor() as cursor:
         cursor.execute(query, [str(uid)])
         total, checked, harmful = cursor.fetchone()
         instance = {
-            "changesets_in_osmcha": total,
             "checked_changesets": checked,
             "harmful_changesets": harmful
             }
