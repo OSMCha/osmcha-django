@@ -422,8 +422,8 @@ class TestChangesetFilter(TestCase):
         # with multiple tags, it filters using the OR condition
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary,surface=*'}).qs.count(), 2)
-        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 1)
-        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'name=Store,surface=paved'}).qs.count(), 3)
         self.assertEqual(ChangesetFilter({'tag_changes': 'landuse=residential,waterway=river'}).qs.count(), 0)
 
