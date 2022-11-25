@@ -399,17 +399,34 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'metadata': 'wrongtag__min=abc'}).qs.count(), 0)
         self.assertEqual(ChangesetFilter({'metadata': 'closed:improveosm=*'}).qs.count(), 1)
 
+    def test_all_tag_changes_filter(self):
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'amenity=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=*'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'surface=grass'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=primary'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary,name=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link,surface=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 0)
+        self.assertEqual(ChangesetFilter({'all_tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 0)
+    
     def test_tag_changes_filter(self):
-        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=*'}).qs.count(), 2)
+        # with one tag, the result is the same as all_tag_changes
         self.assertEqual(ChangesetFilter({'tag_changes': 'amenity=*'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=*'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'surface=grass'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=primary'}).qs.count(), 1)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary'}).qs.count(), 2)
         self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link'}).qs.count(), 1)
-        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary,name=*'}).qs.count(), 1)
-        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,surface=*'}).qs.count(), 1)
-        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 0)
-        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 0)
+        # with multiple tags, it filters using the OR condition
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary,surface=*'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,name=Sky'}).qs.count(), 1)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'highway=tertiary_link,highway=primary'}).qs.count(), 2)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'name=Store,surface=paved'}).qs.count(), 3)
+        self.assertEqual(ChangesetFilter({'tag_changes': 'landuse=residential,waterway=river'}).qs.count(), 0)
+
 
 
 class TestChangesetAreaLowerThan(TestCase):

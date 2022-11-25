@@ -269,6 +269,14 @@ class ChangesetFilter(GeoFilterSet):
             values. To query by any value use key=*.
         """
         )
+    all_tag_changes = filters.CharFilter(
+        field_name='tag_changes',
+        method='filter_all_tag_changes',
+        help_text="""Filter changesets by the tag_changes field using the AND logic. It supports a
+            combination of OSM tags and will query using both the old and new
+            values. To query by any value use key=*.
+        """
+        )
 
     def get_past_n_days(self, queryset, field_name, value):
         start_date = date.today() - timedelta(days=int(value))
@@ -281,7 +289,7 @@ class ChangesetFilter(GeoFilterSet):
             if len(t.split('=')) == 2
             ]
 
-    def filter_tag_changes(self, queryset, name, value):
+    def filter_all_tag_changes(self, queryset, name, value):
         for query in self.split_values(value):
             if query[1] == '*':
                 key = 'tag_changes__has_key'
@@ -290,6 +298,21 @@ class ChangesetFilter(GeoFilterSet):
             else:
                 key = 'tag_changes__{}__contains'.format(query[0])
                 queryset = queryset.filter(**{key: query[1]})
+        return queryset
+
+    def filter_tag_changes(self, queryset, name, value):
+        or_condition = Q()
+        keys = []
+        for query in self.split_values(value):
+            if query[1] == '*':
+                keys.append(query[0])
+            else:
+                key = 'tag_changes__{}__contains'.format(query[0])
+                or_condition.add(Q(**{key: query[1]}), Q.OR)
+        if len(keys):
+            or_condition.add(Q(**{'tag_changes__has_any_keys': keys}), Q.OR)
+
+        queryset = queryset.filter(or_condition)
         return queryset
 
     def filter_metadata(self, queryset, name, value):
