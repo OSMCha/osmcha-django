@@ -4,8 +4,6 @@ Production Configurations
 - Use djangosecure
 - Use MEMCACHE on Heroku
 '''
-from __future__ import absolute_import, unicode_literals
-
 from .common import *  # noqa
 
 
@@ -78,7 +76,7 @@ DATABASES = {
 # Configured to use Redis, if you prefer another method, comment the REDIS and
 # set up your prefered way.
 
-REDIS_LOCATION = '{0}/{1}'.format(env('REDIS_URL', default='redis://127.0.0.1:6379'), 0)
+REDIS_LOCATION = f"{env('REDIS_URL', default='redis://127.0.0.1:6379')}/{0}"
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',

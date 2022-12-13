@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class ChangeSetConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'osmchadjango.changeset'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "osmchadjango.changeset"

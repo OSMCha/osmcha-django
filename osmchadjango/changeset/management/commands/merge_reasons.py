@@ -1,8 +1,7 @@
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from django.db import connection
 
-from ...models import SuspicionReasons
+from osmchadjango.changeset.models import SuspicionReasons
 
 
 class Command(BaseCommand):
@@ -12,21 +11,15 @@ class Command(BaseCommand):
         """
 
     def add_arguments(self, parser):
-        parser.add_argument('reason_1', nargs=1, type=str)
-        parser.add_argument('reason_2', nargs=1, type=str)
+        parser.add_argument("reason_1", nargs=1, type=str)
+        parser.add_argument("reason_2", nargs=1, type=str)
 
     def handle(self, *args, **options):
         try:
-            origin_reason = SuspicionReasons.objects.get(
-                id=options['reason_1'][0]
-                )
-            final_reason = SuspicionReasons.objects.get(
-                id=options['reason_2'][0]
-                )
+            origin_reason = SuspicionReasons.objects.get(id=options["reason_1"][0])
+            final_reason = SuspicionReasons.objects.get(id=options["reason_2"][0])
             changesets = origin_reason.changesets.exclude(reasons=final_reason)
-            excluded_changesets = final_reason.changesets.filter(
-                reasons=final_reason
-                )
+            excluded_changesets = final_reason.changesets.filter(reasons=final_reason)
             changeset_number = changesets.count()
             origin_reason_name = origin_reason.name
             with connection.cursor() as cursor:
@@ -38,21 +31,18 @@ class Command(BaseCommand):
                     [
                         final_reason.id,
                         origin_reason.id,
-                        tuple([c.id for c in excluded_changesets])
-                    ]
-                    )
+                        tuple([c.id for c in excluded_changesets]),
+                    ],
+                )
             origin_reason.delete()
             self.stdout.write(
-                """{} changesets were moved from '{}' to '{}' SuspicionReasons.
-                '{}' has been successfully deleted.
-                """.format(
-                    changeset_number, origin_reason_name, final_reason.name,
-                    origin_reason_name
-                    )
+                f"""{changeset_number} changesets were moved from '{origin_reason_name}' to '{final_reason.name}' SuspicionReasons.
+                '{origin_reason_name}' has been successfully deleted.
+                """
                 )
         except SuspicionReasons.DoesNotExist:
             self.stdout.write(
                 """Verify the SuspicionReasons ids.
                 One or both of them does not exist.
                 """
-                )
+            )

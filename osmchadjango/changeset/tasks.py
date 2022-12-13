@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
 from os.path import join
 from urllib.parse import quote
 import yaml
@@ -22,24 +20,23 @@ def create_changeset(changeset_id):
 
     # remove suspicion_reasons
     ch_dict = ch.get_dict()
-    ch_dict.pop('suspicion_reasons')
+    ch_dict.pop("suspicion_reasons")
 
     # remove bbox field if it is not a valid geometry
-    if ch.bbox == 'GEOMETRYCOLLECTION EMPTY':
-        ch_dict.pop('bbox')
+    if ch.bbox == "GEOMETRYCOLLECTION EMPTY":
+        ch_dict.pop("bbox")
 
     # save changeset.
     changeset, created = Changeset.objects.update_or_create(
-        id=ch_dict['id'],
-        defaults=ch_dict
-        )
+        id=ch_dict["id"], defaults=ch_dict
+    )
 
     if ch.suspicion_reasons:
         for reason in ch.suspicion_reasons:
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
 
-    print('{c[id]} created'.format(c=ch_dict))
+    print(f"{ch_dict.get(id)} created")
     return changeset
 
 
@@ -49,14 +46,14 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c['id']) for c in cl.changesets)()
+    group(create_changeset.s(c["id"]) for c in cl.changesets)()
 
 
 def format_url(n):
     """Return the url of a replication file."""
     n = str(n)
-    base_url = 'https://planet.openstreetmap.org/replication/changesets/'
-    return join(base_url, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
+    base_url = "https://planet.openstreetmap.org/replication/changesets/"
+    return join(base_url, "00%s" % n[0], n[1:4], "%s.osm.gz" % n[4:])
 
 
 @shared_task
@@ -70,13 +67,12 @@ def import_replications(start, end):
 
 
 def get_last_replication_id():
-    """Get the id number of the last replication file available on Planet OSM.
-    """
+    """Get the id number of the last replication file available on Planet OSM."""
     state = requests.get(
-        'https://planet.openstreetmap.org/replication/changesets/state.yaml'
-        ).content
+        "https://planet.openstreetmap.org/replication/changesets/state.yaml"
+    ).content
     state = yaml.load(state)
-    return state.get('sequence')
+    return state.get("sequence")
 
 
 @shared_task
@@ -86,7 +82,7 @@ def fetch_latest():
     FIXME: define error in except line
     """
     try:
-        last_import = Import.objects.all().order_by('-end')[0].end
+        last_import = Import.objects.all().order_by("-end")[0].end
     except:
         last_import = None
 
@@ -96,7 +92,7 @@ def fetch_latest():
         start = last_import + 1
     else:
         start = sequence - 1000
-    print("Importing replications from %d to %d" % (start, sequence,))
+    print(f"Importing replications from {start} to {sequence}")
     import_replications(start, sequence)
 
 
@@ -104,33 +100,31 @@ class ChangesetCommentAPI(object):
     """Class that allows us to publish comments in changesets on the
     OpenStreetMap website.
     """
+
     def __init__(self, user, changeset_id):
         self.changeset_id = changeset_id
         user_token = user.social_auth.all().first().access_token
         self.client = OAuth1Session(
             settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
-            resource_owner_key=user_token['oauth_token'],
-            resource_owner_secret=user_token['oauth_token_secret']
-            )
-        self.url = 'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-            changeset_id
-            )
+            resource_owner_key=user_token["oauth_token"],
+            resource_owner_secret=user_token["oauth_token_secret"],
+        )
+        self.url = (
+            f"https://api.openstreetmap.org/api/0.6/changeset/{changeset_id}/comment/"
+        )
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
         response = self.client.post(
-            self.url,
-            data='text={}'.format(quote(message)).encode("utf-8")
-            )
+            self.url, data=f"text={quote(message)}".encode("utf-8")
+        )
         if response.status_code == 200:
-            print(
-                'Comment in the changeset {} posted successfully.'.format(
-                    self.changeset_id
-                    )
-                )
-            return {'success': True}
+            print(f"Comment in the changeset {self.changeset_id} posted successfully.")
+            return {"success": True}
         else:
-            print("""Some error occurred and it wasn't possible to post the
-                comment to the changeset {}.""".format(self.changeset_id))
-            return {'success': False}
+            print(
+                f"""Some error occurred and it wasn't possible to post the
+                comment to the changeset {self.changeset_id}."""
+            )
+            return {"success": False}

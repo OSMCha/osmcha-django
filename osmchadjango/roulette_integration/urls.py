@@ -1,21 +1,17 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
-from django.urls import re_path
+from django.urls import path
 
 from . import views
 
-
-app_name = 'roulette_integration'
+app_name = "roulette_integration"
 urlpatterns = [
-    re_path(
-        r'^challenges/$',
+    path(
+        "challenges/",
         view=views.ChallengeIntegrationListCreateAPIView.as_view(),
-        name='list-create'
-        ),
-    re_path(
-        r'^challenges/(?P<pk>\d+)/$',
+        name="list-create",
+    ),
+    path(
+        "challenges/<int:pk>/",
         view=views.ChallengeIntegrationDetailAPIView.as_view(),
-        name='detail'
-        ),
-    ]
+        name="detail",
+    ),
+]

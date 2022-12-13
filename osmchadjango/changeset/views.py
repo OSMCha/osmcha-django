@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django.utils import timezone
-from django.utils.translation import ugettext, ugettext_lazy as _
 from django.db.utils import IntegrityError
 from django.db import connection
 from django.conf import settings
@@ -10,12 +6,19 @@ from django.conf import settings
 import django_filters.rest_framework
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, action, throttle_classes
-    )
+    api_view,
+    parser_classes,
+    permission_classes,
+    action,
+    throttle_classes,
+)
 from rest_framework.generics import (
-    ListAPIView, ListCreateAPIView, RetrieveAPIView, get_object_or_404,
-    DestroyAPIView
-    )
+    ListAPIView,
+    ListCreateAPIView,
+    RetrieveAPIView,
+    get_object_or_404,
+    DestroyAPIView,
+)
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
@@ -29,25 +32,31 @@ from rest_framework.exceptions import APIException
 from .models import Changeset, UserWhitelist, SuspicionReasons, Tag
 from .filters import ChangesetFilter
 from .serializers import (
-    ChangesetSerializer, ChangesetSerializerToStaff, ChangesetStatsSerializer,
-    ChangesetTagsSerializer, SuspicionReasonsChangesetSerializer,
-    SuspicionReasonsSerializer, UserWhitelistSerializer,
-    TagSerializer, ChangesetCommentSerializer, ReviewedFeatureSerializer
-    )
+    ChangesetSerializer,
+    ChangesetSerializerToStaff,
+    ChangesetStatsSerializer,
+    ChangesetTagsSerializer,
+    SuspicionReasonsChangesetSerializer,
+    SuspicionReasonsSerializer,
+    UserWhitelistSerializer,
+    TagSerializer,
+    ChangesetCommentSerializer,
+    ReviewedFeatureSerializer,
+)
 from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
-from ..roulette_integration.utils import push_feature_to_maproulette
-from ..roulette_integration.models import ChallengeIntegration
+from osmchadjango.roulette_integration.utils import push_feature_to_maproulette
+from osmchadjango.roulette_integration.models import ChallengeIntegration
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
     page_size = 50
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 500
 
 
-class PaginatedCSVRenderer (CSVRenderer):
-    results_field = 'features'
+class PaginatedCSVRenderer(CSVRenderer):
+    results_field = "features"
 
     def render(self, data, *args, **kwargs):
         if not isinstance(data, list):
@@ -65,19 +74,20 @@ class ChangesetListAPIView(ListAPIView):
     default pagination returns 50 objects by page.
     """
 
-    queryset = Changeset.objects.all().select_related(
-        'check_user'
-        ).prefetch_related(
-        'tags', 'reasons', 'features', 'features__reasons'
-        ).exclude(user="")
+    queryset = (
+        Changeset.objects.all()
+        .select_related("check_user")
+        .prefetch_related("tags", "reasons", "features", "features__reasons")
+        .exclude(user="")
+    )
     permission_classes = (IsAuthenticated,)
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
-    bbox_filter_field = 'bbox'
+    bbox_filter_field = "bbox"
     filter_backends = (
         InBBoxFilter,
         django_filters.rest_framework.DjangoFilterBackend,
-        )
+    )
     bbox_filter_include_overlapping = True
     filter_class = ChangesetFilter
 
@@ -90,10 +100,13 @@ class ChangesetListAPIView(ListAPIView):
 
 class ChangesetDetailAPIView(RetrieveAPIView):
     """Return details of a Changeset."""
+
     permission_classes = (IsAuthenticated,)
-    queryset = Changeset.objects.all().select_related(
-        'check_user'
-        ).prefetch_related('tags', 'reasons')
+    queryset = (
+        Changeset.objects.all()
+        .select_related("check_user")
+        .prefetch_related("tags", "reasons")
+    )
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -158,6 +171,7 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
 
 class SuspicionReasonsListAPIView(ListAPIView):
     """List SuspicionReasons."""
+
     serializer_class = SuspicionReasonsSerializer
 
     def get_queryset(self):
@@ -172,7 +186,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
     serializer_class = SuspicionReasonsChangesetSerializer
     permission_classes = (IsAdminUser,)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_reason_to_changesets(self, request, pk):
         """This endpoint allows us to add Suspicion Reasons to changesets in a
         batch. The use of this endpoint is restricted to staff users. The ids of
@@ -181,18 +195,15 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            reason.changesets.add(*serializer.data['changesets'])
+            reason.changesets.add(*serializer.data["changesets"])
             return Response(
-                {'detail': 'Suspicion Reasons added to changesets.'},
-                status=status.HTTP_200_OK
-                )
+                {"detail": "Suspicion Reasons added to changesets."},
+                status=status.HTTP_200_OK,
+            )
         else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=["delete"])
     def remove_reason_from_changesets(self, request, pk):
         """This endpoint allows us to remove Suspicion Reasons from changesets
         in a batch. The use of this endpoint is restricted to staff users. The
@@ -201,20 +212,18 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
         reason = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
-            reason.changesets.remove(*serializer.data['changesets'])
+            reason.changesets.remove(*serializer.data["changesets"])
             return Response(
-                {'detail': 'Suspicion Reasons removed from changesets.'},
-                status=status.HTTP_200_OK
-                )
+                {"detail": "Suspicion Reasons removed from changesets."},
+                status=status.HTTP_200_OK,
+            )
         else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TagListAPIView(ListAPIView):
     """List Tags."""
+
     serializer_class = TagSerializer
 
     def get_queryset(self):
@@ -231,50 +240,52 @@ class ReviewFeature(ModelViewSet):
 
     def add_reviewed_feature(self, type, id, harmful):
         changeset = self.get_object()
-        is_feature_present = len([f for f in changeset.reviewed_features if f["id"] == f"{type}-{id}"]) > 0
+        is_feature_present = (
+            len([f for f in changeset.reviewed_features if f["id"] == f"{type}-{id}"])
+            > 0
+        )
         if is_feature_present:
             return Response(
                 f"Feature {type}-{id} is already added to the changeset",
-                status=status.HTTP_400_BAD_REQUEST
-                )
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
+        if changeset.uid in self.request.user.social_auth.values_list("uid", flat=True):
             return Response(
-                {'detail': 'User can not check features on his own changeset.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not check features on his own changeset."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         changeset.reviewed_features.append(
             {"id": f"{type}-{id}", "user": self.request.user.username}
         )
         changeset.save(update_fields=["reviewed_features"])
         return Response(
-            {'detail': f"Feature {type}-{id} added to changeset review list."},
-            status=status.HTTP_200_OK
-            )
+            {"detail": f"Feature {type}-{id} added to changeset review list."},
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_harmful_feature(self, request, pk, type, id):
         serializer = ReviewedFeatureSerializer(data={"type": type, "id": id})
         if serializer.is_valid():
             return self.add_reviewed_feature(type, id, True)
         else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
-                )
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=["delete"])
     def remove_harmful_feature(self, request, pk, type, id):
         serializer = ReviewedFeatureSerializer(data={"type": type, "id": id})
         if serializer.is_valid():
             changeset = self.get_object()
 
-            if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
+            if changeset.uid in self.request.user.social_auth.values_list(
+                "uid", flat=True
+            ):
                 return Response(
-                    {'detail': 'User can not check features on his own changeset.'},
-                    status=status.HTTP_403_FORBIDDEN
-                    )
+                    {"detail": "User can not check features on his own changeset."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
 
             feature_index = None
             for i, feature in enumerate(changeset.reviewed_features):
@@ -285,19 +296,18 @@ class ReviewFeature(ModelViewSet):
                 changeset.reviewed_features.pop(feature_index)
                 changeset.save(update_fields=["reviewed_features"])
                 return Response(
-                    {'detail': f"Feature {type}-{id} removed from changeset review list."},
-                    status=status.HTTP_200_OK
-                    )
+                    {
+                        "detail": f"Feature {type}-{id} removed from changeset review list."
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
                 return Response(
                     f"Feature {type}-{id} is not present on the changeset review list.",
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CheckChangeset(ModelViewSet):
@@ -313,15 +323,13 @@ class CheckChangeset(ModelViewSet):
         changeset.harmful = harmful
         changeset.check_user = request.user
         changeset.check_date = timezone.now()
-        changeset.save(
-            update_fields=['checked', 'harmful', 'check_user', 'check_date']
-            )
+        changeset.save(update_fields=["checked", "harmful", "check_user", "check_date"])
         return Response(
-            {'detail': 'Changeset marked as {}.'.format('harmful' if harmful else 'good')},
-            status=status.HTTP_200_OK
-            )
+            {"detail": f"Changeset marked as {'harmful' if harmful else 'good'}."},
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_harmful(self, request, pk):
         """Mark a changeset as harmful. You can set the tags of the changeset by
         sending a list of tag ids inside a field named 'tags' in the request
@@ -331,26 +339,23 @@ class CheckChangeset(ModelViewSet):
         changeset = self.get_object()
         if changeset.checked:
             return Response(
-                {'detail': 'Changeset was already checked.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+                {"detail": "Changeset was already checked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if changeset.uid in request.user.social_auth.values_list("uid", flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not check his own changeset."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if request.data:
             serializer = ChangesetTagsSerializer(data=request.data)
             if serializer.is_valid():
-                changeset.tags.set(serializer.data['tags'])
+                changeset.tags.set(serializer.data["tags"])
             else:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return self.update_changeset(changeset, request, harmful=True)
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_good(self, request, pk):
         """Mark a changeset as good. You can set the tags of the changeset by
         sending a list of tag ids inside a field named 'tags' in the request
@@ -360,58 +365,50 @@ class CheckChangeset(ModelViewSet):
         changeset = self.get_object()
         if changeset.checked:
             return Response(
-                {'detail': 'Changeset was already checked.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+                {"detail": "Changeset was already checked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if changeset.uid in request.user.social_auth.values_list("uid", flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not check his own changeset."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if request.data:
             serializer = ChangesetTagsSerializer(data=request.data)
             if serializer.is_valid():
-                changeset.tags.set(serializer.data['tags'])
+                changeset.tags.set(serializer.data["tags"])
             else:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return self.update_changeset(changeset, request, harmful=False)
 
 
-@api_view(['PUT'])
+@api_view(["PUT"])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def uncheck_changeset(request, pk):
     """Mark a changeset as unchecked. You don't need to send data, just an empty
     PUT request."""
     instance = get_object_or_404(
-        Changeset.objects.all().select_related('check_user'),
-        pk=pk
-        )
+        Changeset.objects.all().select_related("check_user"), pk=pk
+    )
     if instance.checked is False:
         return Response(
-            {'detail': 'Changeset is not checked.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+            {"detail": "Changeset is not checked."}, status=status.HTTP_403_FORBIDDEN
+        )
     elif request.user == instance.check_user or request.user.is_staff:
         instance.checked = False
         instance.harmful = None
         instance.check_user = None
         instance.check_date = None
-        instance.save(
-            update_fields=['checked', 'harmful', 'check_user', 'check_date']
-            )
+        instance.save(update_fields=["checked", "harmful", "check_user", "check_date"])
         return Response(
-            {'detail': 'Changeset marked as unchecked.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Changeset marked as unchecked."}, status=status.HTTP_200_OK
+        )
     else:
         return Response(
-            {'detail': 'User does not have permission to uncheck this changeset.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+            {"detail": "User does not have permission to uncheck this changeset."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
 
 class AddRemoveChangesetTagsAPIView(ModelViewSet):
@@ -421,7 +418,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
     # in docs schema generation.
     serializer_class = ChangesetStatsSerializer
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_tag(self, request, pk, tag_pk):
         """Add a tag to a changeset. If the changeset is unchecked, any user can
         add tags. After the changeset got checked, only staff users and the user
@@ -431,25 +428,27 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
         changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.filter(for_changeset=True), pk=tag_pk)
 
-        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+        if changeset.uid in request.user.social_auth.values_list("uid", flat=True):
             return Response(
-                {'detail': 'User can not add tags to his own changeset.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not add tags to his own changeset."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if changeset.checked and (
-                request.user != changeset.check_user and not request.user.is_staff):
+            request.user != changeset.check_user and not request.user.is_staff
+        ):
             return Response(
-                {'detail': 'User can not add tags to a changeset checked by another user.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {
+                    "detail": "User can not add tags to a changeset checked by another user."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         changeset.tags.add(tag)
         return Response(
-            {'detail': 'Tag added to the changeset.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Tag added to the changeset."}, status=status.HTTP_200_OK
+        )
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=["delete"])
     def remove_tag(self, request, pk, tag_pk):
         """Remove a tag from a changeset. If the changeset is unchecked, any user
         can remove tags. After the changeset got checked, only staff users and
@@ -459,28 +458,30 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
         changeset = self.get_object()
         tag = get_object_or_404(Tag.objects.all(), pk=tag_pk)
 
-        if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+        if changeset.uid in request.user.social_auth.values_list("uid", flat=True):
             return Response(
-                {'detail': 'User can not remove tags from his own changeset.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not remove tags from his own changeset."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if changeset.checked and (
-                request.user != changeset.check_user and not request.user.is_staff):
+            request.user != changeset.check_user and not request.user.is_staff
+        ):
             return Response(
-                {'detail': 'User can not remove tags from a changeset checked by another user.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {
+                    "detail": "User can not remove tags from a changeset checked by another user."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         changeset.tags.remove(tag)
         return Response(
-            {'detail': 'Tag removed from the changeset.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Tag removed from the changeset."}, status=status.HTTP_200_OK
+        )
 
 
 class WhitelistValidationException(APIException):
     status_code = status.HTTP_403_FORBIDDEN
-    default_detail = 'The user was already whitelisted by the request user.'
+    default_detail = "The user was already whitelisted by the request user."
 
 
 class UserWhitelistListCreateAPIView(ListCreateAPIView):
@@ -491,6 +492,7 @@ class UserWhitelistListCreateAPIView(ListCreateAPIView):
     post:
     Add a user to the whitelist of the request user.
     """
+
     serializer_class = UserWhitelistSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -509,9 +511,10 @@ class UserWhitelistListCreateAPIView(ListCreateAPIView):
 
 class UserWhitelistDestroyAPIView(DestroyAPIView):
     """Delete a user from the whitelist of the request user."""
+
     serializer_class = UserWhitelistSerializer
     permission_classes = (IsAuthenticated,)
-    lookup_field = 'whitelist_user'
+    lookup_field = "whitelist_user"
 
     def get_queryset(self):
         return UserWhitelist.objects.filter(user=self.request.user)
@@ -524,21 +527,24 @@ class ChangesetStatsAPIView(ListAPIView):
     It's possible to filter the changesets using the same filter parameters of
     the changeset list endpoint.
     """
-    queryset = Changeset.objects.all().select_related(
-        'check_user'
-        ).prefetch_related('tags', 'reasons')
+
+    queryset = (
+        Changeset.objects.all()
+        .select_related("check_user")
+        .prefetch_related("tags", "reasons")
+    )
     serializer_class = ChangesetStatsSerializer
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
-    bbox_filter_field = 'bbox'
+    bbox_filter_field = "bbox"
     filter_backends = (
         InBBoxFilter,
         django_filters.rest_framework.DjangoFilterBackend,
-        )
+    )
     bbox_filter_include_overlapping = True
     filter_class = ChangesetFilter
 
 
-@api_view(['GET'])
+@api_view(["GET"])
 @permission_classes((IsAuthenticated,))
 def user_stats(request, uid):
     """Get stats about an OSM user in the OSMCHA history.
@@ -558,8 +564,8 @@ def user_stats(request, uid):
         instance = {
             "changesets_in_osmcha": total,
             "checked_changesets": checked,
-            "harmful_changesets": harmful
-            }
+            "harmful_changesets": harmful,
+        }
     return Response(instance)
 
 
@@ -568,123 +574,108 @@ class ChangesetCommentAPIView(ModelViewSet):
     permission_classes = (IsAuthenticated,)
     serializer_class = ChangesetCommentSerializer
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def post_comment(self, request, pk):
         "Post a comment to a changeset in the OpenStreetMap website."
         self.changeset = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             if settings.ENABLE_POST_CHANGESET_COMMENTS:
-                changeset_comment = ChangesetCommentAPI(
-                    request.user,
-                    self.changeset.id
-                    )
+                changeset_comment = ChangesetCommentAPI(request.user, self.changeset.id)
                 comment_response = changeset_comment.post_comment(
-                    self.add_footer(serializer.data['comment'])
-                    )
-                if comment_response.get('success'):
+                    self.add_footer(serializer.data["comment"])
+                )
+                if comment_response.get("success"):
                     return Response(
-                        {'detail': 'Changeset comment posted succesfully.'},
-                        status=status.HTTP_201_CREATED
-                        )
+                        {"detail": "Changeset comment posted succesfully."},
+                        status=status.HTTP_201_CREATED,
+                    )
                 else:
                     return Response(
-                        {'detail': 'Changeset comment failed.'},
-                        status=status.HTTP_400_BAD_REQUEST
-                        )
+                        {"detail": "Changeset comment failed."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
             else:
                 return Response(
-                    {'detail': 'Changeset comment is not enabled.'},
-                    status=status.HTTP_403_FORBIDDEN
-                    )
-        else:
-            return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+                    {"detail": "Changeset comment is not enabled."},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def add_footer(self, message):
         status = ""
         if self.changeset.checked and self.changeset.harmful is not None:
-            status = "#REVIEWED_{} #OSMCHA".format(
-                'BAD' if self.changeset.harmful else 'GOOD'
-                )
-        return """{}
+            status = f"#REVIEWED_{'BAD' if self.changeset.harmful else 'GOOD'} #OSMCHA"
+        return f"""{message}
             ---
-            {}
-            Published using OSMCha: https://osmcha.org/changesets/{}
-            """.format(message, status, self.changeset.id)
+            {status}
+            Published using OSMCha: https://osmcha.org/changesets/{self.changeset.id}
+            """
 
 
 def validate_feature(feature):
-    required_fields = ['changeset', 'osm_id', 'osm_type', 'reasons']
+    required_fields = ["changeset", "osm_id", "osm_type", "reasons"]
     missing_fields = [i for i in required_fields if i not in feature.keys()]
     # Check for missing required fields
     if len(missing_fields):
-        message = 'Request data is missing the following fields {}.'.format(
-            ', '.join(missing_fields)
-            )
-        return Response(
-            {'detail': message},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+        message = (
+            f"Request data is missing the following fields {', '.join(missing_fields)}."
+        )
+        return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
     # validate id and changeset fields
     try:
-        int(feature.get('osm_id'))
-        int(feature.get('changeset'))
+        int(feature.get("osm_id"))
+        int(feature.get("changeset"))
     except ValueError:
         return Response(
-            {'detail': 'osm_id or changeset values are not an integer.'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {"detail": "osm_id or changeset values are not an integer."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     # validate osm_type
-    if feature.get('osm_type') not in ['node', 'way', 'relation']:
+    if feature.get("osm_type") not in ["node", "way", "relation"]:
         return Response(
-            {'detail': 'osm_type value should be "node", "way" or "relation".'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {"detail": 'osm_type value should be "node", "way" or "relation".'},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     # validate reasons
-    if type(feature.get('reasons')) != list:
+    if type(feature.get("reasons")) != list:
         return Response(
-            {'detail': 'reasons value should be a list.'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {"detail": "reasons value should be a list."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 def filter_primary_tags(feature):
     PRIMARY_TAGS = [
-        'aerialway',
-        'aeroway',
-        'amenity',
-        'barrier',
-        'boundary',
-        'building',
-        'craft',
-        'emergency',
-        'geological',
-        'highway',
-        'historic',
-        'landuse',
-        'leisure',
-        'man_made',
-        'military',
-        'natural',
-        'office',
-        'place',
-        'power',
-        'public_transport',
-        'railway',
-        'route',
-        'shop',
-        'tourism',
-        'waterway'
+        "aerialway",
+        "aeroway",
+        "amenity",
+        "barrier",
+        "boundary",
+        "building",
+        "craft",
+        "emergency",
+        "geological",
+        "highway",
+        "historic",
+        "landuse",
+        "leisure",
+        "man_made",
+        "military",
+        "natural",
+        "office",
+        "place",
+        "power",
+        "public_transport",
+        "railway",
+        "route",
+        "shop",
+        "tourism",
+        "waterway",
     ]
-    tags = feature.get('primary_tags', {})
-    [
-        tags.pop(key)
-        for key in list(tags.keys())
-        if key not in PRIMARY_TAGS
-    ]
+    tags = feature.get("primary_tags", {})
+    [tags.pop(key) for key in list(tags.keys()) if key not in PRIMARY_TAGS]
     return tags
 
 
@@ -695,22 +686,22 @@ class SetChangesetTagChangesAPIView(ModelViewSet):
     # in docs schema generation.
     serializer_class = ChangesetStatsSerializer
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def set_tag_changes(self, request, pk):
         """Update the tag_changes field of a Changeset"""
         print(self.request.data)
         if self.validate_tag_changes(self.request.data) is False:
             return Response(
-                {'detail': 'Payload does not match validation rules.'},
-                status=status.HTTP_400_BAD_REQUEST
-                )
+                {"detail": "Payload does not match validation rules."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         changeset = self.get_object()
         changeset.tag_changes = request.data
-        changeset.save(update_fields=['tag_changes'])
+        changeset.save(update_fields=["tag_changes"])
         return Response(
-            {'detail': 'Updated tag_changes field of changeset.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Updated tag_changes field of changeset."},
+            status=status.HTTP_200_OK,
+        )
 
     def validate_tag_changes(self, tag_changes):
         """Check the integrity of the tag_changes payload."""
@@ -725,7 +716,7 @@ class SetChangesetTagChangesAPIView(ModelViewSet):
         return True
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
@@ -738,7 +729,7 @@ def add_feature(request):
     """
     feature = request.data
 
-    changeset_fields_to_update = ['new_features']
+    changeset_fields_to_update = ["new_features"]
 
     # validate data
     validation = validate_feature(feature)
@@ -746,10 +737,10 @@ def add_feature(request):
         return validation
 
     # Get reasons to add to changeset and define if it changeset will be suspect
-    suspicions = feature.get('reasons')
+    suspicions = feature.get("reasons")
     has_visible_features = False
+    reasons = set()
     if suspicions:
-        reasons = set()
         for suspicion in suspicions:
             try:
                 reason_id = int(suspicion)
@@ -758,68 +749,60 @@ def add_feature(request):
                 if reason.is_visible:
                     has_visible_features = True
             except (ValueError, SuspicionReasons.DoesNotExist):
-                reason, created = SuspicionReasons.objects.get_or_create(
-                    name=suspicion
-                    )
+                reason, created = SuspicionReasons.objects.get_or_create(name=suspicion)
                 reasons.add(reason)
                 if reason.is_visible:
                     has_visible_features = True
 
-    changeset_defaults = {
-        'is_suspect': has_visible_features
-        }
+    changeset_defaults = {"is_suspect": has_visible_features}
 
     changeset, created = Changeset.objects.get_or_create(
-        id=feature.get('changeset'),
-        defaults=changeset_defaults
-        )
+        id=feature.get("changeset"), defaults=changeset_defaults
+    )
 
     if type(changeset.new_features) is not list:
         changeset.new_features = []
     elif len(changeset.new_features) > 0:
         for i, f in enumerate(changeset.new_features):
-            if f['url'] == '{}-{}'.format(feature['osm_type'], feature['osm_id']):
-                f['reasons'] = list(set(f['reasons'] + [i.id for i in reasons]))
+            if f["url"] == f"{feature['osm_type']}-{ feature['osm_id']}":
+                f["reasons"] = list(set(f["reasons"] + [i.id for i in reasons]))
                 changeset.save(update_fields=changeset_fields_to_update)
                 add_reasons_to_changeset(changeset, reasons)
                 return Response(
-                    {'detail': 'Feature added to changeset.'},
-                    status=status.HTTP_200_OK
-                    )
+                    {"detail": "Feature added to changeset."}, status=status.HTTP_200_OK
+                )
 
     fields_to_save = [
-        'osm_id', 'version', 'reasons', 'name', 'note', 'primary_tags', 'url'
-        ]
-    feature['url'] = '{}-{}'.format(
-        feature.get('osm_type'),
-        feature.get('osm_id')
-        )
-    feature['reasons'] = [i.id for i in reasons]
+        "osm_id",
+        "version",
+        "reasons",
+        "name",
+        "note",
+        "primary_tags",
+        "url",
+    ]
+    feature["url"] = f"{feature.get('osm_type')}-{feature.get('osm_id')}"
+    feature["reasons"] = [i.id for i in reasons]
     primary_tags = filter_primary_tags(feature)
     if len(primary_tags.items()):
-        feature['primary_tags'] = primary_tags
+        feature["primary_tags"] = primary_tags
 
     [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
     changeset.new_features.append(feature)
 
     if not changeset.is_suspect and has_visible_features:
         changeset.is_suspect = True
-        changeset_fields_to_update.append('is_suspect')
+        changeset_fields_to_update.append("is_suspect")
 
     changeset.save(update_fields=changeset_fields_to_update)
-    print(
-        'Changeset {} {}'.format(
-            changeset.id, 'created' if created else 'updated'
-            )
-        )
+    print(f"Changeset {changeset.id} {'created' if created else 'updated'}")
     add_reasons_to_changeset(changeset, reasons)
     return Response(
-        {'detail': 'Feature added to changeset.'},
-        status=status.HTTP_200_OK
-        )
+        {"detail": "Feature added to changeset."}, status=status.HTTP_200_OK
+    )
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
@@ -828,20 +811,20 @@ def add_feature_v1(request):
     previous format of features that was generated by vandalism-dynamosm.
     """
     feature = {}
-    feature['osm_id'] = request.data['properties']['osm:id']
-    feature['changeset'] = request.data['properties']['osm:changeset']
-    feature['osm_type'] = request.data['properties']['osm:type']
-    feature['version'] = request.data['properties']['osm:version']
-    feature['primary_tags'] = request.data['properties']
-    feature['reasons'] = [
-        i.get('reason') for i in request.data['properties'].get('suspicions')
-        ]
-    if request.data['properties'].get('name'):
-        feature['name'] = request.data['properties'].get('name')
-    if request.data['properties'].get('osmcha:note'):
-        feature['note'] = request.data['properties'].get('osmcha:note')
+    feature["osm_id"] = request.data["properties"]["osm:id"]
+    feature["changeset"] = request.data["properties"]["osm:changeset"]
+    feature["osm_type"] = request.data["properties"]["osm:type"]
+    feature["version"] = request.data["properties"]["osm:version"]
+    feature["primary_tags"] = request.data["properties"]
+    feature["reasons"] = [
+        i.get("reason") for i in request.data["properties"].get("suspicions")
+    ]
+    if request.data["properties"].get("name"):
+        feature["name"] = request.data["properties"].get("name")
+    if request.data["properties"].get("osmcha:note"):
+        feature["note"] = request.data["properties"].get("osmcha:note")
 
-    changeset_fields_to_update = ['new_features']
+    changeset_fields_to_update = ["new_features"]
 
     # validate data
     validation = validate_feature(feature)
@@ -849,10 +832,10 @@ def add_feature_v1(request):
         return validation
 
     # Get reasons to add to changeset and define if it changeset will be suspect
-    suspicions = feature.get('reasons')
+    suspicions = feature.get("reasons")
     has_visible_features = False
+    reasons = set()
     if suspicions:
-        reasons = set()
         for suspicion in suspicions:
             try:
                 reason_id = int(suspicion)
@@ -862,80 +845,75 @@ def add_feature_v1(request):
                     has_visible_features = True
 
             except (ValueError, SuspicionReasons.DoesNotExist):
-                reason, created = SuspicionReasons.objects.get_or_create(
-                    name=suspicion
-                    )
+                reason, created = SuspicionReasons.objects.get_or_create(name=suspicion)
                 reasons.add(reason)
                 if reason.is_visible:
                     has_visible_features = True
 
-        challenges = ChallengeIntegration.objects.filter(
-            active=True
-            ).filter(reasons__in=reasons).distinct()
+        challenges = (
+            ChallengeIntegration.objects.filter(active=True)
+            .filter(reasons__in=reasons)
+            .distinct()
+        )
         for challenge in challenges:
             push_feature_to_maproulette(
                 {
                     "type": "Feature",
-                    "geometry": request.data.get('geometry'),
-                    "properties": request.data.get('properties')
+                    "geometry": request.data.get("geometry"),
+                    "properties": request.data.get("properties"),
                 },
                 challenge.challenge_id,
-                feature.get('osm_id'),
-                [r.name for r in reasons]
-                )
+                feature.get("osm_id"),
+                [r.name for r in reasons],
+            )
 
-    changeset_defaults = {
-        'is_suspect': has_visible_features
-        }
+    changeset_defaults = {"is_suspect": has_visible_features}
 
     changeset, created = Changeset.objects.get_or_create(
-        id=feature.get('changeset'),
-        defaults=changeset_defaults
-        )
+        id=feature.get("changeset"), defaults=changeset_defaults
+    )
 
     if type(changeset.new_features) is not list:
         changeset.new_features = []
     elif len(changeset.new_features) > 0:
         for i, f in enumerate(changeset.new_features):
-            if f['url'] == '{}-{}'.format(feature['osm_type'], feature['osm_id']):
-                f['reasons'] = list(set(f['reasons'] + [i.id for i in reasons]))
+            if f["url"] == f"{feature['osm_type']}-{feature['osm_id']}":
+                f["reasons"] = list(set(f["reasons"] + [i.id for i in reasons]))
                 changeset.save(update_fields=changeset_fields_to_update)
                 add_reasons_to_changeset(changeset, reasons)
                 return Response(
-                    {'detail': 'Feature added to changeset.'},
-                    status=status.HTTP_201_CREATED
-                    )
+                    {"detail": "Feature added to changeset."},
+                    status=status.HTTP_201_CREATED,
+                )
 
     fields_to_save = [
-        'osm_id', 'version', 'reasons', 'name', 'note', 'primary_tags', 'url'
-        ]
-    feature['url'] = '{}-{}'.format(
-        feature.get('osm_type'),
-        feature.get('osm_id')
-        )
-    feature['reasons'] = [i.id for i in reasons]
+        "osm_id",
+        "version",
+        "reasons",
+        "name",
+        "note",
+        "primary_tags",
+        "url",
+    ]
+    feature["url"] = f"{feature.get('osm_type')}-{feature.get('osm_id')}"
+    feature["reasons"] = [i.id for i in reasons]
     primary_tags = filter_primary_tags(feature)
     if len(primary_tags.items()):
-        feature['primary_tags'] = primary_tags
+        feature["primary_tags"] = primary_tags
 
     [feature.pop(k) for k in list(feature.keys()) if k not in fields_to_save]
     changeset.new_features.append(feature)
 
     if not changeset.is_suspect and has_visible_features:
         changeset.is_suspect = True
-        changeset_fields_to_update.append('is_suspect')
+        changeset_fields_to_update.append("is_suspect")
 
     changeset.save(update_fields=changeset_fields_to_update)
-    print(
-        'Changeset {} {}'.format(
-            changeset.id, 'created' if created else 'updated'
-            )
-        )
+    print(f"Changeset {changeset.id} {'created' if created else 'updated'}")
     add_reasons_to_changeset(changeset, reasons)
     return Response(
-        {'detail': 'Feature added to changeset.'},
-        status=status.HTTP_201_CREATED
-        )
+        {"detail": "Feature added to changeset."}, status=status.HTTP_201_CREATED
+    )
 
 
 def add_reasons_to_changeset(changeset, reasons):
@@ -947,6 +925,6 @@ def add_reasons_to_changeset(changeset, reasons):
         # In this case, we can safely ignore this attempted DB Insert,
         # since what we wanted inserted has already been done through
         # a separate web request.
-        print('IntegrityError with changeset %s' % changeset.id)
+        print(f"IntegrityError with changeset {changeset.id}")
     except ValueError:
-        print('ValueError with changeset %s' % changeset.id)
+        print(f"ValueError with changeset {changeset.id}")

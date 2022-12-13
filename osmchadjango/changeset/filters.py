@@ -11,7 +11,7 @@ from rest_framework_gis.fields import GeometryField
 from django_filters.widgets import BooleanWidget
 
 from .models import Changeset
-from ..users.models import MappingTeam
+from osmchadjango.users.models import MappingTeam
 
 
 class ChangesetFilter(GeoFilterSet):
@@ -20,263 +20,264 @@ class ChangesetFilter(GeoFilterSet):
     by the exact match (filter changesets that have all the search reasons) or
     by contains match (filter changesets that have any of the reasons).
     """
+
     geometry = GeometryFilter(
-        field_name='bbox',
-        lookup_expr='intersects',
+        field_name="bbox",
+        lookup_expr="intersects",
         help_text="""Geospatial filter of changeset whose bbox intersects with
-            another geometry. You can use any geometry type in this filter."""
-        )
+            another geometry. You can use any geometry type in this filter.""",
+    )
     checked_by = filters.CharFilter(
-        field_name='check_user',
-        method='filter_checked_by',
+        field_name="check_user",
+        method="filter_checked_by",
         help_text="""Filter changesets that were checked by a user. Use commas
-            to search for more than one user."""
-        )
+            to search for more than one user.""",
+    )
     users = filters.CharFilter(
-        field_name='user',
-        method='filter_users',
+        field_name="user",
+        method="filter_users",
         help_text="""Filter changesets created by a user. Use commas to search
-            for more than one user."""
-        )
+            for more than one user.""",
+    )
     ids = filters.CharFilter(
-        field_name='id',
-        method='filter_ids',
+        field_name="id",
+        method="filter_ids",
         help_text="""Filter changesets by its ID. Use commas to search for more
-            than one id."""
-        )
+            than one id.""",
+    )
     uids = filters.CharFilter(
-        field_name='uid',
-        method='filter_uids',
+        field_name="uid",
+        method="filter_uids",
         help_text="""Filter changesets by its uid. The uid is a unique identifier
-        of each user in OSM. Use commas to search for more than one uid."""
-        )
+        of each user in OSM. Use commas to search for more than one uid.""",
+    )
     checked = filters.BooleanFilter(
-        field_name='checked',
+        field_name="checked",
         widget=BooleanWidget(),
         help_text="""Filter changesets that were checked or not. Use true/false,
-            1/0 values."""
-        )
+            1/0 values.""",
+    )
     harmful = filters.BooleanFilter(
-        field_name='harmful',
+        field_name="harmful",
         widget=BooleanWidget(),
         help_text="""Filter changesets that were marked as harmful or not.
-            Use true/false, 1/0 values."""
-        )
+            Use true/false, 1/0 values.""",
+    )
     is_suspect = filters.BooleanFilter(
-        field_name='is_suspect',
+        field_name="is_suspect",
         widget=BooleanWidget(),
-        help_text='Filter changesets that were considered suspect by OSMCHA.'
-        )
+        help_text="Filter changesets that were considered suspect by OSMCHA.",
+    )
     powerfull_editor = filters.BooleanFilter(
-        field_name='powerfull_editor',
+        field_name="powerfull_editor",
         widget=BooleanWidget(),
         help_text="""Filter changesets that were created using a software editor
             considered powerfull (those that allow to create, modify or delete
-            data in a batch)."""
-        )
+            data in a batch).""",
+    )
     order_by = filters.CharFilter(
-        field_name='order',
-        method='order_queryset',
+        field_name="order",
+        method="order_queryset",
         help_text="""Order the Changesets by one of the following fields: id,
             date, check_date, create, modify, delete or number_reasons. Use a
             minus sign (-) before the field name to reverse the ordering.
-            Default ordering is '-id'."""
-        )
+            Default ordering is '-id'.""",
+    )
     hide_whitelist = filters.BooleanFilter(
-        field_name='user',
-        method='filter_whitelist',
+        field_name="user",
+        method="filter_whitelist",
         widget=BooleanWidget(),
         help_text="""If True, it will exclude the changesets created by the
-            users that you whitelisted."""
-        )
+            users that you whitelisted.""",
+    )
     blacklist = filters.BooleanFilter(
-        field_name='user',
-        method='filter_blacklist',
+        field_name="user",
+        method="filter_blacklist",
         widget=BooleanWidget(),
         help_text="""If True, it will get only the changesets created by the
-            users that you blacklisted."""
-        )
+            users that you blacklisted.""",
+    )
     mapping_teams = filters.CharFilter(
-        field_name='user',
-        method='filter_mapping_team',
+        field_name="user",
+        method="filter_mapping_team",
         help_text="""Filter changesets created by users that are on a Mapping
-            Team. It accepts a list of teams separated by commas."""
-        )
+            Team. It accepts a list of teams separated by commas.""",
+    )
     exclude_teams = filters.CharFilter(
-        field_name='user',
-        method='exclude_mapping_team',
+        field_name="user",
+        method="exclude_mapping_team",
         help_text="""Exclude changesets created by users that are on a Mapping
-            Team. It accepts a list of teams separated by commas."""
-        )
+            Team. It accepts a list of teams separated by commas.""",
+    )
     exclude_trusted_teams = filters.BooleanFilter(
-        field_name='user',
-        method='filter_hide_trusted_teams',
+        field_name="user",
+        method="filter_hide_trusted_teams",
         widget=BooleanWidget(),
         help_text="""If True, it will exclude the changesets created by the
-            users that are part of trusted teams."""
-        )
+            users that are part of trusted teams.""",
+    )
     area_lt = filters.CharFilter(
-        field_name='user',
-        method='filter_area_lt',
+        field_name="user",
+        method="filter_area_lt",
         help_text="""Filter changesets that have a bbox area lower than X times
             the area of your geospatial filter. For example, if the bbox or
             geometry you defined in your filter has an area of 1 degree and you
             set 'area_lt=2', it will filter the changesets whose bbox area is
-            lower than 2 degrees."""
-        )
+            lower than 2 degrees.""",
+    )
     create__gte = filters.NumberFilter(
-        field_name='create',
-        lookup_expr='gte',
+        field_name="create",
+        lookup_expr="gte",
         help_text="""Filter changesets whose number of elements created are
-            greater than or equal to a number."""
-        )
+            greater than or equal to a number.""",
+    )
     create__lte = filters.NumberFilter(
-        field_name='create',
-        lookup_expr='lte',
+        field_name="create",
+        lookup_expr="lte",
         help_text="""Filter changesets whose number of elements created are
-            lower than or equal to a number."""
-        )
+            lower than or equal to a number.""",
+    )
     modify__gte = filters.NumberFilter(
-        field_name='modify',
-        lookup_expr='gte',
+        field_name="modify",
+        lookup_expr="gte",
         help_text="""Filter changesets whose number of elements modified are
-            greater than or equal to a number."""
-        )
+            greater than or equal to a number.""",
+    )
     modify__lte = filters.NumberFilter(
-        field_name='modify',
-        lookup_expr='lte',
+        field_name="modify",
+        lookup_expr="lte",
         help_text="""Filter changesets whose number of elements modified are
-            lower than or equal to a number."""
-        )
+            lower than or equal to a number.""",
+    )
     delete__gte = filters.NumberFilter(
-        field_name='delete',
-        lookup_expr='gte',
+        field_name="delete",
+        lookup_expr="gte",
         help_text="""Filter changesets whose number of elements deleted are
-            greater than or equal to a number."""
-        )
+            greater than or equal to a number.""",
+    )
     delete__lte = filters.NumberFilter(
-        field_name='delete',
-        lookup_expr='lte',
+        field_name="delete",
+        lookup_expr="lte",
         help_text="""Filter changesets whose number of elements deleted are
-            lower than or equal to a number."""
-        )
+            lower than or equal to a number.""",
+    )
     comments_count__gte = filters.NumberFilter(
-        field_name='comments_count',
-        lookup_expr='gte',
+        field_name="comments_count",
+        lookup_expr="gte",
         help_text="""Filter changesets whose number of comments are greater than
-            or equal to a number."""
-        )
+            or equal to a number.""",
+    )
     comments_count__lte = filters.NumberFilter(
-        field_name='comments_count',
-        lookup_expr='lte',
+        field_name="comments_count",
+        lookup_expr="lte",
         help_text="""Filter changesets whose number of comments are lower than
-            or equal to a number."""
-        )
+            or equal to a number.""",
+    )
     last_days = filters.NumberFilter(
-        field_name='date',
-        method='get_past_n_days',
-        help_text="Filter changesets whose date is not older than a determined number of days"
-        )
+        field_name="date",
+        method="get_past_n_days",
+        help_text="Filter changesets whose date is not older than a determined number of days",
+    )
     date__gte = filters.DateTimeFilter(
-        field_name='date',
-        lookup_expr='gte',
+        field_name="date",
+        lookup_expr="gte",
         help_text="""Filter changesets whose date is greater than or equal to a
-            date or a datetime value."""
-        )
+            date or a datetime value.""",
+    )
     date__lte = filters.DateTimeFilter(
-        field_name='date',
-        lookup_expr='lte',
+        field_name="date",
+        lookup_expr="lte",
         help_text="""Filter changesets whose date is lower than or equal to a
-            date or a datetime value."""
-        )
+            date or a datetime value.""",
+    )
     check_date__gte = filters.DateTimeFilter(
-        field_name='check_date',
-        lookup_expr='gte',
+        field_name="check_date",
+        lookup_expr="gte",
         help_text="""Filter changesets whose check_date is greater than or equal
-            to a date or a datetime value."""
-        )
+            to a date or a datetime value.""",
+    )
     check_date__lte = filters.DateTimeFilter(
-        field_name='check_date',
-        lookup_expr='lte',
+        field_name="check_date",
+        lookup_expr="lte",
         help_text="""Filter changesets whose check_date is lower than or equal
-            to a date or a datetime value."""
-        )
+            to a date or a datetime value.""",
+    )
     editor = filters.CharFilter(
-        field_name='editor',
-        lookup_expr='icontains',
+        field_name="editor",
+        lookup_expr="icontains",
         help_text="""Filter changesets created with a software editor. It uses
             the icontains lookup expression, so a query for 'josm' will return
-            changesets created or last modified with all JOSM versions."""
-        )
+            changesets created or last modified with all JOSM versions.""",
+    )
     comment = filters.CharFilter(
-        field_name='comment',
-        lookup_expr='icontains',
+        field_name="comment",
+        lookup_expr="icontains",
         help_text="""Filter changesets by its comment field using the icontains
-            lookup expression."""
-        )
+            lookup expression.""",
+    )
     source = filters.CharFilter(
-        field_name='source',
-        lookup_expr='icontains',
+        field_name="source",
+        lookup_expr="icontains",
         help_text="""Filter changesets by its source field using the icontains
-            lookup expression."""
-        )
+            lookup expression.""",
+    )
     imagery_used = filters.CharFilter(
-        field_name='imagery_used',
-        lookup_expr='icontains',
+        field_name="imagery_used",
+        lookup_expr="icontains",
         help_text="""Filter changesets by its imagery_used field using the
-            icontains lookup expression."""
-        )
+            icontains lookup expression.""",
+    )
     reasons = filters.CharFilter(
-        field_name='reasons',
-        method='filter_any_reasons',
+        field_name="reasons",
+        method="filter_any_reasons",
         help_text="""Filter changesets that have one or more of the Suspicion
-            Reasons. Inform the Suspicion Reasons ids separated by commas."""
-        )
+            Reasons. Inform the Suspicion Reasons ids separated by commas.""",
+    )
     all_reasons = filters.CharFilter(
-        field_name='reasons',
-        method='filter_all_reasons',
+        field_name="reasons",
+        method="filter_all_reasons",
         help_text="""Filter changesets that have ALL the Suspicion Reasons of a
-            list. Inform the Suspicion Reasons ids separated by commas."""
-        )
+            list. Inform the Suspicion Reasons ids separated by commas.""",
+    )
     number_reasons__gte = filters.NumberFilter(
-        field_name='number_reasons',
-        method='filter_number_reasons',
+        field_name="number_reasons",
+        method="filter_number_reasons",
         help_text="""Filter changesets whose number of Suspicion Reasons is
-            equal or greater than a value."""
-        )
+            equal or greater than a value.""",
+    )
     tags = filters.CharFilter(
-        field_name='tags',
-        method='filter_any_reasons',
+        field_name="tags",
+        method="filter_any_reasons",
         help_text="""Filter changesets that have one or more of the Tags. Inform
-            the Tags ids separated by commas."""
-        )
+            the Tags ids separated by commas.""",
+    )
     all_tags = filters.CharFilter(
-        field_name='tags',
-        method='filter_all_reasons',
+        field_name="tags",
+        method="filter_all_reasons",
         help_text="""Filter changesets that have ALL the Tags of a list. Inform
-            the Tags ids separated by commas."""
-        )
+            the Tags ids separated by commas.""",
+    )
     metadata = filters.CharFilter(
-        field_name='metadata',
-        method='filter_metadata',
-        help_text="""Filter changesets by the metadata fields."""
-        )
+        field_name="metadata",
+        method="filter_metadata",
+        help_text="""Filter changesets by the metadata fields.""",
+    )
     tag_changes = filters.CharFilter(
-        field_name='tag_changes',
-        method='filter_tag_changes',
+        field_name="tag_changes",
+        method="filter_tag_changes",
         help_text="""Filter changesets by the tag_changes field. It supports a
             combination of OSM tags and will query using both the old and new
             values. To query by any value use key=*.
-        """
-        )
+        """,
+    )
     all_tag_changes = filters.CharFilter(
-        field_name='tag_changes',
-        method='filter_all_tag_changes',
+        field_name="tag_changes",
+        method="filter_all_tag_changes",
         help_text="""Filter changesets by the tag_changes field using the AND logic. It supports a
             combination of OSM tags and will query using both the old and new
             values. To query by any value use key=*.
-        """
-        )
+        """,
+    )
 
     def get_past_n_days(self, queryset, field_name, value):
         start_date = date.today() - timedelta(days=int(value))
@@ -284,19 +285,19 @@ class ChangesetFilter(GeoFilterSet):
 
     def split_values(self, value):
         return [
-            [i.strip() for i in t.split('=')]  # remove leading and ending spaces
-            for t in value.split(',')
-            if len(t.split('=')) == 2
-            ]
+            [i.strip() for i in t.split("=")]  # remove leading and ending spaces
+            for t in value.split(",")
+            if len(t.split("=")) == 2
+        ]
 
     def filter_all_tag_changes(self, queryset, name, value):
         for query in self.split_values(value):
-            if query[1] == '*':
-                key = 'tag_changes__has_key'
+            if query[1] == "*":
+                key = "tag_changes__has_key"
                 value = query[0]
                 queryset = queryset.filter(**{key: value})
             else:
-                key = 'tag_changes__{}__contains'.format(query[0])
+                key = f"tag_changes__{query[0]}__contains"
                 queryset = queryset.filter(**{key: query[1]})
         return queryset
 
@@ -304,34 +305,32 @@ class ChangesetFilter(GeoFilterSet):
         or_condition = Q()
         keys = []
         for query in self.split_values(value):
-            if query[1] == '*':
+            if query[1] == "*":
                 keys.append(query[0])
             else:
-                key = 'tag_changes__{}__contains'.format(query[0])
+                key = f"tag_changes__{query[0]}__contains"
                 or_condition.add(Q(**{key: query[1]}), Q.OR)
         if len(keys):
-            or_condition.add(Q(**{'tag_changes__has_any_keys': keys}), Q.OR)
+            or_condition.add(Q(**{"tag_changes__has_any_keys": keys}), Q.OR)
 
         queryset = queryset.filter(or_condition)
         return queryset
 
     def filter_metadata(self, queryset, name, value):
         for query in self.split_values(value):
-            if '__' in query[0]:
+            if "__" in query[0]:
                 # handle both int values and other lookup options like __exact or __contains
-                key = 'metadata__{}'.format(
-                    query[0].replace('__min', '__gte').replace('__max', '__lte')
-                    )
+                key = f"metadata__{query[0].replace('__min', '__gte').replace('__max', '__lte')}"
                 try:
                     value = int(query[1])
                 except ValueError:
                     value = query[1]
-            elif query[1] == '*':
-                key = 'metadata__has_key'
+            elif query[1] == "*":
+                key = "metadata__has_key"
                 value = query[0]
             else:
                 # default option is to use the icontains condition
-                key = 'metadata__{}__icontains'.format(query[0])
+                key = f"metadata__{query[0]}__icontains"
                 value = query[1]
             queryset = queryset.filter(**{key: value})
         return queryset
@@ -339,9 +338,8 @@ class ChangesetFilter(GeoFilterSet):
     def filter_whitelist(self, queryset, name, value):
         if value:
             whitelist = self.request.user.whitelists.values_list(
-                'whitelist_user',
-                flat=True
-                )
+                "whitelist_user", flat=True
+            )
             return queryset.exclude(user__in=whitelist)
         else:
             return queryset
@@ -349,29 +347,28 @@ class ChangesetFilter(GeoFilterSet):
     def filter_blacklist(self, queryset, name, value):
         if value:
             blacklist = self.request.user.blacklisteduser_set.values_list(
-                'uid',
-                flat=True
-                )
+                "uid", flat=True
+            )
             return queryset.filter(uid__in=blacklist)
         else:
             return queryset
 
     def get_username_from_teams(self, teams):
         users = []
-        for i in teams.values_list('users', flat=True):
+        for i in teams.values_list("users", flat=True):
             values = i
             if type(values) in [str, bytes, bytearray]:
                 values = json.loads(values)
             for e in values:
-                users.append(e.get('username'))
+                users.append(e.get("username"))
         return users
 
     def filter_mapping_team(self, queryset, name, value):
         try:
             # added `if team` to avoid empty strings
             teams = MappingTeam.objects.filter(
-                name__in=[team.strip() for team in value.split(',') if team]
-                )
+                name__in=[team.strip() for team in value.split(",") if team]
+            )
             users = self.get_username_from_teams(teams)
             return queryset.filter(user__in=users)
         except MappingTeam.DoesNotExist:
@@ -380,8 +377,8 @@ class ChangesetFilter(GeoFilterSet):
     def exclude_mapping_team(self, queryset, name, value):
         try:
             teams = MappingTeam.objects.filter(
-                name__in=[team.strip() for team in value.split(',') if team]
-                )
+                name__in=[team.strip() for team in value.split(",") if team]
+            )
             users = self.get_username_from_teams(teams)
             return queryset.exclude(user__in=users)
         except MappingTeam.DoesNotExist:
@@ -397,60 +394,71 @@ class ChangesetFilter(GeoFilterSet):
 
     def filter_checked_by(self, queryset, name, value):
         if (self.request is None or self.request.user.is_authenticated) and value:
-            lookup = '__'.join([name, 'name__in'])
-            users = [t.strip() for t in value.split(',')]
+            lookup = "__".join([name, "name__in"])
+            users = [t.strip() for t in value.split(",")]
             return queryset.filter(**{lookup: users})
         else:
             return queryset
 
     def filter_users(self, queryset, name, value):
         if (self.request is None or self.request.user.is_authenticated) and value:
-            lookup = '__'.join([name, 'in'])
-            users_array = [t.strip() for t in value.split(',')]
+            lookup = "__".join([name, "in"])
+            users_array = [t.strip() for t in value.split(",")]
             return queryset.filter(**{lookup: users_array})
         else:
             return queryset
 
     def filter_ids(self, queryset, name, value):
-        lookup = '__'.join([name, 'in'])
-        values = [int(n) for n in value.split(',')]
+        lookup = "__".join([name, "in"])
+        values = [int(n) for n in value.split(",")]
         return queryset.filter(**{lookup: values})
 
     def filter_uids(self, queryset, name, value):
         if (self.request is None or self.request.user.is_authenticated) and value:
-            lookup = '__'.join([name, 'in'])
-            values = [n for n in value.split(',')]
+            lookup = "__".join([name, "in"])
+            values = [n for n in value.split(",")]
             return queryset.filter(**{lookup: values})
         else:
             return queryset
 
     def filter_any_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'id', 'in'])
-        values = [int(t) for t in value.split(',')]
+        lookup = "__".join([name, "id", "in"])
+        values = [int(t) for t in value.split(",")]
         return queryset.filter(**{lookup: values}).distinct()
 
     def filter_all_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'id'])
-        values = [int(t) for t in value.split(',')]
+        lookup = "__".join([name, "id"])
+        values = [int(t) for t in value.split(",")]
         for term in values:
             queryset = queryset.filter(**{lookup: term})
         return queryset
 
     def filter_number_reasons(self, queryset, name, value):
-        lookup = '__'.join([name, 'gte'])
-        queryset = queryset.annotate(number_reasons=Count('reasons'))
+        lookup = "__".join([name, "gte"])
+        queryset = queryset.annotate(number_reasons=Count("reasons"))
         return queryset.filter(**{lookup: value})
 
     def order_queryset(self, queryset, name, value):
         allowed_fields = [
-            'date', '-date', 'id', 'check_date', '-check_date', 'create',
-            'modify', 'delete', '-create', '-modify', '-delete',
-            'number_reasons', '-number_reasons', 'comments_count',
-            '-comments_count'
-            ]
+            "date",
+            "-date",
+            "id",
+            "check_date",
+            "-check_date",
+            "create",
+            "modify",
+            "delete",
+            "-create",
+            "-modify",
+            "-delete",
+            "number_reasons",
+            "-number_reasons",
+            "comments_count",
+            "-comments_count",
+        ]
         if value in allowed_fields:
-            if value in ['number_reasons', '-number_reasons']:
-                queryset = queryset.annotate(number_reasons=Count('reasons'))
+            if value in ["number_reasons", "-number_reasons"]:
+                queryset = queryset.annotate(number_reasons=Count("reasons"))
             return queryset.order_by(value)
         else:
             return queryset
@@ -461,20 +469,20 @@ class ChangesetFilter(GeoFilterSet):
         changesets that are greater than 5 times the filter area, you need to
         set the value to 5.
         """
-        if 'geometry' in self.data.keys():
+        if "geometry" in self.data.keys():
             try:
-                filter_area = self.data['geometry'].area
+                filter_area = self.data["geometry"].area
             except AttributeError:
-                filter_area = GeometryField().to_internal_value(
-                    self.data['geometry']
-                    ).area
-            return queryset.filter(area__lt=float(value)*filter_area)
-        elif 'in_bbox' in self.data.keys():
+                filter_area = (
+                    GeometryField().to_internal_value(self.data["geometry"]).area
+                )
+            return queryset.filter(area__lt=float(value) * filter_area)
+        elif "in_bbox" in self.data.keys():
             try:
                 filter_area = Polygon.from_bbox(
-                    (float(n) for n in self.data['in_bbox'].split(','))
-                    ).area
-                return queryset.filter(area__lt=float(value)*filter_area)
+                    (float(n) for n in self.data["in_bbox"].split(","))
+                ).area
+                return queryset.filter(area__lt=float(value) * filter_area)
             except ValueError:
                 return queryset
         else:
@@ -482,4 +490,4 @@ class ChangesetFilter(GeoFilterSet):
 
     class Meta:
         model = Changeset
-        fields = ['geometry', 'users', 'area_lt']
+        fields = ["geometry", "users", "area_lt"]
