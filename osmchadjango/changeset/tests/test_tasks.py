@@ -92,7 +92,7 @@ class TestChangesetCommentAPI(TestCase):
         changeset_comment = ChangesetCommentAPI(self.user, 123456)
         self.assertEqual(
             changeset_comment.url,
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/'
+            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/'
             )
         self.assertIsInstance(changeset_comment.client, OAuth1Session)
         self.assertEqual(
@@ -114,7 +114,7 @@ class TestChangesetCommentAPI(TestCase):
 
         mock_oauth_client.assert_called_with(
             'POST',
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/',
             data='text={}'.format(quote('Reviewed in OSMCha and set as GOOD!')).encode('utf-8'),
             json=None
             )

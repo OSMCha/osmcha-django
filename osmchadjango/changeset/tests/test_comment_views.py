@@ -4,6 +4,7 @@ from urllib.parse import quote
 
 from django.urls import reverse
 from django.test import override_settings
+from django.conf import settings
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
@@ -72,9 +73,10 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
             'POST',
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-              self.harmful_changeset.id
-              ),
+            '{}/api/0.6/changeset/{}/comment/'.format(
+                settings.OSM_URL,
+                self.harmful_changeset.id
+            ),
             data='text={}'.format(quote(message)).encode('utf-8'),
             json=None
             )
@@ -102,7 +104,7 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
             'POST',
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
+            'https://www.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.good_changeset.id
               ),
             data='text={}'.format(quote(message)).encode('utf-8'),
@@ -133,7 +135,7 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
             'POST',
-            'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
+            'https://www.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
               self.changeset.id
               ),
             data='text={}'.format(quote(message)).encode('utf-8'),

@@ -2,6 +2,7 @@ from django.contrib.gis.db import models
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.fields import JSONField
 from django.utils.translation import ugettext, ugettext_lazy as _
+from django.conf import settings
 
 from ..users.models import User
 
@@ -98,24 +99,22 @@ class Changeset(models.Model):
 
     def osm_link(self):
         """Return the link to the changeset page on OSM website."""
-        return 'https://www.openstreetmap.org/changeset/{}'.format(self.id)
+        return '{}/changeset/{}'.format(settings.OSM_URL, self.id)
 
     def josm_link(self):
         """Return link to open changeset in JOSM."""
         josm_base = "http://127.0.0.1:8111/import?url="
-        changeset_url = "{}/{}/{}".format(
-            "https://www.openstreetmap.org/api/0.6/changeset",
+        changeset_url = "{}/api/0.6/changeset/{}/download".format(
+            settings.OSM_URL,
             self.id,
-            "download"
             )
         return "{}{}".format(josm_base, changeset_url)
 
     def id_link(self):
         """Return link to open the area of the changeset in iD editor."""
-        id_base = "https://www.openstreetmap.org/edit?editor=id#map=16"
         if self.bbox:
             centroid = [round(c, 5) for c in self.bbox.centroid.coords]
-            return "{}/{}/{}".format(id_base, centroid[1], centroid[0])
+            return "{}/edit?editor=id#map=16/{}/{}".format(settings.OSM_URL, centroid[1], centroid[0])
         else:
             return ""
 

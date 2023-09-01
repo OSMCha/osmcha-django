@@ -55,8 +55,7 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
 def format_url(n):
     """Return the url of a replication file."""
     n = str(n)
-    base_url = 'https://planet.openstreetmap.org/replication/changesets/'
-    return join(base_url, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
+    return join(settings.OSM_PLANET_BASE_URL, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
 
 
 @shared_task
@@ -73,7 +72,7 @@ def get_last_replication_id():
     """Get the id number of the last replication file available on Planet OSM.
     """
     state = requests.get(
-        'https://planet.openstreetmap.org/replication/changesets/state.yaml'
+        '{}state.yaml'.format(settings.OSM_PLANET_BASE_URL)
         ).content
     state = yaml.load(state)
     return state.get('sequence')
@@ -113,7 +112,8 @@ class ChangesetCommentAPI(object):
             resource_owner_key=user_token['oauth_token'],
             resource_owner_secret=user_token['oauth_token_secret']
             )
-        self.url = 'https://api.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
+        self.url = '{}/api/0.6/changeset/{}/comment/'.format(
+            settings.OSM_URL,
             changeset_id
             )
 
