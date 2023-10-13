@@ -17,11 +17,12 @@ class ChallengeIntegrationListCreateAPIView(ListCreateAPIView):
     It requires a challenge_id and a list of SuspicionReasons. The challenge_id
     must be unique. This endpoint is restricted to staff users.
     """
+
     permission_classes = (IsAdminUser,)
     serializer_class = ChallengeIntegrationSerializer
     filter_backends = (OrderingFilter,)
-    ordering_fields = ('created', 'challenge_id')
-    ordering = '-created'
+    ordering_fields = ("created", "challenge_id")
+    ordering = "-created"
     queryset = ChallengeIntegration.objects.all()
 
     def perform_create(self, serializer):
@@ -46,6 +47,7 @@ class ChallengeIntegrationDetailAPIView(RetrieveUpdateDestroyAPIView):
     Delete an MapRoulette challenge.
     Only staff users can delete it.
     """
+
     permission_classes = (IsAdminUser,)
     serializer_class = ChallengeIntegrationSerializer
     queryset = ChallengeIntegration.objects.all()

@@ -1,22 +1,27 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
 from django.contrib.auth import get_user_model
 from django.conf import settings
 
 from rest_framework.authtoken.models import Token
 from rest_framework.generics import (
-    ListCreateAPIView, RetrieveUpdateAPIView, RetrieveUpdateDestroyAPIView,
-    GenericAPIView
-    )
+    ListCreateAPIView,
+    RetrieveUpdateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    GenericAPIView,
+)
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import (
-    IsAuthenticated, IsAdminUser, BasePermission, SAFE_METHODS
-    )
+    IsAuthenticated,
+    IsAdminUser,
+    BasePermission,
+    SAFE_METHODS,
+)
 from rest_framework import status
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, action
-    )
+    api_view,
+    parser_classes,
+    permission_classes,
+    action,
+)
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
@@ -24,11 +29,9 @@ from requests_oauthlib import OAuth1Session
 from django_filters import rest_framework as filters
 from django_filters.widgets import BooleanWidget
 
-from .serializers import (
-    UserSerializer, SocialSignUpSerializer, MappingTeamSerializer
-    )
+from .serializers import UserSerializer, SocialSignUpSerializer, MappingTeamSerializer
 from .models import MappingTeam
-from ..changeset.models import Changeset
+from osmchadjango.changeset.models import Changeset
 
 User = get_user_model()
 
@@ -54,6 +57,7 @@ class CurrentUserDetailAPIView(RetrieveUpdateAPIView):
     put:
     Update details of the current logged user.
     """
+
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
     model = get_user_model()
@@ -71,15 +75,15 @@ class SocialAuthAPIView(GenericAPIView):
     `oauth_verifier` to receive the `token` that you need to make authenticated
     requests in all OSMCHA endpoints.
     """
+
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    base_url = 'https://www.openstreetmap.org/oauth'
-    request_token_url = '{}/request_token?oauth_callback={}'.format(
-        base_url,
-        settings.OAUTH_REDIRECT_URI
-        )
-    access_token_url = '{}/access_token'.format(base_url)
+    base_url = "https://www.openstreetmap.org/oauth"
+    request_token_url = (
+        f"{base_url}/request_token?oauth_callback={settings.OAUTH_REDIRECT_URI}"
+    )
+    access_token_url = f"{base_url}/access_token"
 
     def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
         oauth = OAuth1Session(
@@ -87,63 +91,61 @@ class SocialAuthAPIView(GenericAPIView):
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
             resource_owner_key=oauth_token,
             resource_owner_secret=oauth_token_secret,
-            verifier=oauth_verifier
-            )
+            verifier=oauth_verifier,
+        )
         return oauth.fetch_access_token(self.access_token_url)
 
     def get_user_token(self, request, access_token):
         backend = load_backend(
-            strategy=load_strategy(request),
-            name='openstreetmap',
-            redirect_uri=None
-            )
+            strategy=load_strategy(request), name="openstreetmap", redirect_uri=None
+        )
         authed_user = request.user if not request.user.is_anonymous else None
         user = backend.do_auth(access_token, user=authed_user)
         token, created = Token.objects.get_or_create(user=user)
-        return {'token': token.key}
+        return {"token": token.key}
 
     def post(self, request, *args, **kwargs):
-        if 'oauth_token' not in request.data.keys() or not request.data['oauth_token']:
+        if "oauth_token" not in request.data.keys() or not request.data["oauth_token"]:
             consumer = OAuth1Session(
                 settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-                client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
-                )
-            request_token = consumer.fetch_request_token(
-                self.request_token_url
-                )
-            return Response({
-                'oauth_token': request_token['oauth_token'],
-                'oauth_token_secret': request_token['oauth_token_secret']
-                })
+                client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
+            )
+            request_token = consumer.fetch_request_token(self.request_token_url)
+            return Response(
+                {
+                    "oauth_token": request_token["oauth_token"],
+                    "oauth_token_secret": request_token["oauth_token_secret"],
+                }
+            )
         else:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             access_token = self.get_access_token(
-                request.data['oauth_token'],
-                request.data['oauth_token_secret'],
-                request.data['oauth_verifier']
-                )
+                request.data["oauth_token"],
+                request.data["oauth_token_secret"],
+                request.data["oauth_verifier"],
+            )
             return Response(self.get_user_token(request, access_token))
 
 
 class MappingTeamFilter(filters.FilterSet):
     trusted = filters.BooleanFilter(
-        field_name='trusted',
+        field_name="trusted",
         widget=BooleanWidget(),
-        help_text="""Filter Mapping Teams that were trusted by a staff user."""
-        )
+        help_text="""Filter Mapping Teams that were trusted by a staff user.""",
+    )
     name = filters.CharFilter(
-        field_name='name',
-        lookup_expr='icontains',
+        field_name="name",
+        lookup_expr="icontains",
         help_text="""Filter Mapping Teams by its name field using the icontains
-            lookup expression."""
-        )
+            lookup expression.""",
+    )
     owner = filters.CharFilter(
-        field_name='created_by__username',
-        lookup_expr='exact',
+        field_name="created_by__username",
+        lookup_expr="exact",
         help_text="""Filter Mapping Teams by the username of the user that
-            created it. This field uses the exact lookup expression."""
-        )
+            created it. This field uses the exact lookup expression.""",
+    )
 
     class Meta:
         model = MappingTeam
@@ -152,6 +154,7 @@ class MappingTeamFilter(filters.FilterSet):
 
 class MappingTeamListCreateAPIView(ListCreateAPIView):
     """List and create Mapping teams."""
+
     queryset = MappingTeam.objects.all()
     serializer_class = MappingTeamSerializer
     permission_classes = (IsAuthenticated,)
@@ -161,14 +164,18 @@ class MappingTeamListCreateAPIView(ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(
             created_by=self.request.user,
-            )
+        )
 
 
 class MappingTeamDetailAPIView(RetrieveUpdateDestroyAPIView):
     """List and create Mapping teams."""
+
     queryset = MappingTeam.objects.all()
     serializer_class = MappingTeamSerializer
-    permission_classes = (IsAuthenticated, IsOwnerAdminOrReadOnly,)
+    permission_classes = (
+        IsAuthenticated,
+        IsOwnerAdminOrReadOnly,
+    )
 
 
 class MappingTeamTrustingAPIView(ModelViewSet):
@@ -180,19 +187,13 @@ class MappingTeamTrustingAPIView(ModelViewSet):
         """Update 'checked', 'harmful', 'check_user', 'check_date' fields of the
         changeset and return a 200 response"""
         team.trusted = trusted
-        team.save(
-            update_fields=['trusted']
-            )
+        team.save(update_fields=["trusted"])
         return Response(
-            {
-                'detail': 'Mapping Team set as {}.'.format(
-                    'trusted' if trusted else 'untrusted'
-                    )
-            },
-            status=status.HTTP_200_OK
-            )
+            {"detail": f"Mapping Team set as {'trusted' if trusted else 'untrusted'}."},
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_trusted(self, request, pk):
         """Set a Mapping Team as trusted. You don't need to send data,
         just make an empty PUT request.
@@ -200,12 +201,12 @@ class MappingTeamTrustingAPIView(ModelViewSet):
         team = self.get_object()
         if team.trusted:
             return Response(
-                {'detail': 'Mapping team is already trusted.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "Mapping team is already trusted."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return self.update_team(team, request, trusted=True)
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_untrusted(self, request, pk):
         """Set a Mapping Team as untrusted. You don't need to send data,
         just make an empty PUT request.
@@ -213,13 +214,13 @@ class MappingTeamTrustingAPIView(ModelViewSet):
         team = self.get_object()
         if team.trusted is False:
             return Response(
-                {'detail': 'Mapping team is already untrusted.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "Mapping team is already untrusted."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         return self.update_team(team, request, trusted=False)
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
 def update_deleted_users(request):
@@ -230,24 +231,24 @@ def update_deleted_users(request):
     users have permissions to use this endpoint.
     """
 
-    if request.data and request.data.get('uids'):
-        uids = [str(uid) for uid in request.data.get('uids')]
+    if request.data and request.data.get("uids"):
+        uids = [str(uid) for uid in request.data.get("uids")]
         for uid in uids:
-            Changeset.objects.filter(uid=uid).update(
-                user='user_{}'.format(uid)
-                )
+            Changeset.objects.filter(uid=uid).update(user=f"user_{uid}")
             try:
                 user = User.objects.get(social_auth__uid=uid)
-                user.username = 'user_{}'.format(uid)
+                user.username = f"user_{uid}"
                 user.save()
             except User.DoesNotExist:
                 pass
         return Response(
-            {'detail': 'Changesets updated and user renamed.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Changesets updated and user renamed."},
+            status=status.HTTP_200_OK,
+        )
     else:
         return Response(
-            {'detail': 'Payload is missing the `uids` field or it has an incorrect value.'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {
+                "detail": "Payload is missing the `uids` field or it has an incorrect value."
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )

@@ -1,46 +1,42 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
-from django.urls import re_path
+from django.urls import path
 
 from . import views
 
-
 app_name = 'supervise'
 urlpatterns = [
-    re_path(
-        r'^aoi/$',
+    path(
+        'aoi/',
         view=views.AOIListCreateAPIView.as_view(),
         name='aoi-list-create'
-        ),
-    re_path(
-        r'^aoi/(?P<pk>[0-9a-f-]+)/$',
+    ),
+    path(
+        'aoi/<str:pk>/',
         view=views.AOIRetrieveUpdateDestroyAPIView.as_view(),
         name='aoi-detail'
-        ),
-    re_path(
-        r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/$',
+    ),
+    path(
+        'aoi/<str:pk>/changesets/',
         view=views.AOIListChangesetsAPIView.as_view(),
         name='aoi-list-changesets'
-        ),
-    re_path(
-        r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/feed/$',
+    ),
+    path(
+        'aoi/<str:pk>/changesets/feed/',
         view=views.AOIListChangesetsFeedView(),
         name='aoi-changesets-feed'
-        ),
-    re_path(
-        r'^aoi/(?P<pk>[0-9a-f-]+)/stats/$',
+    ),
+    path(
+        'aoi/<str:pk>/stats/',
         view=views.AOIStatsAPIView.as_view(),
         name='aoi-stats'
-        ),
-    re_path(
-        r'^blacklisted-users/$',
+    ),
+    path(
+        'blacklisted-users/',
         view=views.BlacklistedUserListCreateAPIView.as_view(),
         name='blacklist-list-create'
-        ),
-    re_path(
-        r'^blacklisted-users/(?P<uid>[0-9a-f-]+)/$',
+    ),
+    path(
+        'blacklisted-users/<str:pk>/',
         view=views.BlacklistedUserDetailAPIView.as_view(),
         name='blacklist-detail'
-        ),
-    ]
+    ),
+]

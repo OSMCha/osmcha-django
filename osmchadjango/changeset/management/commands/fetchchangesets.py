@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from ...tasks import fetch_latest
+from osmchadjango.changeset.tasks import fetch_latest
 
 
 class Command(BaseCommand):

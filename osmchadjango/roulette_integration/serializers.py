@@ -1,13 +1,12 @@
 from rest_framework.fields import HiddenField, CurrentUserDefault, ReadOnlyField
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer
 
-from ..changeset.serializers import SuspicionReasonsSerializer
 from .models import ChallengeIntegration
 
 
 class ChallengeIntegrationSerializer(ModelSerializer):
     user = HiddenField(default=CurrentUserDefault())
-    owner = ReadOnlyField(source='user.username', default=None)
+    owner = ReadOnlyField(source="user.username", default=None)
 
     # def create(self, validated_data):
     #     import ipdb; ipdb.set_trace()
@@ -16,5 +15,5 @@ class ChallengeIntegrationSerializer(ModelSerializer):
 
     class Meta:
         model = ChallengeIntegration
-        fields = ['id', 'challenge_id', 'reasons', 'user', 'active', 'created', 'owner']
-        read_only_fields = ('created', 'owner')
+        fields = ["id", "challenge_id", "reasons", "user", "active", "created", "owner"]
+        read_only_fields = ("created", "owner")

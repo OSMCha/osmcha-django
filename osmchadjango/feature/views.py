@@ -7,12 +7,14 @@ from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.gdal.error import GDALException
 
 import django_filters.rest_framework
-from rest_framework.generics import (
-    ListAPIView, RetrieveAPIView, get_object_or_404
-    )
+from rest_framework.generics import ListAPIView, RetrieveAPIView, get_object_or_404
 from rest_framework.decorators import (
-    api_view, parser_classes, permission_classes, action, throttle_classes
-    )
+    api_view,
+    parser_classes,
+    permission_classes,
+    action,
+    throttle_classes,
+)
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -21,17 +23,21 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework import status
 from rest_framework_gis.filters import InBBoxFilter
 
-from ..changeset import models as changeset_models
-from ..changeset.views import (
-    StandardResultsSetPagination, PaginatedCSVRenderer, NonStaffUserThrottle
-    )
+from osmchadjango.changeset import models as changeset_models
+from osmchadjango.changeset.views import (
+    StandardResultsSetPagination,
+    PaginatedCSVRenderer,
+    NonStaffUserThrottle,
+)
 
 from .models import Feature
 from .filters import FeatureFilter
 from .serializers import (
-    FeatureSerializer, FeatureSerializerToStaff, FeatureTagsSerializer,
-    FeatureSerializerToUnauthenticated
-    )
+    FeatureSerializer,
+    FeatureSerializerToStaff,
+    FeatureTagsSerializer,
+    FeatureSerializerToUnauthenticated,
+)
 
 
 class FeatureListAPIView(ListAPIView):
@@ -40,17 +46,20 @@ class FeatureListAPIView(ListAPIView):
     the min Lat, min Lon, max Lat, max Lon values. It's also possible to filter
     using other fields. The default pagination returns 50 objects by page.
     """
-    queryset = Feature.objects.all().select_related(
-        'check_user', 'changeset'
-        ).prefetch_related('reasons', 'tags')
+
+    queryset = (
+        Feature.objects.all()
+        .select_related("check_user", "changeset")
+        .prefetch_related("reasons", "tags")
+    )
     serializer_class = FeatureSerializer
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
-    bbox_filter_field = 'geometry'
+    bbox_filter_field = "geometry"
     filter_backends = (
         InBBoxFilter,
         django_filters.rest_framework.DjangoFilterBackend,
-        )
+    )
     bbox_filter_include_overlapping = True
     filter_class = FeatureFilter
 
@@ -64,14 +73,17 @@ class FeatureListAPIView(ListAPIView):
 
 
 class FeatureDetailAPIView(RetrieveAPIView):
-    '''Get details of a Feature object. Type: GeoJSON'''
-    queryset = Feature.objects.all().select_related(
-        'check_user', 'changeset'
-        ).prefetch_related('reasons', 'tags')
+    """Get details of a Feature object. Type: GeoJSON"""
+
+    queryset = (
+        Feature.objects.all()
+        .select_related("check_user", "changeset")
+        .prefetch_related("reasons", "tags")
+    )
 
     def get_object(self):
-        changeset = self.kwargs['changeset']
-        url = self.kwargs['slug']
+        changeset = self.kwargs["changeset"]
+        url = self.kwargs["slug"]
         return get_object_or_404(Feature, changeset=changeset, url=url)
 
     def get_serializer_class(self):
@@ -83,101 +95,89 @@ class FeatureDetailAPIView(RetrieveAPIView):
             return FeatureSerializerToUnauthenticated
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @throttle_classes((NonStaffUserThrottle,))
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated, IsAdminUser))
 def create_feature(request):
-    '''Create Suspicion Features. It was designed to receive vandalism-dynamosm
+    """Create Suspicion Features. It was designed to receive vandalism-dynamosm
     json output. Only staff users have permissions to create features. You can
     use the django admin to get a Token to the user you want to use to created
     features.
-    '''
+    """
     feature = request.data
 
-    if 'properties' not in feature.keys():
+    if "properties" not in feature.keys():
         return Response(
-            {'detail': 'Expecting a single GeoJSON feature.'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
-    properties = feature.get('properties', {})
-    changeset_id = properties.get('osm:changeset')
+            {"detail": "Expecting a single GeoJSON feature."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    properties = feature.get("properties", {})
+    changeset_id = properties.get("osm:changeset")
 
     if not changeset_id:
         return Response(
-            {'detail': 'osm:changeset field is missing.'},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {"detail": "osm:changeset field is missing."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     defaults = {
-        'osm_id': properties['osm:id'],
-        'osm_type': properties['osm:type'],
-        'url': '{}-{}'  .format(properties['osm:type'], properties['osm:id']),
-        'osm_version': properties['osm:version'],
-        'comparator_version': feature.get('comparator_version'),
-        }
+        "osm_id": properties["osm:id"],
+        "osm_type": properties["osm:type"],
+        "url": f"{properties['osm:type']}-{properties['osm:id']}",
+        "osm_version": properties["osm:version"],
+        "comparator_version": feature.get("comparator_version"),
+    }
 
     try:
-        defaults['geometry'] = GEOSGeometry(json.dumps(feature['geometry']))
+        defaults["geometry"] = GEOSGeometry(json.dumps(feature["geometry"]))
     except (GDALException, ValueError, TypeError) as e:
         return Response(
-            {'detail': '{} in geometry field of feature {}'.format(e, properties['osm:id'])},
-            status=status.HTTP_400_BAD_REQUEST
-            )
+            {"detail": f"{e} in geometry field of feature {properties['osm:id']}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    if 'oldVersion' in properties.keys():
+    if "oldVersion" in properties.keys():
         try:
-            defaults['old_geometry'] = GEOSGeometry(
-                json.dumps(properties['oldVersion']['geometry'])
-                )
+            defaults["old_geometry"] = GEOSGeometry(
+                json.dumps(properties["oldVersion"]["geometry"])
+            )
         except (GDALException, ValueError, TypeError, KeyError) as e:
-            print(
-                '{} in oldVersion.geometry field of feature {}'.format(
-                    e, properties['osm:id']
-                    )
-                )
-        defaults['old_geojson'] = feature['properties'].pop('oldVersion')
+            print(f"{e} in oldVersion.geometry field of feature {properties['osm:id']}")
+        defaults["old_geojson"] = feature["properties"].pop("oldVersion")
 
     # Each changed feature should have a 'suspicions' array of objects in its properties
-    print(
-        'Creating feature {} of changeset {}.'.format(
-            properties['osm:id'], changeset_id
-            )
-        )
-    suspicions = feature['properties'].pop('suspicions')
+    print(f"Creating feature {properties['osm:id']} of changeset {changeset_id}.")
+    suspicions = feature["properties"].pop("suspicions")
     has_visible_features = False
+    reasons = set()
     if suspicions:
-        reasons = set()
         for suspicion in suspicions:
-            if suspicion.get('is_visible') is False:
+            if suspicion.get("is_visible") is False:
                 is_visible = False
             else:
                 has_visible_features = True
                 is_visible = True
             reason, created = changeset_models.SuspicionReasons.objects.get_or_create(
-                name=suspicion['reason'],
-                defaults={'is_visible': is_visible}
-                )
+                name=suspicion["reason"], defaults={"is_visible": is_visible}
+            )
             reasons.add(reason)
 
     changeset_defaults = {
-        'date': datetime.utcfromtimestamp(properties.get('osm:timestamp') / 1000),
-        'uid': properties.get('osm:uid'),
-        'is_suspect': has_visible_features
-        }
+        "date": datetime.utcfromtimestamp(properties.get("osm:timestamp") / 1000),
+        "uid": properties.get("osm:uid"),
+        "is_suspect": has_visible_features,
+    }
 
     changeset, created = changeset_models.Changeset.objects.get_or_create(
-        id=changeset_id,
-        defaults=changeset_defaults
-        )
+        id=changeset_id, defaults=changeset_defaults
+    )
 
     if not changeset.is_suspect and has_visible_features:
         changeset.is_suspect = True
-        changeset.save(update_fields=['is_suspect'])
+        changeset.save(update_fields=["is_suspect"])
 
-    print(
-        'Changeset {} {}'.format(changeset_id, 'created' if created else 'updated')
-        )
+    print(f"Changeset {changeset_id} {'created' if created else 'updated'}")
 
     try:
         changeset.reasons.add(*reasons)
@@ -187,34 +187,25 @@ def create_feature(request):
         # In this case, we can safely ignore this attempted DB Insert,
         # since what we wanted inserted has already been done through
         # a separate web request.
-        print('IntegrityError with changeset %s' % changeset_id)
+        print(f"IntegrityError with changeset {changeset_id}")
     except ValueError as e:
-        print('ValueError with changeset %s' % changeset_id)
+        print(f"ValueError with changeset {changeset_id}")
 
-    defaults['geojson'] = feature
+    defaults["geojson"] = feature
     suspicious_feature, created = Feature.objects.get_or_create(
-        osm_id=properties['osm:id'],
-        changeset=changeset,
-        defaults=defaults
-        )
-    print(
-        'Feature {} {}.'.format(
-            properties['osm:id'], 'created' if created else 'updated'
-            )
-        )
+        osm_id=properties["osm:id"], changeset=changeset, defaults=defaults
+    )
+    print(f"Feature {properties['osm:id']} {'created' if created else 'updated'}.")
 
     try:
         suspicious_feature.reasons.add(*reasons)
     except IntegrityError:
         # This most often happens due to duplicates in dynamosm stream
-        print('Integrity error with feature %s' % suspicious_feature.osm_id)
+        print(f"Integrity error with feature {suspicious_feature.osm_id}")
     except ValueError as e:
-        print('Value error with feature %s' % suspicious_feature.osm_id)
+        print(f"Value error with feature {suspicious_feature.osm_id}")
 
-    return Response(
-        {'detail': 'Feature created.'},
-        status=status.HTTP_201_CREATED
-        )
+    return Response({"detail": "Feature created."}, status=status.HTTP_201_CREATED)
 
 
 class CheckFeature(ModelViewSet):
@@ -224,20 +215,18 @@ class CheckFeature(ModelViewSet):
     throttle_classes = (NonStaffUserThrottle,)
 
     def update_feature(self, feature, request, harmful):
-        """Update the feature fields and return a 200 Response """
+        """Update the feature fields and return a 200 Response"""
         feature.checked = True
         feature.harmful = harmful
         feature.check_user = request.user
         feature.check_date = timezone.now()
-        feature.save(
-            update_fields=['checked', 'harmful', 'check_user', 'check_date']
-            )
+        feature.save(update_fields=["checked", "harmful", "check_user", "check_date"])
         return Response(
-            {'detail': 'Feature marked as {}.'.format('harmful' if harmful else 'good')},
-            status=status.HTTP_200_OK
-            )
+            {"detail": f"Feature marked as {'harmful' if harmful else 'good'}."},
+            status=status.HTTP_200_OK,
+        )
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_harmful(self, request, changeset, slug):
         """Mark a feature as harmful. You can set the tags of the feature by sending
         a list of tag ids inside a field named 'tags' in the request data. If
@@ -247,26 +236,25 @@ class CheckFeature(ModelViewSet):
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:
             return Response(
-                {'detail': 'Feature was already checked.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+                {"detail": "Feature was already checked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if feature.changeset.uid in request.user.social_auth.values_list(
+            "uid", flat=True
+        ):
             return Response(
-                {'detail': 'User can not check his own feature.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not check his own feature."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if request.data:
             serializer = FeatureTagsSerializer(data=request.data)
             if serializer.is_valid():
-                feature.tags.set(serializer.data['tags'])
+                feature.tags.set(serializer.data["tags"])
             else:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return self.update_feature(feature, request, harmful=True)
 
-    @action(detail=True, methods=['put'])
+    @action(detail=True, methods=["put"])
     def set_good(self, request, changeset, slug):
         """Mark a feature as good. You can set the tags of the feature by sending
         a list of tag ids inside a field named 'tags' in the request data. If
@@ -276,27 +264,26 @@ class CheckFeature(ModelViewSet):
         feature = get_object_or_404(Feature, changeset=changeset, url=slug)
         if feature.checked:
             return Response(
-                {'detail': 'Feature was already checked.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
-        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+                {"detail": "Feature was already checked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        if feature.changeset.uid in request.user.social_auth.values_list(
+            "uid", flat=True
+        ):
             return Response(
-                {'detail': 'User can not check his own feature.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not check his own feature."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if request.data:
             serializer = FeatureTagsSerializer(data=request.data)
             if serializer.is_valid():
-                feature.tags.set(serializer.data['tags'])
+                feature.tags.set(serializer.data["tags"])
             else:
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                    )
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return self.update_feature(feature, request, harmful=False)
 
 
-@api_view(['PUT'])
+@api_view(["PUT"])
 @parser_classes((JSONParser, MultiPartParser, FormParser))
 @permission_classes((IsAuthenticated,))
 def uncheck_feature(request, changeset, slug):
@@ -306,26 +293,22 @@ def uncheck_feature(request, changeset, slug):
     instance = get_object_or_404(Feature, changeset=changeset, url=slug)
     if instance.checked is False:
         return Response(
-            {'detail': 'Feature is not checked.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+            {"detail": "Feature is not checked."}, status=status.HTTP_403_FORBIDDEN
+        )
     elif request.user == instance.check_user or request.user.is_staff:
         instance.checked = False
         instance.harmful = None
         instance.check_user = None
         instance.check_date = None
-        instance.save(
-            update_fields=['checked', 'harmful', 'check_user', 'check_date']
-            )
+        instance.save(update_fields=["checked", "harmful", "check_user", "check_date"])
         return Response(
-            {'detail': 'Feature marked as unchecked.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Feature marked as unchecked."}, status=status.HTTP_200_OK
+        )
     else:
         return Response(
-            {'detail': 'User does not have permission to uncheck this feature.'},
-            status=status.HTTP_403_FORBIDDEN
-            )
+            {"detail": "User does not have permission to uncheck this feature."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
 
 
 class AddRemoveFeatureTagsAPIView(ModelViewSet):
@@ -335,7 +318,7 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
     # docs schema generation.
     serializer_class = FeatureTagsSerializer
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def add_tag(self, request, changeset, slug, tag_pk):
         """Add a tag to a feature. If the feature is unchecked, any user can
         add and remove tags. After the feature got checked, only staff users
@@ -343,34 +326,35 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
         created the feature can't add or remove tags.
         """
         feature = get_object_or_404(
-            Feature.objects.all(),
-            changeset=changeset,
-            url=slug
-            )
+            Feature.objects.all(), changeset=changeset, url=slug
+        )
         tag = get_object_or_404(
-            changeset_models.Tag.objects.filter(for_feature=True),
-            pk=tag_pk
-            )
+            changeset_models.Tag.objects.filter(for_feature=True), pk=tag_pk
+        )
 
-        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+        if feature.changeset.uid in request.user.social_auth.values_list(
+            "uid", flat=True
+        ):
             return Response(
-                {'detail': 'User can not add tags to his own feature.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not add tags to his own feature."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if feature.checked and (
-            request.user != feature.check_user and not request.user.is_staff):
+            request.user != feature.check_user and not request.user.is_staff
+        ):
             return Response(
-                {'detail': 'User can not add tags to a feature checked by another user.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {
+                    "detail": "User can not add tags to a feature checked by another user."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         feature.tags.add(tag)
         return Response(
-            {'detail': 'Tag added to the feature.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Tag added to the feature."}, status=status.HTTP_200_OK
+        )
 
-    @action(detail=True, methods=['delete'])
+    @action(detail=True, methods=["delete"])
     def remove_tag(self, request, changeset, slug, tag_pk):
         """Remove a tag from a feature. If the feature is unchecked, any user can
         add and remove tags. After the feature got checked, only staff users
@@ -378,26 +362,28 @@ class AddRemoveFeatureTagsAPIView(ModelViewSet):
         created the feature can't add or remove tags.
         """
         feature = get_object_or_404(
-            Feature.objects.all(),
-            changeset=changeset,
-            url=slug
-            )
+            Feature.objects.all(), changeset=changeset, url=slug
+        )
         tag = get_object_or_404(changeset_models.Tag.objects.all(), pk=tag_pk)
 
-        if feature.changeset.uid in request.user.social_auth.values_list('uid', flat=True):
+        if feature.changeset.uid in request.user.social_auth.values_list(
+            "uid", flat=True
+        ):
             return Response(
-                {'detail': 'User can not remove tags from his own feature.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {"detail": "User can not remove tags from his own feature."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
         if feature.checked and (
-            request.user != feature.check_user and not request.user.is_staff):
+            request.user != feature.check_user and not request.user.is_staff
+        ):
             return Response(
-                {'detail': 'User can not remove tags of a feature checked by another user.'},
-                status=status.HTTP_403_FORBIDDEN
-                )
+                {
+                    "detail": "User can not remove tags of a feature checked by another user."
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
         feature.tags.remove(tag)
         return Response(
-            {'detail': 'Tag removed from the feature.'},
-            status=status.HTTP_200_OK
-            )
+            {"detail": "Tag removed from the feature."}, status=status.HTTP_200_OK
+        )

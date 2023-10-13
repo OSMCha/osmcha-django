@@ -44,3 +44,10 @@ Desktop.ini
 
 #js
 node_modules/
+
+
+# Pycharm
+.idea/
+
+# Environment
+.env

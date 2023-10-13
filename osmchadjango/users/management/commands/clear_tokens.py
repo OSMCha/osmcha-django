@@ -8,4 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         Token.objects.all().delete()
-        print('All user Tokens were deleted.')
+        print("All user Tokens were deleted.")
