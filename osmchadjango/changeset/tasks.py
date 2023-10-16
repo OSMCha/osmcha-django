@@ -3,6 +3,10 @@ from __future__ import print_function, unicode_literals
 from os.path import join
 from urllib.parse import quote
 import yaml
+try:
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
 
 from django.conf import settings
 
@@ -74,7 +78,7 @@ def get_last_replication_id():
     state = requests.get(
         '{}state.yaml'.format(settings.OSM_PLANET_BASE_URL)
         ).content
-    state = yaml.load(state)
+    state = yaml.load(state, Loader)
     return state.get('sequence')
 
 

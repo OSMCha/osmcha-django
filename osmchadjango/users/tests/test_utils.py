@@ -12,7 +12,7 @@ from ..utils import update_user_name
 class TestUpdateUserName(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='WilleMarcel',
+            username='rosrever',
             email='b@a.com',
             password='password'
             )
@@ -35,7 +35,7 @@ class TestUpdateUserName(TestCase):
     def test_update_user_name(self):
         update_user_name(self.user)
         update_user_name(self.user_2)
-        self.assertEqual(self.user.name, 'Wille Marcel')
+        self.assertEqual(self.user.name, 'rosrever')
         self.assertEqual(self.user_2.name, 'narceliodesa')
 
     def test_user_with_wrong_uid(self):

@@ -30,7 +30,7 @@ class TestCreateChangeset(TestCase):
         self.assertEqual(Changeset.objects.count(), 1)
         self.assertEqual(
             changeset.bbox.wkt,
-            'POLYGON ((-34.9230192 -8.219786900000001, -34.855581 -8.219786900000001, -34.855581 -8.0335263, -34.9230192 -8.0335263, -34.9230192 -8.219786900000001))'
+            'POLYGON ((-34.9230192 -8.2197869, -34.855581 -8.2197869, -34.855581 -8.0335263, -34.9230192 -8.0335263, -34.9230192 -8.2197869))'
             )
         self.assertIsInstance(changeset.area, float)
 
@@ -62,8 +62,8 @@ class TestCreateChangesetWithoutBBOX(TestCase):
     def test_creation(self):
         changeset = create_changeset(47052680)
         self.assertEqual(Changeset.objects.count(), 1)
-        self.assertIsNone(changeset.bbox)
-        self.assertEqual(changeset.area, None)
+        self.assertTrue(changeset.bbox.empty)
+        self.assertEqual(changeset.area, 0.0)
 
 
 class TestChangesetCommentAPI(TestCase):

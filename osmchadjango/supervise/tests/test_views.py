@@ -859,10 +859,10 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
-        link = [i for i in items[0].getchildren() if i.tag == 'link'][0]
+        link = [i for i in items[0] if i.tag == 'link'][0]
         self.assertIn(
             "?aoi=",
             link.text
@@ -893,7 +893,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(
@@ -931,7 +931,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(
@@ -961,7 +961,7 @@ class TestAoIChangesetListView(APITestCase):
             reverse('supervise:aoi-changesets-feed', args=[aoi.pk])
             )
         self.assertEqual(response.status_code, 200)
-        rss_data = ET.fromstring(response.content).getchildren()[0].getchildren()
+        rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
         items = [i for i in rss_data if i.tag == 'item']
         self.assertEqual(

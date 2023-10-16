@@ -13,7 +13,7 @@ from ..models import User
 class TestUpdateUserNameCommand(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='WilleMarcel',
+            username='rosrever',
             email='b@a.com',
             password='password'
             )
@@ -37,14 +37,14 @@ class TestUpdateUserNameCommand(TestCase):
         call_command('update_user_names')
         self.user.refresh_from_db()
         self.user_2.refresh_from_db()
-        self.assertEqual(self.user.name, 'Wille Marcel')
+        self.assertEqual(self.user.name, 'rosrever')
         self.assertEqual(self.user_2.name, 'narceliodesa')
 
 
 class TestClearTokensCommand(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(
-            username='WilleMarcel',
+            username='rosrever',
             email='b@a.com',
             password='password'
             )
