@@ -358,7 +358,7 @@ CACHALOT_TIMEOUT = 180
 CACHALOT_ENABLED = True
 
 # OSM SERVER SETTINGS
-OSM_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
+OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
 OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
     default='https://planet.openstreetmap.org/replication/changesets/'

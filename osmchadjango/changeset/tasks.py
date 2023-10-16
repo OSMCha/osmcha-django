@@ -113,7 +113,7 @@ class ChangesetCommentAPI(object):
             resource_owner_secret=user_token['oauth_token_secret']
             )
         self.url = '{}/api/0.6/changeset/{}/comment/'.format(
-            settings.OSM_URL,
+            settings.OSM_SERVER_URL,
             changeset_id
             )
 
