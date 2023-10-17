@@ -1,24 +1,13 @@
-FROM python:3.5
+FROM ubuntu:22.04
+ARG DEBIAN_FRONTEND=noninteractive
 
-ENV PYTHONUNBUFFERED 1
+RUN apt-get update -qq -y
+RUN apt-get install -y curl wget python3 python3-dev python3-pip git libgeos-dev libcurl4-gnutls-dev librtmp-dev python3-gdal libyaml-dev locales nginx supervisor postgresql-client libpq-dev
 
 # Requirements have to be pulled and installed here, otherwise caching won't work
 COPY ./requirements /requirements
 
-RUN apt-get update -y && \
-    apt-get install --auto-remove -y \
-      binutils \
-      libproj-dev \
-      gdal-bin \
-      curl \
-      libcurl4-openssl-dev \
-      locales \
-      apt-transport-https && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN pip install -r /requirements/production.txt \
-    && groupadd -r django \
-    && useradd -r -g django django
+RUN pip install -r /requirements/production.txt
 
 COPY . /app
 RUN chown -R django /app
@@ -28,9 +17,7 @@ COPY ./compose/django/entrypoint.sh /entrypoint.sh
 RUN sed -i 's/\r//' /entrypoint.sh \
     && sed -i 's/\r//' /gunicorn.sh \
     && chmod +x /entrypoint.sh \
-    && chown django /entrypoint.sh \
     && chmod +x /gunicorn.sh \
-    && chown django /gunicorn.sh
 
 WORKDIR /app
 
