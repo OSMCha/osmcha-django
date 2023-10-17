@@ -357,6 +357,13 @@ SWAGGER_SETTINGS = {
 CACHALOT_TIMEOUT = 180
 CACHALOT_ENABLED = True
 
+# OSM SERVER SETTINGS
+OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
+OSM_PLANET_BASE_URL = env(
+    'OSM_PLANET_BASE_URL',
+    default='https://planet.openstreetmap.org/replication/changesets/'
+    )
+
 # FRONTEND SETTINGS
 # -----------------------------------------------------------------------------
 # Version or any valid git branch tag of front-end code

@@ -30,7 +30,7 @@ class TestCreateChangeset(TestCase):
         self.assertEqual(Changeset.objects.count(), 1)
         self.assertEqual(
             changeset.bbox.wkt,
-            'POLYGON ((-34.9230192 -8.219786900000001, -34.855581 -8.219786900000001, -34.855581 -8.0335263, -34.9230192 -8.0335263, -34.9230192 -8.219786900000001))'
+            'POLYGON ((-34.9230192 -8.2197869, -34.855581 -8.2197869, -34.855581 -8.0335263, -34.9230192 -8.0335263, -34.9230192 -8.2197869))'
             )
         self.assertIsInstance(changeset.area, float)
 
@@ -62,8 +62,8 @@ class TestCreateChangesetWithoutBBOX(TestCase):
     def test_creation(self):
         changeset = create_changeset(47052680)
         self.assertEqual(Changeset.objects.count(), 1)
-        self.assertIsNone(changeset.bbox)
-        self.assertEqual(changeset.area, None)
+        self.assertTrue(changeset.bbox.empty)
+        self.assertEqual(changeset.area, 0.0)
 
 
 class TestChangesetCommentAPI(TestCase):
@@ -92,7 +92,7 @@ class TestChangesetCommentAPI(TestCase):
         changeset_comment = ChangesetCommentAPI(self.user, 123456)
         self.assertEqual(
             changeset_comment.url,
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/'
+            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/'
             )
         self.assertIsInstance(changeset_comment.client, OAuth1Session)
         self.assertEqual(
@@ -114,7 +114,7 @@ class TestChangesetCommentAPI(TestCase):
 
         mock_oauth_client.assert_called_with(
             'POST',
-            'https://api.openstreetmap.org/api/0.6/changeset/123456/comment/',
+            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/',
             data='text={}'.format(quote('Reviewed in OSMCha and set as GOOD!')).encode('utf-8'),
             json=None
             )

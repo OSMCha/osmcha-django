@@ -2,6 +2,8 @@
 import xml.etree.ElementTree as ET
 from xml.etree.ElementTree import ParseError
 
+from django.conf import settings
+
 from social_django.models import UserSocialAuth
 
 import requests
@@ -23,7 +25,7 @@ def update_user_name(user):
     """
     try:
         uid = user.social_auth.get(provider='openstreetmap').uid
-        url = 'https://www.openstreetmap.org/api/0.6/user/{}/'.format(uid)
+        url = '{}/api/0.6/user/{}/'.format(settings.OSM_SERVER_URL, uid)
         data = ET.fromstring(requests.get(url).content)
         display_name = data.find('user').get('display_name')
         if user.name != display_name:
