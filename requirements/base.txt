@@ -24,7 +24,7 @@ django-cors-headers==3.7.0
 drf-yasg==1.20.0
 
 # For the persistence stores
-psycopg2-binary<2.9
+psycopg2-binary==2.9.9
 
 # Unicode slugification
 unicode-slugify==0.1.3
