@@ -14,6 +14,8 @@ COPY ./requirements /requirements
 RUN pip install -r /requirements/production.txt
 
 COPY . /app
+RUN useradd django
+RUN chown -R django:django /app
 
 COPY ./compose/django/gunicorn.sh /gunicorn.sh
 COPY ./compose/django/entrypoint.sh /entrypoint.sh
@@ -23,5 +25,6 @@ RUN sed -i 's/\r//' /entrypoint.sh \
     && chmod +x /gunicorn.sh
 
 WORKDIR /app
+USER django
 
 ENTRYPOINT ["/entrypoint.sh"]
