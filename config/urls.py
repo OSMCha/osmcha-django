@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.views import defaults
 from django.views import static as static_views
+from django.http import JsonResponse
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -58,9 +59,14 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+def health_check(request):
+    return JsonResponse({'status': 'ok'})
+
 urlpatterns += [
     # Django Admin
     path('admin/', admin.site.urls),
+
+    path('health', health_check),
 
     # api docs
     re_path(
