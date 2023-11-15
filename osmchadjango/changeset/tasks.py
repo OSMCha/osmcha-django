@@ -46,7 +46,7 @@ def create_changeset(changeset_id):
 
 
 def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
-    """Filter the changesets of the replication file by the area defined in the
+    """Filter changesets from a replication file by the area defined in the
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
@@ -56,13 +56,13 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
 
 
 def format_url(n):
-    """Return the url of a replication file."""
+    """Return the URL of a replication file."""
     n = str(n)
     return join(settings.OSM_PLANET_BASE_URL, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
 
 
 def import_replications(start, end):
-    """Recieves a start and a end number and import each replication file in
+    """Recieves a start and an end number, and import each replication file in
     this interval.
     """
     Import(start=start, end=end).save()
@@ -73,7 +73,7 @@ def import_replications(start, end):
 
 
 def get_last_replication_id():
-    """Get the id number of the last replication file available on Planet OSM.
+    """Get the id of the last replication file available on Planet OSM.
     """
     state = requests.get(
         '{}state.yaml'.format(settings.OSM_PLANET_BASE_URL)
