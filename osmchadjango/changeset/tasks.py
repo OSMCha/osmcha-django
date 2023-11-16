@@ -12,13 +12,11 @@ from django.conf import settings
 
 import requests
 from requests_oauthlib import OAuth1Session
-from celery import shared_task, group
 from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
 
 
-@shared_task
 def create_changeset(changeset_id):
     """Analyse and create the changeset in the database."""
     ch = Analyse(changeset_id)
@@ -47,33 +45,35 @@ def create_changeset(changeset_id):
     return changeset
 
 
-@shared_task
 def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
-    """Filter the changesets of the replication file by the area defined in the
+    """Filter changesets from a replication file by the area defined in the
     GeoJSON file.
     """
     cl = ChangesetList(url, geojson_filter)
-    group(create_changeset.s(c['id']) for c in cl.changesets)()
+    for c in cl.changesets:
+        print('Creating changeset {}'.format(c['id']))
+        create_changeset(c['id'])
 
 
 def format_url(n):
-    """Return the url of a replication file."""
+    """Return the URL of a replication file."""
     n = str(n)
     return join(settings.OSM_PLANET_BASE_URL, '00%s' % n[0], n[1:4], '%s.osm.gz' % n[4:])
 
 
-@shared_task
 def import_replications(start, end):
-    """Recieves a start and a end number and import each replication file in
+    """Recieves a start and an end number, and import each replication file in
     this interval.
     """
     Import(start=start, end=end).save()
     urls = [format_url(n) for n in range(start, end + 1)]
-    group(get_filter_changeset_file.s(url) for url in urls)()
+    for url in urls:
+        print('Importing {}'.format(url))
+        get_filter_changeset_file(url)
 
 
 def get_last_replication_id():
-    """Get the id number of the last replication file available on Planet OSM.
+    """Get the id of the last replication file available on Planet OSM.
     """
     state = requests.get(
         '{}state.yaml'.format(settings.OSM_PLANET_BASE_URL)
@@ -82,7 +82,6 @@ def get_last_replication_id():
     return state.get('sequence')
 
 
-@shared_task
 def fetch_latest():
     """Function to import all the replication files since the last import or the
     last 1000.
