@@ -8,7 +8,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('feature', '0009_remove_feature_user_detail'),
         ('changeset', '0029_suspiciousfeature_timestamp'),
     ]
 

@@ -14,13 +14,9 @@ def merge_suspicionreasons(apps, schema_editor):
         if same_reasons.count() > 0:
             for same_reason in same_reasons:
                 changesets = same_reason.changesets.all()
-                features = same_reason.features.all()
                 for c in changesets:
                     c.reasons.remove(same_reason)
                     c.reasons.add(reason)
-                for f in features:
-                    f.reasons.remove(same_reason)
-                    f.reasons.add(reason)
                 print("deleting %s" % same_reason.name)
                 same_reason.delete()
 

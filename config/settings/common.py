@@ -64,7 +64,6 @@ THIRD_PARTY_APPS = (
 LOCAL_APPS = (
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
-    'osmchadjango.feature',
     'osmchadjango.supervise',
     'osmchadjango.frontend',
     'osmchadjango.roulette_integration',
