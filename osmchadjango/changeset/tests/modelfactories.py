@@ -8,7 +8,6 @@ from django.contrib.gis.geos import Point
 import factory
 
 from ..models import Changeset, SuspicionReasons, UserWhitelist, Tag
-from ...feature.models import Feature
 from ...users.models import MappingTeam
 
 
@@ -85,21 +84,6 @@ class TagFactory(factory.django.DjangoModelFactory):
 class UserWhitelistFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = UserWhitelist
-
-
-class FeatureFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Feature
-
-    changeset = factory.SubFactory(ChangesetFactory)
-    osm_id = factory.Sequence(lambda n: n)
-    osm_type = 'node'
-    url = factory.Sequence(lambda n: 'node-%d' % n)
-    osm_version = 1
-    geometry = Point(42.1, 13.4)
-    geojson = json.dumps(
-        {'properties': {'osm:type': 'node', 'name': 'Test', 'building': 'yes'}}
-        )
 
 
 class MappingTeamFactory(factory.django.DjangoModelFactory):

@@ -12,9 +12,7 @@ from unittest import mock
 
 from ...users.models import User
 from ..models import Changeset
-from .modelfactories import (
-    ChangesetFactory, FeatureFactory
-    )
+from .modelfactories import ChangesetFactory
 
 
 class TestReviewFeaturesAPIView(APITestCase):
