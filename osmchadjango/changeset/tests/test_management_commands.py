@@ -9,8 +9,7 @@ from django.utils import timezone
 
 from ..models import Changeset, SuspicionReasons
 from .modelfactories import (
-    ChangesetFactory, GoodChangesetFactory, SuspectChangesetFactory,
-    FeatureFactory
+    ChangesetFactory, GoodChangesetFactory, SuspectChangesetFactory
     )
 
 
@@ -104,80 +103,3 @@ class TestMergeReasons(TestCase):
             )
         self.assertIn('Verify the SuspicionReasons ids.', self.out.getvalue())
         self.assertIn('One or both of them does not exist.', self.out.getvalue())
-
-
-class TestMigrateFeatures(TestCase):
-    def setUp(self):
-        self.changeset = ChangesetFactory(id=31982803, date=date(2018, 1, 1))
-        self.changeset_2 = ChangesetFactory(id=31982804)
-        self.features_1 = FeatureFactory.create_batch(
-            10,
-            changeset=self.changeset
-            )
-        self.features_2 = FeatureFactory.create_batch(
-            5,
-            changeset=self.changeset_2
-            )
-        self.reason = SuspicionReasons.objects.create(
-            name='new mapper edits'
-            )
-        self.reason_2 = SuspicionReasons.objects.create(
-            name='Vandalism'
-            )
-        for feature in self.features_1:
-            self.reason.features.add(feature)
-            self.reason_2.features.add(feature)
-
-    def test_migration(self):
-        call_command(
-            'migrate_features',
-            '2018-01-01',
-            (date.today() + timedelta(days=1)).isoformat()
-            )
-        self.changeset.refresh_from_db()
-        self.changeset_2.refresh_from_db()
-        self.assertEqual(len(self.changeset.new_features), 10)
-        self.assertEqual(len(self.changeset_2.new_features), 5)
-        self.assertEqual(
-            self.changeset.new_features[0].get('reasons'),
-            [self.reason.id, self.reason_2.id]
-            )
-        self.assertIsNotNone(self.changeset.new_features[0].get('osm_id'))
-        self.assertIn('node-', self.changeset.new_features[0].get('url'))
-        self.assertEqual(self.changeset.new_features[0].get('version'), 1)
-        self.assertEqual(self.changeset.new_features[0].get('name'), 'Test')
-        self.assertEqual(
-            self.changeset.new_features[0].get('primary_tags'),
-            {'building': 'yes'}
-            )
-        self.assertIsNotNone(self.changeset.new_features[0].get('reasons'))
-
-    def test_partial_migration(self):
-        call_command(
-            'migrate_features',
-            '2018-01-02',
-            (date.today() + timedelta(days=1)).isoformat()
-            )
-        self.changeset.refresh_from_db()
-        self.changeset_2.refresh_from_db()
-        self.assertEqual(len(self.changeset.new_features), 0)
-        self.assertEqual(len(self.changeset_2.new_features), 5)
-
-    def test_feature_without_properties(self):
-        self.changeset.features.all()[0].geojson = json.dumps({'id': 1232})
-        self.changeset.features.all()[0].save()
-        call_command(
-            'migrate_features',
-            '2018-01-01',
-            (date.today() + timedelta(days=1)).isoformat()
-            )
-        self.changeset.refresh_from_db()
-        self.changeset_2.refresh_from_db()
-        self.assertEqual(len(self.changeset.new_features), 10)
-        self.assertEqual(
-            self.changeset.new_features[0].get('reasons'),
-            [self.reason.id, self.reason_2.id]
-            )
-        self.assertIsNotNone(self.changeset.new_features[0].get('osm_id'))
-        self.assertIn('node-', self.changeset.new_features[0].get('url'))
-        self.assertEqual(self.changeset.new_features[0].get('version'), 1)

@@ -5,7 +5,6 @@ from django.contrib.postgres.fields import JSONField
 from django.http.request import HttpRequest
 
 from osmchadjango.changeset.filters import ChangesetFilter
-from osmchadjango.feature.filters import FeatureFilter
 
 from ..users.models import User
 
@@ -32,18 +31,6 @@ class AreaOfInterest(models.Model):
         if self.geometry is not None:
             return qs.filter(
                 bbox__intersects=self.geometry
-                )
-        else:
-            return qs
-
-    def features(self):
-        """Return the features that match the filters, including the geometry
-        of the AreaOfInterest.
-        """
-        qs = FeatureFilter(self.filters).qs
-        if self.geometry is not None:
-            return qs.filter(
-                geometry__intersects=self.geometry
                 )
         else:
             return qs

@@ -9,7 +9,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('changeset', '0044_merge_20170330_1409'),
-        ('feature', '0012_feature_harmful_reasons'),
     ]
 
     operations = [
