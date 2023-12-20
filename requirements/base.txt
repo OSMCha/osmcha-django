@@ -13,7 +13,7 @@ django-model-utils==4.2.0
 
 # For authentication with OSM
 social-auth-app-django==4.0.0
-social-auth-core==3.3.3
+git+https://github.com/OpenHistoricalMap/social-core/
 
 # DRF and DRF-gis
 djangorestframework==3.11.2

@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - ohm
 
 jobs:
   build:
