@@ -74,12 +74,11 @@ class SocialAuthAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    base_url = 'https://www.openstreetmap.org/oauth'
-    request_token_url = '{}/request_token?oauth_callback={}'.format(
-        base_url,
-        settings.OAUTH_REDIRECT_URI
-        )
-    access_token_url = '{}/access_token'.format(base_url)
+    base_url = "{}/oauth".format(settings.OSM_SERVER_URL)
+    request_token_url = "{}/request_token?oauth_callback={}".format(
+        base_url, settings.OAUTH_REDIRECT_URI
+    )
+    access_token_url = "{}/access_token".format(base_url)
 
     def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
         oauth = OAuth1Session(
