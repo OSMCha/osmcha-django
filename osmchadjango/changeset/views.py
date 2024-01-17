@@ -67,7 +67,7 @@ class ChangesetListAPIView(ListAPIView):
 
     queryset = Changeset.objects.all().select_related(
         'check_user'
-        ).prefetch_related('tags', 'reasons').exclude(user="")
+        ).prefetch_related('tags', 'reasons')
     permission_classes = (IsAuthenticated,)
     pagination_class = StandardResultsSetPagination
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer, PaginatedCSVRenderer)
