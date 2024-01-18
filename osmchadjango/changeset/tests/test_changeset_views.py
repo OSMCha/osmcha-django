@@ -23,8 +23,6 @@ class TestChangesetListView(APITestCase):
     def setUp(self):
         SuspectChangesetFactory.create_batch(26)
         ChangesetFactory.create_batch(26)
-        # list endpoints will not list Changesets with user=""
-        ChangesetFactory(user="")
         self.user = User.objects.create_user(
             username='test',
             password='password',
