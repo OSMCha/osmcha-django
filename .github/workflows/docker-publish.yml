@@ -29,7 +29,7 @@ jobs:
         context: .
         push: true
         tags: |
-          ghcr.io/willemarcel/osmcha-django:latest
-          ghcr.io/willemarcel/osmcha-django:${{ github.sha }}
+          ghcr.io/osmcha/osmcha-django:latest
+          ghcr.io/osmcha/osmcha-django:${{ github.sha }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
