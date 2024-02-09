@@ -21,11 +21,11 @@ class Command(BaseCommand):
             settings.APPS_DIR.root, 'frontend', 'templates', 'frontend'
             )
         repo = git.Repo.clone_from(
-            'https://github.com/mapbox/osmcha-frontend.git',
+            "https://github.com/osmcha/osmcha-frontend.git",
             temp_dir,
             branch=settings.OSMCHA_FRONTEND_VERSION,
-            depth=1
-            )
+            depth=1,
+        )
         print('Cloned osmcha-frontend ({}) to {}'.format(repo.commit().hexsha, temp_dir))
 
         main_files = [
