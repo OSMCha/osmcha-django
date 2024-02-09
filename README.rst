@@ -1,10 +1,7 @@
 osmcha-django
 ==============
 
-.. image:: https://travis-ci.org/willemarcel/osmcha-django.svg
-    :target: https://travis-ci.org/willemarcel/osmcha-django
-
-.. image:: https://coveralls.io/repos/github/willemarcel/osmcha-django/badge.svg?branch=master
+.. image:: https://coveralls.io/repos/github/osmcha/osmcha-django/badge.svg?branch=master
     :target: https://coveralls.io/github/willemarcel/osmcha-django?branch=master
 
 .. image:: https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg
@@ -19,9 +16,11 @@ OpenStreetMap API, analyses and store it in a database and finally provides a
 REST API to interact with the changeset data.
 
 This repository contains the backend code. You can report errors or request new features in the
-`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
+`osmcha-frontend repository <https://github.com/osmcha/osmcha-frontend>`_.
 
 License: BSD 2-Clause
+
+OSMCha is an `OpenStreetMap US <https://www.openstreetmap.us/>` charter project. You can support this project by `making a donation <https://openstreetmap.app.neoncrm.com/forms/osmcha>`.
 
 Settings
 ------------
@@ -141,7 +140,7 @@ How to login using the OAuth api
 Frontend
 ^^^^^^^^
 
-`osmcha-frontend <https://github.com/mapbox/osmcha-frontend>`_ is a web interface
+`osmcha-frontend <https://github.com/osmcha/osmcha-frontend>`_ is a web interface
 that you can use to interact with the API. We have a django management command
 to get the last version of osmcha-frontend and serve it with the API.
 
@@ -178,4 +177,4 @@ Get in contact
 If you use, deploy or are interested in help to develop OSMCha, subscribe to our
 `mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_. You can
 report errors or request new features in the
-`osmcha-frontend repository <https://github.com/mapbox/osmcha-frontend>`_.
+`osmcha-frontend repository <https://github.com/osmcha/osmcha-frontend>`_.
