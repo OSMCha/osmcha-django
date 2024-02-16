@@ -380,25 +380,15 @@ class TestChangesetListViewOrdering(APITestCase):
         self.url = reverse('changeset:list')
 
     def test_ordering(self):
-        # default ordering is by descending id
+        # descending date ordering is the default
         response = self.client.get(self.url)
-        ids = [i['id'] for i in response.data.get('features')]
-        self.assertTrue(ids[0] > ids[1])
-
-        # ascending id
-        response = self.client.get(self.url, {'order_by': 'id'})
-        ids = [i['id'] for i in response.data.get('features')]
-        self.assertTrue(ids[0] < ids[1])
+        dates = [i['properties']['date'] for i in response.data.get('features')]
+        self.assertTrue(dates[0] > dates[1])
 
         # ascending date ordering
         response = self.client.get(self.url, {'order_by': 'date'})
         dates = [i['properties']['date'] for i in response.data.get('features')]
         self.assertTrue(dates[0] < dates[1])
-
-        # descending date ordering
-        response = self.client.get(self.url, {'order_by': '-date'})
-        dates = [i['properties']['date'] for i in response.data.get('features')]
-        self.assertTrue(dates[0] > dates[1])
 
         # ascending check_date
         response = self.client.get(self.url, {'order_by': 'check_date'})

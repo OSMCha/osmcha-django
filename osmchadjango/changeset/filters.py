@@ -80,7 +80,7 @@ class ChangesetFilter(GeoFilterSet):
         help_text="""Order the Changesets by one of the following fields: id,
             date, check_date, create, modify, delete or number_reasons. Use a
             minus sign (-) before the field name to reverse the ordering.
-            Default ordering is '-id'."""
+            Default ordering is '-date'."""
         )
     hide_whitelist = filters.BooleanFilter(
         field_name='user',
@@ -443,7 +443,7 @@ class ChangesetFilter(GeoFilterSet):
 
     def order_queryset(self, queryset, name, value):
         allowed_fields = [
-            'date', '-date', 'id', 'check_date', '-check_date', 'create',
+            'date', '-date', 'check_date', '-check_date', 'create',
             'modify', 'delete', '-create', '-modify', '-delete',
             'number_reasons', '-number_reasons', 'comments_count',
             '-comments_count'
