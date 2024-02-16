@@ -127,11 +127,11 @@ MANAGERS = ADMINS
 # }
 DATABASES = {
     'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('PGHOST', default='localhost')
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -375,4 +375,4 @@ OAUTH_REDIRECT_URI = env(
     default='http://localhost:8000/oauth-landing.html'
     )
 
-OSMCHA_URL = env('OSMCHA_URL', 'https://osmcha.org')
+OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')
