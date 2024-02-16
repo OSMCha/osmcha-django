@@ -119,7 +119,7 @@ class Changeset(models.Model):
             return ""
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-date']
         indexes = [
             GinIndex(fields=['tag_changes'])
         ]
