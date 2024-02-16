@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 from django.contrib.gis.feeds import Feed
 from django.urls import reverse
+from django.conf.settings import OSMCHA_URL
 
 from rest_framework.generics import (
     ListCreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView,
@@ -139,10 +140,7 @@ class AOIListChangesetsFeedView(Feed):
         return item.bbox
 
     def item_link(self, item):
-        return '{}{}'.format(reverse(
-            'frontend:changeset-detail',
-            args=[item.id]
-            ), '?aoi={}'.format(self.feed_id))
+        return "{}{}".format(OSMCHA_URL, "?aoi={}".format(self.feed_id))
 
     def item_pubdate(self, item):
         return item.date

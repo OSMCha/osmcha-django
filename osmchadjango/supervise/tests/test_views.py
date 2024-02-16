@@ -864,7 +864,7 @@ class TestAoIChangesetListView(APITestCase):
         items = [i for i in rss_data if i.tag == 'item']
         link = [i for i in items[0] if i.tag == 'link'][0]
         self.assertIn(
-            "?aoi=",
+            "https://osmcha.org?aoi=",
             link.text
             )
         self.assertEqual(
