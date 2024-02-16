@@ -127,11 +127,11 @@ MANAGERS = ADMINS
 # }
 DATABASES = {
     'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('PGHOST', default='localhost')
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -352,10 +352,6 @@ SWAGGER_SETTINGS = {
         },
     }
 
-# CACHALOT SETTINGS
-CACHALOT_TIMEOUT = 180
-CACHALOT_ENABLED = True
-
 # OSM SERVER SETTINGS
 OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
 OSM_PLANET_BASE_URL = env(
@@ -378,3 +374,5 @@ OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
     default='http://localhost:8000/oauth-landing.html'
     )
+
+OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')

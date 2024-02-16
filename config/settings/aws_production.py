@@ -51,11 +51,11 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
 # }
 DATABASES = {
     'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
+        'USER': env('POSTGRES_USER'),
+        'PASSWORD': env('POSTGRES_PASSWORD'),
+        'HOST': env('PGHOST', default='localhost')
      }
 }
 
@@ -78,6 +78,3 @@ REST_FRAMEWORK = {
         },
     'ORDERING_PARAM': 'order_by',
     }
-
-# CACHALOT SETTINGS
-CACHALOT_ENABLED = False
