@@ -2,6 +2,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.urls import re_path
+from django.views.decorators.cache import cache_page
 
 from . import views
 
@@ -25,7 +26,7 @@ urlpatterns = [
         ),
     re_path(
         r'^aoi/(?P<pk>[0-9a-f-]+)/changesets/feed/$',
-        view=views.AOIListChangesetsFeedView(),
+        view=cache_page(60 * 30)(views.AOIListChangesetsFeedView()),
         name='aoi-changesets-feed'
         ),
     re_path(
