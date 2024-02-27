@@ -128,7 +128,9 @@ class AOIListChangesetsFeedView(Feed):
         )
 
     def link(self, obj):
-        return reverse('supervise:aoi-detail', args=[obj.id])
+        # As it was generating links with osmcha.mapbox.com domain, I had
+        # to hardcode the OSMCHA_URL domain here, instead of using the reverse function
+        return "{}/api/v1/aoi/{}/changesets/feed/".format(settings.OSMCHA_URL, obj.id)
 
     def items(self, obj):
         return obj.changesets()[:50]

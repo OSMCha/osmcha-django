@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString, GEOSGeometry
 
 from rest_framework.test import APITestCase
@@ -861,12 +862,17 @@ class TestAoIChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 200)
         rss_data = ET.fromstring(response.content)[0]
         title = [i for i in rss_data if i.tag == 'title'][0]
+        main_link = [i for i in rss_data if i.tag == 'link'][0]
         items = [i for i in rss_data if i.tag == 'item']
         link = [i for i in items[0] if i.tag == 'link'][0]
         self.assertIn(
-            "https://osmcha.org?aoi=",
+            "{}?aoi=".format(settings.OSMCHA_URL),
             link.text
             )
+        self.assertEqual(
+            "{}/api/v1/aoi/{}/changesets/feed/".format(settings.OSMCHA_URL, aoi.pk),
+            main_link.text,
+        )
         self.assertEqual(
             title.text,
             'Changesets of Area of Interest {} by {}'.format(
@@ -955,7 +961,6 @@ class TestAoIChangesetListView(APITestCase):
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
-
 
         response = self.client.get(
             reverse('supervise:aoi-changesets-feed', args=[aoi.pk])
