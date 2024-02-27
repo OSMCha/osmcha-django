@@ -103,3 +103,17 @@ class TestMergeReasons(TestCase):
             )
         self.assertIn('Verify the SuspicionReasons ids.', self.out.getvalue())
         self.assertIn('One or both of them does not exist.', self.out.getvalue())
+
+
+class TestBackfillChangesets(TestCase):
+    def setUp(self):
+        ChangesetFactory(id='1234', date=datetime(2021,1,2))
+        ChangesetFactory(id='1238', date=datetime(2021,1,3))
+
+    def test_backfill(self):
+        call_command("backfill_changesets", '2021-01-01', '2021-01-04')
+        cl = [i[0] for i in Changeset.objects.all().values_list('id')]
+        self.assertEqual(len(cl), 5)
+        self.assertIn(1235, cl)
+        self.assertIn(1236, cl)
+        self.assertIn(1237, cl)
