@@ -140,7 +140,7 @@ class AOIListChangesetsFeedView(Feed):
         return item.bbox
 
     def item_link(self, item):
-        return "{}{}".format(settings.OSMCHA_URL, "?aoi={}".format(self.feed_id))
+        return "{}/changesets/{}/?aoi={}".format(settings.OSMCHA_URL, item.id, self.feed_id)
 
     def item_pubdate(self, item):
         return item.date

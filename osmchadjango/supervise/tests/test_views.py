@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString, GEOSGeometry
 
 from rest_framework.test import APITestCase
@@ -864,7 +865,11 @@ class TestAoIChangesetListView(APITestCase):
         items = [i for i in rss_data if i.tag == 'item']
         link = [i for i in items[0] if i.tag == 'link'][0]
         self.assertIn(
-            "https://osmcha.org?aoi=",
+            "{}/changesets/".format(settings.OSMCHA_URL),
+            link.text
+            )
+        self.assertIn(
+            "/?aoi=",
             link.text
             )
         self.assertEqual(
