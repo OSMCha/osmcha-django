@@ -30,5 +30,8 @@ class Command(BaseCommand):
         final = cl[0]
         while id < final:
             if id not in cl:
-                create_changeset(id)
+                try:
+                    create_changeset(id)
+                except Exception as e:
+                    self.stdout.write("Failed to import changeset {}: {}".format(id, e))
             id = id + 1

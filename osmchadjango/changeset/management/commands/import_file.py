@@ -15,7 +15,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         filename = options['filename'][0]
         cl = ChangesetList(filename, geojson=settings.CHANGESETS_FILTER)
-        imported = [create_changeset(c['id']) for c in cl.changesets]
+        imported = []
+
+        for c in cl.changesets:
+            try:
+                create_changeset(c['id'])
+                imported.append(c['id'])
+            except Exception as e:
+                self.stdout.write("Failed to import changeset {}: {}".format(c["id"], e))
 
         self.stdout.write(
             '{} changesets created from {}.'.format(len(imported), filename)
