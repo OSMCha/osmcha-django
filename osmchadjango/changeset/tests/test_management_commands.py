@@ -111,7 +111,9 @@ class TestBackfillChangesets(TestCase):
         ChangesetFactory(id='1238', date=datetime(2021,1,3))
 
     def test_backfill(self):
-        call_command("backfill_changesets", '2021-01-01', '2021-01-04')
+        call_command(
+            "backfill_changesets", "--start_date=2021-01-01", "--end_date=2021-01-04"
+        )
         cl = [i[0] for i in Changeset.objects.all().values_list('id')]
         self.assertEqual(len(cl), 5)
         self.assertIn(1235, cl)
