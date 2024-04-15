@@ -22,7 +22,7 @@ class Command(BaseCommand):
             start_date = date.today() - timedelta(days=1)
         # if end_date is not defined, set it as today
         try:
-            end_date = date.fromisoformat(options["start_date"][0])
+            end_date = date.fromisoformat(options["end_date"][0])
         except (ValueError, TypeError):
             end_date = datetime.now()
 
