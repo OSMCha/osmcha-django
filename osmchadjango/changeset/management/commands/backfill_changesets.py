@@ -17,12 +17,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # if start_date is not defined, set it as yesterday
         try:
-            start_date = date.fromisoformat(options["start_date"][0])
+            start_date = date.fromisoformat(options["start_date"])
         except (ValueError, TypeError):
             start_date = date.today() - timedelta(days=1)
         # if end_date is not defined, set it as today
         try:
-            end_date = date.fromisoformat(options["end_date"][0])
+            end_date = date.fromisoformat(options["end_date"])
         except (ValueError, TypeError):
             end_date = datetime.now()
 
