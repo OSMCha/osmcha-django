@@ -10,6 +10,7 @@ except ImportError:
     from yaml import Loader
 
 from django.conf import settings
+from django.db.utils import IntegrityError
 
 import requests
 from requests_oauthlib import OAuth1Session
@@ -52,7 +53,11 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     cl = ChangesetList(url, geojson_filter)
     for c in cl.changesets:
         print("Creating changeset {}".format(c["id"]))
-        create_changeset(c["id"])
+        try:
+            create_changeset(c["id"])
+        except IntegrityError as e:
+            print("IntegrityError when importing {}.".format(c["id"]))
+            print(e)
 
 
 def format_url(n):
