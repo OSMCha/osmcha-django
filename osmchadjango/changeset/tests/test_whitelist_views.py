@@ -16,7 +16,7 @@ class TestWhitelistUserView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user_2 = User.objects.create_user(
@@ -26,7 +26,7 @@ class TestWhitelistUserView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='444444',
             )
         self.url = reverse('changeset:whitelist-user')
@@ -84,7 +84,7 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         UserWhitelist.objects.create(user=self.user, whitelist_user='good_user')
@@ -96,7 +96,7 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='444444',
             )
         UserWhitelist.objects.create(user=self.user_2, whitelist_user='the_user')

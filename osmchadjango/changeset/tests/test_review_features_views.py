@@ -24,7 +24,7 @@ class TestReviewFeaturesAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='345',
             extra_data={
                 'id': '345',

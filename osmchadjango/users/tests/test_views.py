@@ -17,7 +17,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
             )
         self.social_auth = UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.social_auth.set_extra_data({'avatar': 'http://theurl.org/pic.jpg'})
@@ -115,7 +115,7 @@ class TestMappingTeamListCreateAPIView(APITestCase):
             )
         self.social_auth = UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.payload = {
@@ -202,7 +202,7 @@ class TestMappingTeamDetailAPIView(APITestCase):
             )
         self.social_auth = UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.payload = {
@@ -313,7 +313,7 @@ class TestMappingTeamTrustingAPIView(APITestCase):
             )
         self.social_auth = UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.payload = {
@@ -412,7 +412,7 @@ class TestMappingTeamTrustingAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123456',
             )
 
@@ -429,7 +429,7 @@ class TestUpdateDeletedUsersView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -440,7 +440,7 @@ class TestUpdateDeletedUsersView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123456',
             )
 
@@ -468,7 +468,7 @@ class TestUpdateDeletedUsersView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='1769',
             )
         user_2 = User.objects.create_user(
@@ -478,7 +478,7 @@ class TestUpdateDeletedUsersView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='1234',
             )
         self.client.login(username=self.staff_user.username, password='password')

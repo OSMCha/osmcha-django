@@ -14,7 +14,7 @@ def save_real_username(backend, user, response, *args, **kwargs):
     It records the real username of the OSM user in the name field of the User
     model.
     """
-    if backend.name == 'openstreetmap' and user.name != response.get('username'):
+    if backend.name == 'openstreetmap-oauth2' and user.name != response.get('username'):
         user.name = response.get('username')
         user.save(update_fields=['name'])
 
@@ -24,7 +24,7 @@ def update_user_name(user):
     user in our local database.
     """
     try:
-        uid = user.social_auth.get(provider='openstreetmap').uid
+        uid = user.social_auth.get(provider='openstreetmap-oauth2').uid
         url = '{}/api/0.6/user/{}/'.format(settings.OSM_SERVER_URL, uid)
         data = ET.fromstring(requests.get(url).content)
         display_name = data.find('user').get('display_name')

@@ -17,7 +17,7 @@ class TestSetChangesetTagChanges(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
@@ -48,7 +48,7 @@ class TestSetChangesetTagChanges(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='99989',
             )
         self.client.login(username=user.username, password='password')

@@ -26,7 +26,7 @@ class TestSuspicionReasonsAPIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
@@ -69,7 +69,7 @@ class TestTagAPIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
@@ -107,7 +107,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -133,7 +133,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='99989',
             )
         self.client.login(username=user.username, password='password')
@@ -173,7 +173,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -204,7 +204,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='99989',
             )
         self.client.login(username=user.username, password='password')

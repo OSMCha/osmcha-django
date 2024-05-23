@@ -34,7 +34,7 @@ class TestAoIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user_2 = User.objects.create_user(
@@ -44,7 +44,7 @@ class TestAoIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         self.area = AreaOfInterest.objects.create(
@@ -127,7 +127,7 @@ class TestAoICreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.url = reverse('supervise:aoi-list-create')
@@ -217,7 +217,7 @@ class TestAoICreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='4444',
             )
         self.client.login(username=self.user.username, password='password')
@@ -243,7 +243,7 @@ class TestAoIDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -556,7 +556,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -658,7 +658,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
@@ -703,7 +703,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         UserWhitelistFactory(user=self.user, whitelist_user='test')
@@ -753,7 +753,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         BlacklistedUser.objects.create(
@@ -809,7 +809,7 @@ class TestAoIChangesetListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='42344',
             )
         BlacklistedUser.objects.create(
@@ -992,7 +992,7 @@ class TestAoIStatsAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.aoi = AreaOfInterest.objects.create(
@@ -1100,7 +1100,7 @@ class TestBlacklistedUserListAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1111,7 +1111,7 @@ class TestBlacklistedUserListAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
         BlacklistedUser.objects.create(
@@ -1157,7 +1157,7 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1168,7 +1168,7 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
         self.url = reverse('supervise:blacklist-list-create')
@@ -1201,7 +1201,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.staff_user = User.objects.create_user(
@@ -1212,7 +1212,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='999898',
             )
 

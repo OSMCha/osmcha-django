@@ -27,7 +27,7 @@ class TestCommentChangesetAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             extra_data={
                 'id': '123123',
