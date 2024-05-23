@@ -728,10 +728,7 @@ class TestCheckChangesetViews(APITestCase):
             uid='123123',
             extra_data={
                 'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
+                'access_token': '1shjasgw'
                 }
             )
         self.tag_1 = TagFactory(name='Illegal import')
@@ -984,10 +981,7 @@ class TestUncheckChangesetView(APITestCase):
             uid='123123',
             extra_data={
                 'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
+                'access_token': 'ajhsjhags'
                 }
             )
         self.suspect_changeset = SuspectChangesetFactory()

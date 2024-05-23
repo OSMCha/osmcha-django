@@ -31,10 +31,7 @@ class TestCommentChangesetAPIView(APITestCase):
             uid='123123',
             extra_data={
                 'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
+                'access_token': 'bbbb'
                 }
             )
         self.changeset = ChangesetFactory(id=31982802)

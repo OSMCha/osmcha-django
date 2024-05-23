@@ -78,16 +78,10 @@ class TestChangesetCommentAPI(TestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap-oauth2',
-            uid='123123',
-            extra_data={
-                'id': '123123',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
-                }
-            )
+            provider="openstreetmap-oauth2",
+            uid="123123",
+            extra_data={"id": "123123", "access_token": "bbbb"},
+        )
 
     def test_changeset_comment_init(self):
         changeset_comment = ChangesetCommentAPI(self.user, 123456)
