@@ -3,9 +3,10 @@ from unittest.mock import patch
 from urllib.parse import quote
 
 from django.test import TestCase
+from django.conf import settings
 
 from social_django.models import UserSocialAuth
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 
 from ...users.models import User
 from ..models import Changeset, SuspicionReasons
@@ -94,7 +95,7 @@ class TestChangesetCommentAPI(TestCase):
             changeset_comment.url,
             'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/'
             )
-        self.assertIsInstance(changeset_comment.client, OAuth1Session)
+        self.assertIsInstance(changeset_comment.client, OAuth2Session)
         self.assertEqual(
             changeset_comment.client.auth.client.resource_owner_key,
             'aaaa'
@@ -104,7 +105,7 @@ class TestChangesetCommentAPI(TestCase):
             'bbbb'
             )
 
-    @patch.object(OAuth1Session, 'request')
+    @patch.object(OAuth2Session, 'request')
     def test_post_comment(self, mock_oauth_client):
         class MockRequest():
             status_code = 200
@@ -113,8 +114,11 @@ class TestChangesetCommentAPI(TestCase):
         changeset_comment.post_comment('Reviewed in OSMCha and set as GOOD!')
 
         mock_oauth_client.assert_called_with(
-            'POST',
-            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/',
-            data='text={}'.format(quote('Reviewed in OSMCha and set as GOOD!')).encode('utf-8'),
-            json=None
-            )
+            "POST",
+            "https://www.openstreetmap.org/api/0.6/changeset/123456/comment/",
+            data="text={}".format(quote("Reviewed in OSMCha and set as GOOD!")).encode(
+                "utf-8"
+            ),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+        )

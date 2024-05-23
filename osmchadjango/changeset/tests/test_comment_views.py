@@ -8,7 +8,7 @@ from django.conf import settings
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 from unittest import mock
 
 from ...users.models import User
@@ -52,7 +52,7 @@ class TestCommentChangesetAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(OAuth1Session, 'request')
+    @mock.patch.object(OAuth2Session, 'request')
     def test_comment_harmful_changeset(self, mock_oauth_client):
         # Simulate a response object
         class MockResponse():
@@ -66,23 +66,23 @@ class TestCommentChangesetAPIView(APITestCase):
             #REVIEWED_BAD #OSMCHA
             Published using OSMCha: https://osmcha.org/changesets/31982803
             """
-        response = self.client.post(
+        response = self.client.request(
             reverse('changeset:comment', args=[self.harmful_changeset.id]),
             data=comment)
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
-            'POST',
-            '{}/api/0.6/changeset/{}/comment/'.format(
-                settings.OSM_SERVER_URL,
-                self.harmful_changeset.id
+            "POST",
+            "{}/api/0.6/changeset/{}/comment/".format(
+                settings.OSM_SERVER_URL, self.harmful_changeset.id
             ),
-            data='text={}'.format(quote(message)).encode('utf-8'),
-            json=None
-            )
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+        )
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(OAuth1Session, 'request')
+    @mock.patch.object(OAuth2Session, 'request')
     def test_comment_good_changeset(self, mock_oauth_client):
         # Simulate a response object
         class MockResponse():
@@ -103,16 +103,17 @@ class TestCommentChangesetAPIView(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
-            'POST',
-            'https://www.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-              self.good_changeset.id
-              ),
-            data='text={}'.format(quote(message)).encode('utf-8'),
-            json=None
-            )
+            "POST",
+            "https://www.openstreetmap.org/api/0.6/changeset/{}/comment/".format(
+                self.good_changeset.id
+            ),
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+        )
 
     @override_settings(ENABLE_POST_CHANGESET_COMMENTS=True)
-    @mock.patch.object(OAuth1Session, 'request')
+    @mock.patch.object(OAuth2Session, 'request')
     def test_comment_unreviewed_changeset(self, mock_oauth_client):
         """Unreviewed changeset should not receive the #OSMCHA_(GOOD or BAD)
         hashtag.
@@ -134,13 +135,14 @@ class TestCommentChangesetAPIView(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
-            'POST',
-            'https://www.openstreetmap.org/api/0.6/changeset/{}/comment/'.format(
-              self.changeset.id
-              ),
-            data='text={}'.format(quote(message)).encode('utf-8'),
-            json=None
-            )
+            "POST",
+            "https://www.openstreetmap.org/api/0.6/changeset/{}/comment/".format(
+                self.changeset.id
+            ),
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+        )
 
     def test_comment_good_changeset_wrong_data(self):
         self.client.login(username=self.user.username, password='password')
