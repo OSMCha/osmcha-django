@@ -91,12 +91,8 @@ class TestChangesetCommentAPI(TestCase):
             )
         self.assertIsInstance(changeset_comment.client, OAuth2Session)
         self.assertEqual(
-            changeset_comment.client.auth.client.resource_owner_key,
+            changeset_comment.client.access_token,
             'aaaa'
-            )
-        self.assertEqual(
-            changeset_comment.client.auth.client.resource_owner_secret,
-            'bbbb'
             )
 
     @patch.object(OAuth2Session, 'request')

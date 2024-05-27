@@ -100,9 +100,8 @@ class TestSocialAuthAPIView(APITestCase):
     def test_receive_oauth_token(self):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertIn('oauth_token', response.data.keys())
-        self.assertIn('oauth_token_secret', response.data.keys())
-
+        self.assertIn('auth_url', response.data.keys())
+        self.assertIn('state', response.data.keys())
 
 
 class TestMappingTeamListCreateAPIView(APITestCase):

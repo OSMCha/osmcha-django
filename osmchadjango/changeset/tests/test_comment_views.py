@@ -64,8 +64,10 @@ class TestCommentChangesetAPIView(APITestCase):
             Published using OSMCha: https://osmcha.org/changesets/31982803
             """
         response = self.client.request(
-            reverse('changeset:comment', args=[self.harmful_changeset.id]),
-            data=comment)
+            "POST",
+            reverse("changeset:comment", args=[self.harmful_changeset.id]),
+            data=comment
+            )
 
         self.assertEqual(response.status_code, 201)
         mock_oauth_client.assert_called_with(
