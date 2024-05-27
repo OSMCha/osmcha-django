@@ -63,8 +63,7 @@ class TestCommentChangesetAPIView(APITestCase):
             #REVIEWED_BAD #OSMCHA
             Published using OSMCha: https://osmcha.org/changesets/31982803
             """
-        response = self.client.request(
-            "POST",
+        response = self.client.post(
             reverse("changeset:comment", args=[self.harmful_changeset.id]),
             data=comment
             )

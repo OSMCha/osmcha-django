@@ -87,13 +87,10 @@ class TestChangesetCommentAPI(TestCase):
         changeset_comment = ChangesetCommentAPI(self.user, 123456)
         self.assertEqual(
             changeset_comment.url,
-            'https://www.openstreetmap.org/api/0.6/changeset/123456/comment/'
+            "https://www.openstreetmap.org/api/0.6/changeset/123456/comment/"
             )
         self.assertIsInstance(changeset_comment.client, OAuth2Session)
-        self.assertEqual(
-            changeset_comment.client.access_token,
-            'aaaa'
-            )
+        self.assertEqual(changeset_comment.client.access_token, "bbbb")
 
     @patch.object(OAuth2Session, 'request')
     def test_post_comment(self, mock_oauth_client):
