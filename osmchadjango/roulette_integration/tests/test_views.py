@@ -18,7 +18,7 @@ class TestChallengeIntegrationListCreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user_2 = User.objects.create_user(
@@ -28,7 +28,7 @@ class TestChallengeIntegrationListCreateView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='444444',
             )
         self.reason_1 = SuspicionReasonsFactory(name="Grafitti")
@@ -75,7 +75,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.user_2 = User.objects.create_user(
@@ -85,7 +85,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='444444',
             )
         self.reason_1 = SuspicionReasonsFactory(name="Grafitti")

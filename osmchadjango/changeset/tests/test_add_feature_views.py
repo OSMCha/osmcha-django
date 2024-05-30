@@ -29,7 +29,7 @@ class TestAddFeatureToChangesetView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123'
             )
 
@@ -41,7 +41,7 @@ class TestAddFeatureToChangesetView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.staff_user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='443324'
             )
 
@@ -327,7 +327,7 @@ class TestCreateFeatureV1(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.token = Token.objects.create(user=self.user)
@@ -370,7 +370,7 @@ class TestCreateFeatureV1(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='444444',
             )
         token = Token.objects.create(user=user)

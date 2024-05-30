@@ -18,7 +18,7 @@ class TestUpdateUserName(TestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='5654409',
             )
         self.user_2 = User.objects.create_user(
@@ -28,7 +28,7 @@ class TestUpdateUserName(TestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user_2,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='612405',
             )
 
@@ -46,7 +46,7 @@ class TestUpdateUserName(TestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='1989776798',
             )
         update_user_name(user)

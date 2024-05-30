@@ -20,7 +20,7 @@ from rest_framework.decorators import (
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework.response import Response
 from social_django.utils import load_strategy, load_backend
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 from django_filters import rest_framework as filters
 from django_filters.widgets import BooleanWidget
 
@@ -74,54 +74,42 @@ class SocialAuthAPIView(GenericAPIView):
     queryset = User.objects.all()
     serializer_class = SocialSignUpSerializer
 
-    base_url = "{}/oauth".format(settings.OSM_SERVER_URL)
-    request_token_url = "{}/request_token?oauth_callback={}".format(
-        base_url, settings.OAUTH_REDIRECT_URI
+    base_oauth2_url = "{}/oauth2".format(settings.OSM_SERVER_URL)
+    token_url = "{}/token".format(base_oauth2_url)
+    auth_url = "{}/authorize".format(base_oauth2_url)
+    consumer = OAuth2Session(
+        client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+        scope=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SCOPE,
+        redirect_uri=settings.OAUTH_REDIRECT_URI,
     )
-    access_token_url = "{}/access_token".format(base_url)
 
-    def get_access_token(self, oauth_token, oauth_token_secret, oauth_verifier):
-        oauth = OAuth1Session(
-            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
-            resource_owner_key=oauth_token,
-            resource_owner_secret=oauth_token_secret,
-            verifier=oauth_verifier
-            )
-        return oauth.fetch_access_token(self.access_token_url)
+    def get_access_token(self, code):
+        return self.consumer.fetch_token(
+            token_url=self.token_url,
+            code=code,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+        )
 
-    def get_user_token(self, request, access_token):
+    def get_user_token(self, request, access_token, *args, **kwargs):
         backend = load_backend(
             strategy=load_strategy(request),
-            name='openstreetmap',
-            redirect_uri=None
-            )
-        authed_user = request.user if not request.user.is_anonymous else None
-        user = backend.do_auth(access_token, user=authed_user)
+            name="openstreetmap-oauth2",
+            redirect_uri=settings.OAUTH_REDIRECT_URI,
+        )
+        user = backend.do_auth(access_token, *args, **kwargs)
         token, created = Token.objects.get_or_create(user=user)
         return {'token': token.key}
 
     def post(self, request, *args, **kwargs):
-        if 'oauth_token' not in request.data.keys() or not request.data['oauth_token']:
-            consumer = OAuth1Session(
-                settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-                client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET
-                )
-            request_token = consumer.fetch_request_token(
-                self.request_token_url
-                )
-            return Response({
-                'oauth_token': request_token['oauth_token'],
-                'oauth_token_secret': request_token['oauth_token_secret']
-                })
+        if 'code' not in request.data.keys() or not request.data['code']:
+            login_url, state = self.consumer.authorization_url(self.auth_url)
+            return Response({"auth_url": login_url, "state": state})
         else:
             serializer = self.get_serializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             access_token = self.get_access_token(
-                request.data['oauth_token'],
-                request.data['oauth_token_secret'],
-                request.data['oauth_verifier']
-                )
+                request.data['code'],
+                ).get('access_token')
             return Response(self.get_user_token(request, access_token))
 
 

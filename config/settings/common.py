@@ -254,14 +254,16 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
 
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY', default='')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET', default='')
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY = env("OAUTH2_OSM_KEY", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET = env("OAUTH2_OSM_SECRET", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SCOPE = ["read_prefs",  "write_api"]
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_USE_PKCE = False
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
 AUTHENTICATION_BACKENDS = (
-    'social_core.backends.openstreetmap.OpenStreetMapOAuth',
-    'django.contrib.auth.backends.ModelBackend',
+    "social_core.backends.openstreetmap_oauth2.OpenStreetMapOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
 )
 
 SOCIAL_AUTH_PIPELINE = (
@@ -372,7 +374,7 @@ MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.
 # in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
-    default='http://localhost:8000/oauth-landing.html'
+    default='http://127.0.0.1:3000/oauth-landing.html'
     )
 
 OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')

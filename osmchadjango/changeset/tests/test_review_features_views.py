@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from urllib.parse import quote
 
 from django.urls import reverse
-from django.test import override_settings
 
 from social_django.models import UserSocialAuth
 from rest_framework.test import APITestCase
-from requests_oauthlib import OAuth1Session
-from unittest import mock
 
 from ...users.models import User
-from ..models import Changeset
 from .modelfactories import ChangesetFactory
 
 
@@ -24,16 +19,10 @@ class TestReviewFeaturesAPIView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
-            uid='345',
-            extra_data={
-                'id': '345',
-                'access_token': {
-                    'oauth_token': 'aaaa',
-                    'oauth_token_secret': 'bbbb'
-                    }
-                }
-            )
+            provider="openstreetmap-oauth2",
+            uid="345",
+            extra_data={"id": "345", "access_token": "bbbb"},
+        )
         self.changeset = ChangesetFactory(id=31982802)
 
     def test_review_feature_unauthenticated(self):

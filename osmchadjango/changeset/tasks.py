@@ -13,7 +13,7 @@ from django.conf import settings
 from django.db.utils import IntegrityError
 
 import requests
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
@@ -119,12 +119,11 @@ class ChangesetCommentAPI(object):
 
     def __init__(self, user, changeset_id):
         self.changeset_id = changeset_id
-        user_token = user.social_auth.all().first().access_token
-        self.client = OAuth1Session(
-            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
-            resource_owner_key=user_token["oauth_token"],
-            resource_owner_secret=user_token["oauth_token_secret"],
+        user_token = user.social_auth.all().first().extra_data
+        user_token['token_type'] = 'Bearer'
+        self.client = OAuth2Session(
+            settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            token=user_token,
         )
         self.url = "{}/api/0.6/changeset/{}/comment/".format(
             settings.OSM_SERVER_URL, changeset_id
@@ -132,8 +131,12 @@ class ChangesetCommentAPI(object):
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
-        response = self.client.post(
-            self.url, data="text={}".format(quote(message)).encode("utf-8")
+        response = self.client.request(
+            'POST',
+            self.url,
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET
         )
         if response.status_code == 200:
             print(
