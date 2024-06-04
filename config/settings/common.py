@@ -374,7 +374,7 @@ MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.
 # in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
-    default='http://127.0.0.1:3000/oauth-landing.html'
+    default='http://127.0.0.1:3000/authorized'
     )
 
 OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')

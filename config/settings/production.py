@@ -99,13 +99,6 @@ CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 # Your production stuff: Below this line define 3rd party library settings
 
-CELERYBEAT_SCHEDULE = {
-    'schedule-name': {
-        'task': 'osmchadjango.changeset.tasks.fetch_latest',
-        'schedule': 60 #Run every 60 seconds
-    },
-}
-
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
@@ -123,7 +116,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': env('ANON_USER_THROTTLE_RATE', default='30/min'),
         'user': env('COMMON_USER_THROTTLE_RATE', default='180/min'),
-        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='3/min')
+        'non_staff_user': env('NON_STAFF_USER_THROTTLE_RATE', default='5/min')
         },
     'ORDERING_PARAM': 'order_by',
     }
