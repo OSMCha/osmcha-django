@@ -17,6 +17,7 @@ from rest_framework.generics import (
     DestroyAPIView
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -41,6 +42,12 @@ from ..roulette_integration.models import ChallengeIntegration
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class DefaultPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = 'page_size'
     max_page_size = 500
@@ -157,6 +164,7 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
 class SuspicionReasonsListAPIView(ListAPIView):
     """List SuspicionReasons."""
     serializer_class = SuspicionReasonsSerializer
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         if self.request and self.request.user.is_staff:
@@ -214,6 +222,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
 class TagListAPIView(ListAPIView):
     """List Tags."""
     serializer_class = TagSerializer
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         if self.request and self.request.user.is_staff:
