@@ -14,11 +14,6 @@ You can access your ``osmcha-django`` instance in http://localhost/ at your brow
 It is also possible to deploy to Heroku or to your own server by using Dokku, an open
 source Heroku clone.
 
-To put celery in production we need a celeryd and a celery beat services running on
-the machine. More information: https://celery.readthedocs.org/en/latest/tutorials/daemonizing.html#daemonizing
-
-And we also need to set periodic tasks to import the changesets daily or hourly: https://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html
-
 If you find any issue, please report. We didn't test it in Heroku and Dokku
 
 Heroku

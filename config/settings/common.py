@@ -235,9 +235,6 @@ ROOT_URLCONF = 'config.urls'
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# CELERY CONFIGURATION
-BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
-
 # Some really nice defaults
 # ACCOUNT_AUTHENTICATION_METHOD = 'username'
 # ACCOUNT_EMAIL_REQUIRED = True
