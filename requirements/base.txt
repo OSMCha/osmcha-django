@@ -33,9 +33,6 @@ django-autoslug==1.9.8
 # Time zones support
 pytz==2021.1
 
-# Celery support
-celery==4.4.7
-
 # Redis support
 django-redis==4.11.0
 redis>=2.10.5
