@@ -32,21 +32,3 @@ services:
 
   redis:
     image: redis:latest
-
-  celeryworker:
-    build:
-      context: .
-    env_file: .env
-    depends_on:
-     - postgres
-     - redis
-    command: celery -A config worker -l INFO
-
-  celerybeat:
-    build:
-      context: .
-    env_file: .env
-    depends_on:
-      - postgres
-      - redis
-    command: celery -A config beat -l INFO
