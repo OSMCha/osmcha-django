@@ -86,9 +86,6 @@ urlpatterns += [
         include(api_urls)
         ),
 
-    # frontend urls
-    path('', include("osmchadjango.frontend.urls", namespace="frontend")),
-
     ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
