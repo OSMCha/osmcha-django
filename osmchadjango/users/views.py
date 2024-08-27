@@ -88,6 +88,7 @@ class SocialAuthAPIView(GenericAPIView):
             token_url=self.token_url,
             code=code,
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
+            headers=settings.OSM_API_USER_AGENT,
         )
 
     def get_user_token(self, request, access_token, *args, **kwargs):

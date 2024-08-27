@@ -25,9 +25,9 @@ def update_user_name(user):
     """
     try:
         uid = user.social_auth.get(provider='openstreetmap-oauth2').uid
-        url = '{}/api/0.6/user/{}/'.format(settings.OSM_SERVER_URL, uid)
-        data = ET.fromstring(requests.get(url).content)
-        display_name = data.find('user').get('display_name')
+        url = f'{settings.OSM_SERVER_URL}/api/0.6/user/{uid}.json'
+        data = requests.get(url, headers=settings.OSM_API_USER_AGENT).json()
+        display_name = data.get('display_name')
         if user.name != display_name:
             user.name = display_name
             user.save(update_fields=['name'])
