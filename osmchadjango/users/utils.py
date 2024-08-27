@@ -1,7 +1,4 @@
 # -*- coding: utf-8 -*-
-import xml.etree.ElementTree as ET
-from xml.etree.ElementTree import ParseError
-
 from django.conf import settings
 
 from social_django.models import UserSocialAuth
@@ -36,5 +33,5 @@ def update_user_name(user):
         print(
             'User {} does not have a social_auth instance.'.format(user.username)
             )
-    except ParseError:
+    except requests.exceptions.JSONDecodeError:
         print('It was not possible to update user with uid {}.'.format(uid))
