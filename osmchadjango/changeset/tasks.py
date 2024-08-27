@@ -81,7 +81,10 @@ def import_replications(start, end):
 
 def get_last_replication_id():
     """Get the id of the last replication file available on Planet OSM."""
-    state = requests.get("{}state.yaml".format(settings.OSM_PLANET_BASE_URL)).content
+    state = requests.get(
+        "{}state.yaml".format(settings.OSM_PLANET_BASE_URL),
+        headers=settings.OSM_API_USER_AGENT
+    ).content
     state = yaml.load(state, Loader)
     return state.get("sequence")
 
@@ -132,11 +135,12 @@ class ChangesetCommentAPI(object):
     def post_comment(self, message=None):
         """Post comment to changeset."""
         response = self.client.request(
-            'POST',
+            "POST",
             self.url,
+            headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote(message)).encode("utf-8"),
             client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
-            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
         )
         if response.status_code == 200:
             print(

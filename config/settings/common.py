@@ -375,3 +375,4 @@ OAUTH_REDIRECT_URI = env(
     )
 
 OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')
+OSM_API_USER_AGENT = {"User-Agent": "OSMCha osmcha-django v4"}

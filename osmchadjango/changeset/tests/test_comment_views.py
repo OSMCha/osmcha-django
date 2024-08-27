@@ -74,6 +74,7 @@ class TestCommentChangesetAPIView(APITestCase):
             "{}/api/0.6/changeset/{}/comment/".format(
                 settings.OSM_SERVER_URL, self.harmful_changeset.id
             ),
+            headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote(message)).encode("utf-8"),
             client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
@@ -105,6 +106,7 @@ class TestCommentChangesetAPIView(APITestCase):
             "https://www.openstreetmap.org/api/0.6/changeset/{}/comment/".format(
                 self.good_changeset.id
             ),
+            headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote(message)).encode("utf-8"),
             client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
@@ -137,6 +139,7 @@ class TestCommentChangesetAPIView(APITestCase):
             "https://www.openstreetmap.org/api/0.6/changeset/{}/comment/".format(
                 self.changeset.id
             ),
+            headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote(message)).encode("utf-8"),
             client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,

@@ -103,6 +103,7 @@ class TestChangesetCommentAPI(TestCase):
         mock_oauth_client.assert_called_with(
             "POST",
             "https://www.openstreetmap.org/api/0.6/changeset/123456/comment/",
+            headers=settings.OSM_API_USER_AGENT,
             data="text={}".format(quote("Reviewed in OSMCha and set as GOOD!")).encode(
                 "utf-8"
             ),
