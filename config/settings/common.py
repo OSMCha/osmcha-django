@@ -65,7 +65,6 @@ LOCAL_APPS = (
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
     'osmchadjango.supervise',
-    'osmchadjango.frontend',
     'osmchadjango.roulette_integration',
 )
 
@@ -357,11 +356,6 @@ OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
     default='https://planet.openstreetmap.org/replication/changesets/'
     )
-
-# FRONTEND SETTINGS
-# -----------------------------------------------------------------------------
-# Version or any valid git branch tag of front-end code
-OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 
 # MapRoulette API CONFIG
 MAP_ROULETTE_API_KEY = env('MAP_ROULETTE_API_KEY', default=None)
