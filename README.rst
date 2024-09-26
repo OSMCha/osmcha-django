@@ -157,12 +157,10 @@ use the admin site to create a token for a user.
 Instances
 ---------
 
-We have some instances running ``osmcha-django``:
-
 The main instance is https://osmcha.org/. You can check the API
 documentation at https://osmcha.org/api-docs/.
 
-Furthermore, we have a test instance running at http://osmcha-org-staging.osmcha.org/.
+There is currently no official staging instance.
 
 Deployment
 ------------
