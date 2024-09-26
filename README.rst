@@ -11,8 +11,8 @@ osmcha-django
 The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
 It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
-This project provides a Django application that get the changesets from the
-OpenStreetMap API, analyses and store it in a database and finally provides a
+This project provides a Django application that gets changesets from the
+OpenStreetMap API, analyses and stores them in a database and finally provides a
 REST API to interact with the changeset data.
 
 This repository contains the backend code. You can report errors or request new features in the
@@ -30,7 +30,7 @@ Apache/mod_wsgi setups**. It has been deployed successfully with both Gunicorn/N
 and uWSGI/Nginx.
 
 For configuration purposes, the following table maps the 'osmcha-django' environment
-variables to their Django setting:
+variables to their Django settings:
 
 
 ======================================= ================================= ========================================= ===========================================
@@ -90,7 +90,7 @@ We assume you have the following installed:
 * virtualenv
 * PostgreSQL
 
-Before to install the python libraries, we need to install some packages in the
+Before installing the python libraries, we need to install some packages in the
 operational system::
 
     $ sudo ./install_os_dependencies.sh install
@@ -121,7 +121,7 @@ Setting Up Your Users
 
 To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
 
-To create an **superuser account**, use this command::
+To create a **superuser account**, use this command::
 
     $ python manage.py createsuperuser
 
@@ -152,7 +152,7 @@ Feature creation endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The feature creation endpoint allows only admin users to create features. You can
-use the admin site to create a token to a user.
+use the admin site to create a token for a user.
 
 Instances
 ---------
@@ -173,7 +173,7 @@ Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Her
 Get in contact
 ---------------
 
-If you use, deploy or are interested in help to develop OSMCha, subscribe to our
+If you use, deploy or are interested in helping develop OSMCha, subscribe to our
 `mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_. You can
 report errors or request new features in the
 `osmcha-frontend repository <https://github.com/osmcha/osmcha-frontend>`_.
