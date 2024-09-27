@@ -58,21 +58,6 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
     ]),
 ]
 
-# DATABASE CONFIGURATION
-# ------------------------------------------------------------------------------
-# Raises ImproperlyConfigured exception if DATABASE_URL not in os.environ
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
-        'USER': env('POSTGRES_USER'),
-        'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST': env('PGHOST', default='localhost')
-     }
-}
 # CACHING
 # ------------------------------------------------------------------------------
 # Configured to use Redis, if you prefer another method, comment the REDIS and

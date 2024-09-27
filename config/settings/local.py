@@ -63,14 +63,5 @@ TEST_RUNNER = 'django.test.runner.DiscoverRunner'
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-DATABASES = {
-    'default': {
-         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-         'NAME': 'osmcha',
-         'USER': env('POSTGRES_USER'),
-         'PASSWORD': env('POSTGRES_PASSWORD'),
-         'HOST': env('PGHOST', default='localhost')
-     }
-}
 
 # Your local stuff: Below this line define 3rd party library settings

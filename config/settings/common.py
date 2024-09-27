@@ -122,16 +122,14 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
-        'USER': env('POSTGRES_USER'),
-        'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST': env('PGHOST', default='localhost')
+        'HOST': env('PGHOST', default=''),
+        'PORT': env('PGPORT', default=''),
+        'USER': env('PGUSER', default=''),
+        'PASSWORD': env('PGPASSWORD', default=''),
+        'NAME': env('PGDATABASE', default=''),
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
