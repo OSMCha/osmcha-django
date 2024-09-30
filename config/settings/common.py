@@ -34,7 +34,7 @@ if READ_DOT_ENV_FILE:
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
-DJANGO_APPS = (
+DJANGO_APPS = [
     # Default Django apps:
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,8 +49,9 @@ DJANGO_APPS = (
 
     # Admin
     'django.contrib.admin',
-)
-THIRD_PARTY_APPS = (
+]
+
+THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
@@ -58,15 +59,15 @@ THIRD_PARTY_APPS = (
     'corsheaders',
     'django_filters',
     'drf_yasg',
-)
+]
 
 # Apps specific for this project go here.
-LOCAL_APPS = (
+LOCAL_APPS = [
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
     'osmchadjango.supervise',
     'osmchadjango.roulette_integration',
-)
+]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -100,9 +101,9 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # FIXTURE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-FIXTURE_DIRS
-FIXTURE_DIRS = (
+FIXTURE_DIRS = [
     str(APPS_DIR.path('fixtures')),
-)
+]
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -111,9 +112,9 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.s
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = (
+ADMINS = [
     ('name', 'email@email.com'),
-)
+]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
@@ -209,15 +210,13 @@ STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 STATIC_URL = '/static/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = (
-    str(APPS_DIR.path('static')),
-)
+STATICFILES_DIRS = []
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
-STATICFILES_FINDERS = (
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
+]
 
 # MEDIA CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -257,12 +256,12 @@ SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_USE_PKCE = False
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
-AUTHENTICATION_BACKENDS = (
+AUTHENTICATION_BACKENDS = [
     "social_core.backends.openstreetmap_oauth2.OpenStreetMapOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-)
+]
 
-SOCIAL_AUTH_PIPELINE = (
+SOCIAL_AUTH_PIPELINE = [
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
@@ -274,7 +273,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details'
     # 'social_core.pipeline.social_auth.associate_by_email',
-)
+]
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
