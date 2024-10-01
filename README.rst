@@ -139,14 +139,10 @@ How to login using the OAuth api
 Frontend
 ^^^^^^^^
 
-`osmcha-frontend <https://github.com/osmcha/osmcha-frontend>`_ is a web interface
-that you can use to interact with the API. We have a django management command
-to get the last version of osmcha-frontend and serve it with the API.
-
-    $ python manage.py update_frontend
-
-After that, if you have set all the environment variables properly, you can start
-the server and have the frontend in your root url.
+`osmcha-frontend <https://github.com/osmcha/osmcha-frontend>`_ is a web
+interface that you can use to interact with the API. The web interface can be
+deployed separately and configured to talk to this Django app when making API
+requests. See the README in that repository for more details.
 
 Feature creation endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^
