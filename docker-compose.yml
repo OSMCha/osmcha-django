@@ -18,17 +18,27 @@ services:
     depends_on:
       - postgres
       - redis
-    command: /gunicorn.sh
+    volumes:
+      # copy static files into a shared volume so the frontend can serve them
+      - staticfiles:/app/staticfiles
     env_file: .env
 
-  nginx:
-    build: ./compose/nginx
+  frontend:
+    image: osmcha-frontend
     depends_on:
       - django
+    volumes:
+      # frontend serves django app's static files via shared volume
+      - staticfiles:/srv/www/static/django
+    env_file: .env
 
     ports:
-      - "0.0.0.0:80:80"
-
+      - "0.0.0.0:8000:80"
 
   redis:
     image: redis:latest
+
+volumes:
+  staticfiles:
+  postgres_data:
+  postgres_backup:

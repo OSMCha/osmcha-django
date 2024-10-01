@@ -50,11 +50,11 @@ DJANGO_DEFAULT_FROM_EMAIL               DEFAULT_FROM_EMAIL                n/a   
 DJANGO_SERVER_EMAIL                     SERVER_EMAIL                      n/a                                       "osmcha-django <noreply@example.com>"
 DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX              n/a                                       "[osmcha-django] "
 DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER                 None                                      None
-POSTGRES_USER                           POSTGRES_USER                     None                                      None
-POSTGRES_PASSWORD                       POSTGRES_PASSWORD                 None                                      None
-PGHOST                                  PGHOST                            localhost                                 localhost
-OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
-OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
+PGUSER                                  DATABASES                         None                                      None
+PGPASSWORD                              DATABASES                         None                                      None
+PGHOST                                  DATABASES                         localhost                                 localhost
+OAUTH2_OSM_KEY                          SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
+OAUTH2_OSM_SECRET                       SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
 DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
 DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min

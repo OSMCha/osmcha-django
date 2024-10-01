@@ -8,7 +8,7 @@ jobs:
     strategy:
       max-parallel: 4
       matrix:
-        python-version: [3.9, '3.10']
+        python-version: ['3.9', '3.10']
 
     steps:
     - uses: actions/checkout@v2
@@ -33,7 +33,7 @@ jobs:
       run: |
         coverage run manage.py test --settings=config.settings.tests
       env:
-        OAUTH_OSM_KEY: ${{ secrets.OAUTH_OSM_KEY }}
-        OAUTH_OSM_SECRET: ${{ secrets.OAUTH_OSM_SECRET }}
-        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        OAUTH2_OSM_KEY: ${{ secrets.OAUTH_OSM_KEY }}
+        OAUTH2_OSM_SECRET: ${{ secrets.OAUTH_OSM_SECRET }}
+        PGUSER: ${{ secrets.POSTGRES_USER }}
+        PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
