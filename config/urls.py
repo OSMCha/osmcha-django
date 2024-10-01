@@ -19,16 +19,6 @@ API_BASE_URL = 'api/v1/'
 
 urlpatterns = []
 
-# If static files are not intercepted by the web-server, serve them with the dev-server:
-if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
-    urlpatterns += [
-        path(
-            'static/<path>',
-            static_views.serve,
-            {'document_root': settings.STATIC_ROOT}
-            ),
-        ]
-
 api_urls = [
     path(
         '{}'.format(API_BASE_URL),
@@ -90,8 +80,7 @@ urlpatterns += [
         '',
         include(api_urls)
         ),
-
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ]
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
