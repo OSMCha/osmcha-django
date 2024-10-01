@@ -125,11 +125,11 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST': env('PGHOST', default=''),
-        'PORT': env('PGPORT', default=''),
-        'USER': env('PGUSER', default=''),
+        'HOST': env('PGHOST', default='localhost'),
+        'PORT': env('PGPORT', default='5432'),
+        'USER': env('PGUSER', default='postgres'),
         'PASSWORD': env('PGPASSWORD', default=''),
-        'NAME': env('PGDATABASE', default=''),
+        'NAME': env('PGDATABASE', default='postgres'),
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
