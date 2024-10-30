@@ -27,5 +27,9 @@ RUN chmod +x /entrypoint.sh
 USER django
 VOLUME /app/staticfiles
 
+# Default number of gunicorn worker processes. Using an env var instead of --workers
+# in the command below lets users of this docker image override the default easily.
+ENV WEB_CONCURRENCY 4
+
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "config.wsgi", "-w", "4", "-b", "0.0.0.0:5000", "--chdir", "/app"]
+CMD ["gunicorn", "config.wsgi", "-t", "120", "-b", "0.0.0.0:5000", "--access-logfile", "-"]
