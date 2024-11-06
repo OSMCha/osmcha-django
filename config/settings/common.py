@@ -122,16 +122,14 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
-        'USER': env('POSTGRES_USER'),
-        'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST': env('PGHOST', default='localhost')
+        'HOST': env('PGHOST', default='localhost'),
+        'PORT': env('PGPORT', default='5432'),
+        'USER': env('PGUSER', default='postgres'),
+        'PASSWORD': env('PGPASSWORD', default=''),
+        'NAME': env('PGDATABASE', default='postgres'),
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -207,7 +205,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/static/'
+STATIC_URL = '/static/django/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
 STATICFILES_DIRS = []
