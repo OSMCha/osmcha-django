@@ -7,7 +7,7 @@ django-environ==0.4.5
 
 # For authentication with OSM
 social-auth-app-django==5.1.0
-social-auth-core==4.5.4
+git+https://github.com/OpenHistoricalMap/social-core.git@upstream
 
 # DRF and DRF-gis
 djangorestframework==3.11.2
