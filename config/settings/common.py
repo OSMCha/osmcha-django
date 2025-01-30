@@ -348,10 +348,10 @@ SWAGGER_SETTINGS = {
     }
 
 # OSM SERVER SETTINGS
-OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
+OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openhistoricalmap.org')
 OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
-    default='https://planet.openstreetmap.org/replication/changesets/'
+    default='https://planet.openhistoricalmap.org/replication/changesets/'
     )
 
 # MapRoulette API CONFIG
