@@ -759,7 +759,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_harmful_changeset_not_allowed(self):
-        """User can't mark his own changeset as harmful."""
+        """User can't mark their own changeset as harmful."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset])
@@ -772,7 +772,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNone(self.changeset.check_date)
 
     def test_set_good_changeset_not_allowed(self):
-        """User can't mark his own changeset as good."""
+        """User can't mark their own changeset as good."""
         self.client.login(username=self.user.username, password='password')
         response = self.client.put(
             reverse('changeset:set-good', args=[self.changeset])
