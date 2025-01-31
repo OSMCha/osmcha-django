@@ -247,7 +247,7 @@ class ReviewFeature(ModelViewSet):
 
         if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check features on his own changeset.'},
+                {'detail': 'User can not check features on their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
@@ -279,7 +279,7 @@ class ReviewFeature(ModelViewSet):
 
             if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
                 return Response(
-                    {'detail': 'User can not check features on his own changeset.'},
+                    {'detail': 'User can not check features on their own changeset.'},
                     status=status.HTTP_403_FORBIDDEN
                     )
 
@@ -343,7 +343,7 @@ class CheckChangeset(ModelViewSet):
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
+                {'detail': 'User can not check their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -372,7 +372,7 @@ class CheckChangeset(ModelViewSet):
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
+                {'detail': 'User can not check their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -440,7 +440,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not add tags to his own changeset.'},
+                {'detail': 'User can not add tags to their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
@@ -468,7 +468,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not remove tags from his own changeset.'},
+                {'detail': 'User can not remove tags from their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
