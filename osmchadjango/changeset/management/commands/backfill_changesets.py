@@ -1,5 +1,4 @@
 from datetime import date, datetime, timedelta
-from django.utils.timezone import make_aware, get_default_timezone
 
 from django.core.management.base import BaseCommand
 
@@ -18,37 +17,26 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # if start_date is not defined, set it as yesterday
         try:
-            start_date = datetime.strptime(options["start_date"], "%Y-%m-%d")
+            start_date = date.fromisoformat(options["start_date"])
         except (ValueError, TypeError):
-            start_date = datetime.now() - timedelta(days=1)
-
+            start_date = date.today() - timedelta(days=1)
         # if end_date is not defined, set it as today
         try:
-            end_date = datetime.strptime(options["end_date"], "%Y-%m-%d")
+            end_date = date.fromisoformat(options["end_date"])
         except (ValueError, TypeError):
             end_date = datetime.now()
 
-        # Convert to timezone-aware datetime
-        start_date = make_aware(start_date, timezone=get_default_timezone())
-        end_date = make_aware(end_date, timezone=get_default_timezone())
-
-        # Query the Changeset table using timezone-aware datetimes
         cl = Changeset.objects.filter(
             date__gte=start_date, date__lte=end_date
-        ).values_list("id", flat=True)
+        ).values_list("id")
+        cl = [c[0] for c in cl]
 
-        if not cl:
-            self.stdout.write("No missing changesets found in the given date range.")
-            return
-
-        id = max(cl)  # Last ID in the list
-        final = min(cl)  # First ID in the list
-
-        while id >= final:
+        id = cl[len(cl) - 1]
+        final = cl[0]
+        while id < final:
             if id not in cl:
                 try:
                     create_changeset(id)
                 except Exception as e:
-                    self.stdout.write(f"Failed to import changeset {id}: {e}")
-            id -= 1
-            
+                    self.stdout.write("Failed to import changeset {}: {}".format(id, e))
+            id = id + 1
