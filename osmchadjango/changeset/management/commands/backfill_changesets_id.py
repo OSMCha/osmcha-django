@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from ...models import Changeset
 from ...tasks import create_changeset
 
-
 class Command(BaseCommand):
     help = "Backfill missing changesets from a given start ID."
 

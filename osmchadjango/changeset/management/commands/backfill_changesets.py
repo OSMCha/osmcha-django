@@ -40,3 +40,4 @@ class Command(BaseCommand):
                 except Exception as e:
                     self.stdout.write("Failed to import changeset {}: {}".format(id, e))
             id = id + 1
+            
