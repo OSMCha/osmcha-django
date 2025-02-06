@@ -119,7 +119,6 @@ class AOIListChangesetsFeedView(Feed):
     """
 
     def get_object(self, request, pk):
-        self.feed_id = pk
         return AreaOfInterest.objects.get(pk=pk)
 
     def title(self, obj):
@@ -131,7 +130,16 @@ class AOIListChangesetsFeedView(Feed):
         return reverse('supervise:aoi-detail', args=[obj.id])
 
     def items(self, obj):
-        return obj.changesets()[:50]
+        items = obj.changesets()[:50]
+        # HACK: we want the <link> for each feed <item> to contain both the
+        # changeset ID and the AOI ID, but only the changeset is available in
+        # item_link() (passed in as the 'item' argument). As a workaround we'll
+        # attach the AOI ID to each changeset object. Storing the AOI ID on
+        # 'self' is tempting, but not thread-safe, since a single instance of
+        # the Feed class is used to serve all feed requests.
+        for item in items:
+            item.aoi_id = obj.id
+        return items
 
     def item_title(self, item):
         return 'Changeset {} by {}'.format(item.id, item.user)
@@ -140,7 +148,9 @@ class AOIListChangesetsFeedView(Feed):
         return item.bbox
 
     def item_link(self, item):
-        return "{}/changesets/{}/?aoi={}".format(settings.OSMCHA_URL, item.id, self.feed_id)
+        # item.aoi_id is obj.id, i.e. the UUID (pk) from the request URL,
+        # as set by us in items(self, obj) above.
+        return "{}/changesets/{}/?aoi={}".format(settings.OSMCHA_URL, item.id, item.aoi_id)
 
     def item_pubdate(self, item):
         return item.date
