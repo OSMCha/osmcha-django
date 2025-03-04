@@ -698,6 +698,7 @@ def filter_primary_tags(feature):
 class SetChangesetTagChangesAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAdminUser,)
+    throttle_classes = [] # do not rate limit the tag changes endpoint
     # The serializer is not used in this view. It's here only to avoid errors
     # in docs schema generation.
     serializer_class = ChangesetStatsSerializer
