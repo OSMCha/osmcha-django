@@ -56,18 +56,17 @@ class ChangesetSerializer(ChangesetSerializerToStaff):
     tags = SerializerMethodField()
 
     def get_reasons(self, obj):
-        return BasicSuspicionReasonsSerializer(
-            obj.reasons.filter(is_visible=True),
-            many=True,
-            read_only=True
-            ).data
+        # Using obj.reasons.filter() would generate a new query, which in the context
+        # of ChangesetListAPIView would waste the prefetching we've done and cause
+        # N+1 total queries. To avoid this, we instead filter the reasons in Python.
+        visible_reasons = [reason for reason in obj.reasons.all() if reason.is_visible]
+        return BasicSuspicionReasonsSerializer(visible_reasons, many=True, read_only=True).data
 
     def get_tags(self, obj):
-        return BasicTagSerializer(
-            obj.tags.filter(is_visible=True),
-            many=True,
-            read_only=True
-            ).data
+        # Filter the tags in Python rather than using obj.tags.filter() which would
+        # generate a new query (see above)
+        visible_tags = [tag for tag in obj.tags.all() if tag.is_visible]
+        return BasicTagSerializer(visible_tags, many=True, read_only=True).data
 
 
 class UserWhitelistSerializer(ModelSerializer):
