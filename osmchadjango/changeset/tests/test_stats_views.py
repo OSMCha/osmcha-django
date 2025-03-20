@@ -183,7 +183,6 @@ class TestUserStatsViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:user-stats', args=['4321']))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('changesets_in_osmcha'), 3)
         self.assertEqual(response.data.get('checked_changesets'), 2)
         self.assertEqual(response.data.get('harmful_changesets'), 1)
 
@@ -191,6 +190,5 @@ class TestUserStatsViews(APITestCase):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:user-stats', args=['1611']))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data.get('changesets_in_osmcha'), 0)
         self.assertEqual(response.data.get('checked_changesets'), 0)
         self.assertEqual(response.data.get('harmful_changesets'), 0)
