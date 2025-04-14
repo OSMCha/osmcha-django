@@ -13,7 +13,7 @@ social-auth-core==4.5.4
 djangorestframework==3.11.2
 djangorestframework-gis==1.0.0
 djangorestframework-csv==2.1.1
-django-filter==2.4.0
+django-filter==24.3
 django-cors-headers==3.7.0
 drf-yasg==1.21.5
 
