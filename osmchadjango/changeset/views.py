@@ -17,6 +17,7 @@ from rest_framework.generics import (
     DestroyAPIView
     )
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.renderers import JSONRenderer, BrowsableAPIRenderer
@@ -41,6 +42,12 @@ from ..roulette_integration.models import ChallengeIntegration
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 500
+
+
+class DefaultPagination(PageNumberPagination):
     page_size = 50
     page_size_query_param = 'page_size'
     max_page_size = 500
@@ -157,6 +164,7 @@ class UncheckedChangesetListAPIView(ChangesetListAPIView):
 class SuspicionReasonsListAPIView(ListAPIView):
     """List SuspicionReasons."""
     serializer_class = SuspicionReasonsSerializer
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         if self.request and self.request.user.is_staff:
@@ -214,6 +222,7 @@ class AddRemoveChangesetReasonsAPIView(ModelViewSet):
 class TagListAPIView(ListAPIView):
     """List Tags."""
     serializer_class = TagSerializer
+    pagination_class = DefaultPagination
 
     def get_queryset(self):
         if self.request and self.request.user.is_staff:
@@ -238,7 +247,7 @@ class ReviewFeature(ModelViewSet):
 
         if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check features on his own changeset.'},
+                {'detail': 'User can not check features on their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
 
@@ -270,7 +279,7 @@ class ReviewFeature(ModelViewSet):
 
             if changeset.uid in self.request.user.social_auth.values_list('uid', flat=True):
                 return Response(
-                    {'detail': 'User can not check features on his own changeset.'},
+                    {'detail': 'User can not check features on their own changeset.'},
                     status=status.HTTP_403_FORBIDDEN
                     )
 
@@ -334,7 +343,7 @@ class CheckChangeset(ModelViewSet):
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
+                {'detail': 'User can not check their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -363,7 +372,7 @@ class CheckChangeset(ModelViewSet):
                 )
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not check his own changeset.'},
+                {'detail': 'User can not check their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if request.data:
@@ -431,7 +440,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not add tags to his own changeset.'},
+                {'detail': 'User can not add tags to their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
@@ -459,7 +468,7 @@ class AddRemoveChangesetTagsAPIView(ModelViewSet):
 
         if changeset.uid in request.user.social_auth.values_list('uid', flat=True):
             return Response(
-                {'detail': 'User can not remove tags from his own changeset.'},
+                {'detail': 'User can not remove tags from their own changeset.'},
                 status=status.HTTP_403_FORBIDDEN
                 )
         if changeset.checked and (
@@ -689,6 +698,7 @@ def filter_primary_tags(feature):
 class SetChangesetTagChangesAPIView(ModelViewSet):
     queryset = Changeset.objects.all()
     permission_classes = (IsAdminUser,)
+    throttle_classes = [] # do not rate limit the tag changes endpoint
     # The serializer is not used in this view. It's here only to avoid errors
     # in docs schema generation.
     serializer_class = ChangesetStatsSerializer

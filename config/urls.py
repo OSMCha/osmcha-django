@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.views import defaults
 from django.views import static as static_views
 from django.http import JsonResponse
+from django.shortcuts import redirect
 
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -17,16 +18,6 @@ from drf_yasg import openapi
 API_BASE_URL = 'api/v1/'
 
 urlpatterns = []
-
-# If static files are not intercepted by the web-server, serve them with the dev-server:
-if settings.DEBUG is False:  # if DEBUG is True it will be served automatically
-    urlpatterns += [
-        path(
-            'static/<path>',
-            static_views.serve,
-            {'document_root': settings.STATIC_ROOT}
-            ),
-        ]
 
 api_urls = [
     path(
@@ -59,6 +50,9 @@ schema_view = get_schema_view(
     permission_classes=(permissions.AllowAny,),
 )
 
+def health_redirect(request):
+    return redirect(API_BASE_URL + 'health')
+
 def health_check(request):
     return JsonResponse({'status': 'ok'})
 
@@ -66,7 +60,8 @@ urlpatterns += [
     # Django Admin
     path('admin/', admin.site.urls),
 
-    path('health', health_check),
+    path('health', health_redirect),
+    path(API_BASE_URL + 'health', health_check),
 
     # api docs
     re_path(
@@ -85,11 +80,7 @@ urlpatterns += [
         '',
         include(api_urls)
         ),
-
-    # frontend urls
-    path('', include("osmchadjango.frontend.urls", namespace="frontend")),
-
-    ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    ]
 
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit

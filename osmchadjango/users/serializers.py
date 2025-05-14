@@ -21,14 +21,14 @@ class UserSerializer(ModelSerializer):
 
     def get_uid(self, obj):
         try:
-            return obj.social_auth.filter(provider='openstreetmap').last().uid
+            return obj.social_auth.filter(provider='openstreetmap-oauth2').last().uid
         except AttributeError:
             return None
 
     def get_avatar(self, obj):
         try:
             return obj.social_auth.filter(
-                provider='openstreetmap'
+                provider='openstreetmap-oauth2'
                 ).last().extra_data.get('avatar')
         except AttributeError:
             return None
@@ -50,9 +50,7 @@ class UserSerializer(ModelSerializer):
 
 
 class SocialSignUpSerializer(Serializer):
-    oauth_token = CharField()
-    oauth_verifier = CharField()
-    oauth_token_secret = CharField()
+    code = CharField()
 
 
 class MappingTeamSerializer(ModelSerializer):

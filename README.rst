@@ -11,8 +11,8 @@ osmcha-django
 The aim of OSMCHA is to help identify and fix harmful edits in the OpenStreetMap.
 It relies on `OSMCHA <https://github.com/willemarcel/osmcha>`_ to analyse the changesets.
 
-This project provides a Django application that get the changesets from the
-OpenStreetMap API, analyses and store it in a database and finally provides a
+This project provides a Django application that gets changesets from the
+OpenStreetMap API, analyses and stores them in a database and finally provides a
 REST API to interact with the changeset data.
 
 This repository contains the backend code. You can report errors or request new features in the
@@ -30,7 +30,7 @@ Apache/mod_wsgi setups**. It has been deployed successfully with both Gunicorn/N
 and uWSGI/Nginx.
 
 For configuration purposes, the following table maps the 'osmcha-django' environment
-variables to their Django setting:
+variables to their Django settings:
 
 
 ======================================= ================================= ========================================= ===========================================
@@ -50,16 +50,15 @@ DJANGO_DEFAULT_FROM_EMAIL               DEFAULT_FROM_EMAIL                n/a   
 DJANGO_SERVER_EMAIL                     SERVER_EMAIL                      n/a                                       "osmcha-django <noreply@example.com>"
 DJANGO_EMAIL_SUBJECT_PREFIX             EMAIL_SUBJECT_PREFIX              n/a                                       "[osmcha-django] "
 DJANGO_CHANGESETS_FILTER                CHANGESETS_FILTER                 None                                      None
-POSTGRES_USER                           POSTGRES_USER                     None                                      None
-POSTGRES_PASSWORD                       POSTGRES_PASSWORD                 None                                      None
-PGHOST                                  PGHOST                            localhost                                 localhost
-OAUTH_OSM_KEY                           SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
-OAUTH_OSM_SECRET                        SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
+PGUSER                                  DATABASES                         None                                      None
+PGPASSWORD                              DATABASES                         None                                      None
+PGHOST                                  DATABASES                         localhost                                 localhost
+OAUTH2_OSM_KEY                          SOCIAL_AUTH_OPENSTREETMAP_KEY     None                                      None
+OAUTH2_OSM_SECRET                       SOCIAL_AUTH_OPENSTREETMAP_SECRET  None                                      None
 DJANGO_ANON_USER_THROTTLE_RATE          ANON_USER_THROTTLE_RATE           None                                      30/min
 DJANGO_COMMON_USER_THROTTLE_RATE        COMMON_USER_THROTTLE_RATE         None                                      180/min
 DJANGO_NON_STAFF_USER_THROTTLE_RATE     NON_STAFF_USER_THROTTLE_RATE      3/min                                     3/min
 OAUTH_REDIRECT_URI                      OAUTH_REDIRECT_URI                http://localhost:8000/oauth-landing.html  http://localhost:8000/oauth-landing.html
-OSMCHA_FRONTEND_VERSION                 OSMCHA_FRONTEND_VERSION           oh-pages                                  oh-pages
 DJANGO_ENABLE_CHANGESET_COMMENTS        ENABLE_POST_CHANGESET_COMMENTS    False                                     False
 DJANGO_OSM_COMMENTS_API_KEY             OSM_COMMENTS_API_KEY              ''                                        ''
 ======================================= ================================= ========================================= ===========================================
@@ -91,7 +90,7 @@ We assume you have the following installed:
 * virtualenv
 * PostgreSQL
 
-Before to install the python libraries, we need to install some packages in the
+Before installing the python libraries, we need to install some packages in the
 operational system::
 
     $ sudo ./install_os_dependencies.sh install
@@ -122,7 +121,7 @@ Setting Up Your Users
 
 To create a **normal user account**, just go to Sign Up and fill out the form. Once you submit it, you'll see a "Verify Your E-mail Address" page. Go to your console to see a simulated email verification message. Copy the link into your browser. Now the user's email should be verified and ready to go.
 
-To create an **superuser account**, use this command::
+To create a **superuser account**, use this command::
 
     $ python manage.py createsuperuser
 
@@ -140,30 +139,24 @@ How to login using the OAuth api
 Frontend
 ^^^^^^^^
 
-`osmcha-frontend <https://github.com/osmcha/osmcha-frontend>`_ is a web interface
-that you can use to interact with the API. We have a django management command
-to get the last version of osmcha-frontend and serve it with the API.
-
-    $ python manage.py update_frontend
-
-After that, if you have set all the environment variables properly, you can start
-the server and have the frontend in your root url.
+`osmcha-frontend <https://github.com/osmcha/osmcha-frontend>`_ is a web
+interface that you can use to interact with the API. The web interface can be
+deployed separately and configured to talk to this Django app when making API
+requests. See the README in that repository for more details.
 
 Feature creation endpoint
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The feature creation endpoint allows only admin users to create features. You can
-use the admin site to create a token to a user.
+use the admin site to create a token for a user.
 
 Instances
 ---------
 
-We have some instances running ``osmcha-django``:
-
 The main instance is https://osmcha.org/. You can check the API
 documentation at https://osmcha.org/api-docs/.
 
-Furthermore, we have a test instance running at http://osmcha-org-staging.osmcha.org/.
+There is currently no official staging instance.
 
 Deployment
 ------------
@@ -174,7 +167,7 @@ Check the `Deploy <DEPLOY.rst>`_ file for instructions on how to deploy with Her
 Get in contact
 ---------------
 
-If you use, deploy or are interested in help to develop OSMCha, subscribe to our
+If you use, deploy or are interested in helping develop OSMCha, subscribe to our
 `mailing list <https://lists.openstreetmap.org/listinfo/osmcha-dev>`_. You can
 report errors or request new features in the
 `osmcha-frontend repository <https://github.com/osmcha/osmcha-frontend>`_.

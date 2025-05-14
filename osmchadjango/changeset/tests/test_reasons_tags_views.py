@@ -18,6 +18,7 @@ class TestSuspicionReasonsAPIListView(APITestCase):
             name='suspect word',
             is_visible=False
             )
+        SuspicionReasons.objects.create(name="another word", is_visible=True)
         self.user = User.objects.create_user(
             username='test',
             password='password',
@@ -26,14 +27,14 @@ class TestSuspicionReasonsAPIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
     def test_view(self):
         response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data.get('results')), 1)
+        self.assertEqual(len(response.data.get('results')), 2)
         reason_dict = {
             'id': self.reason_1.id,
             'name': 'possible import',
@@ -44,11 +45,16 @@ class TestSuspicionReasonsAPIListView(APITestCase):
             }
         self.assertIn(reason_dict, response.data.get('results'))
 
+    def test_pagination_params(self):
+        response = self.client.get(reverse("changeset:suspicion-reasons-list"), {"page_size": 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data.get("results")), 1)
+
     def test_admin_user_request(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data.get('results')), 2)
+        self.assertEqual(len(response.data.get('results')), 3)
 
 
 class TestTagAPIListView(APITestCase):
@@ -69,7 +75,7 @@ class TestTagAPIListView(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
 
@@ -90,6 +96,14 @@ class TestTagAPIListView(APITestCase):
             response.data.get('results')
             )
 
+    def test_pagination_params(self):
+        Tag.objects.create(
+            name="Bad change", description="A changeset that added bad data."
+        )
+        response = self.client.get(reverse("changeset:tags-list"), {"page_size": 1})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data.get("results")), 1)
+
     def test_admin_user_request(self):
         self.client.login(username=self.user.username, password='password')
         response = self.client.get(reverse('changeset:tags-list'))
@@ -107,7 +121,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -133,7 +147,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='99989',
             )
         self.client.login(username=user.username, password='password')
@@ -173,7 +187,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=self.user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='123123',
             )
         self.reason_1 = SuspicionReasons.objects.create(name='possible import')
@@ -204,7 +218,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             )
         UserSocialAuth.objects.create(
             user=user,
-            provider='openstreetmap',
+            provider='openstreetmap-oauth2',
             uid='99989',
             )
         self.client.login(username=user.username, password='password')

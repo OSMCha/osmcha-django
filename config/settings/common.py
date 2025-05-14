@@ -34,7 +34,7 @@ if READ_DOT_ENV_FILE:
 
 # APP CONFIGURATION
 # ------------------------------------------------------------------------------
-DJANGO_APPS = (
+DJANGO_APPS = [
     # Default Django apps:
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,8 +49,9 @@ DJANGO_APPS = (
 
     # Admin
     'django.contrib.admin',
-)
-THIRD_PARTY_APPS = (
+]
+
+THIRD_PARTY_APPS = [
     'rest_framework',
     'rest_framework_gis',
     'rest_framework.authtoken',
@@ -58,16 +59,15 @@ THIRD_PARTY_APPS = (
     'corsheaders',
     'django_filters',
     'drf_yasg',
-)
+]
 
 # Apps specific for this project go here.
-LOCAL_APPS = (
+LOCAL_APPS = [
     'osmchadjango.users',  # custom users app
     'osmchadjango.changeset',
     'osmchadjango.supervise',
-    'osmchadjango.frontend',
     'osmchadjango.roulette_integration',
-)
+]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -101,9 +101,9 @@ DEBUG = env.bool("DJANGO_DEBUG", False)
 # FIXTURE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#std:setting-FIXTURE_DIRS
-FIXTURE_DIRS = (
+FIXTURE_DIRS = [
     str(APPS_DIR.path('fixtures')),
-)
+]
 
 # EMAIL CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -112,9 +112,9 @@ EMAIL_BACKEND = env('DJANGO_EMAIL_BACKEND', default='django.core.mail.backends.s
 # MANAGER CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = (
+ADMINS = [
     ('name', 'email@email.com'),
-)
+]
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
@@ -122,16 +122,14 @@ MANAGERS = ADMINS
 # DATABASE CONFIGURATION
 # ------------------------------------------------------------------------------
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#databases
-# DATABASES = {
-#     'default': env.db('DATABASE_URL', default='postgres:///osmcha'),
-# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': env('POSTGRES_DATABASE', default='osmcha'),
-        'USER': env('POSTGRES_USER'),
-        'PASSWORD': env('POSTGRES_PASSWORD'),
-        'HOST': env('PGHOST', default='localhost')
+        'HOST': env('PGHOST', default='localhost'),
+        'PORT': env('PGPORT', default='5432'),
+        'USER': env('PGUSER', default='postgres'),
+        'PASSWORD': env('PGPASSWORD', default=''),
+        'NAME': env('PGDATABASE', default='postgres'),
      }
 }
 DATABASES['default']['ATOMIC_REQUESTS'] = True
@@ -207,18 +205,16 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 STATIC_ROOT = str(ROOT_DIR('staticfiles'))
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#static-url
-STATIC_URL = '/static/'
+STATIC_URL = '/static/django/'
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = (
-    str(APPS_DIR.path('static')),
-)
+STATICFILES_DIRS = []
 
 # See: https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
-STATICFILES_FINDERS = (
+STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
+]
 
 # MEDIA CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -234,9 +230,6 @@ ROOT_URLCONF = 'config.urls'
 
 # See: https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
 WSGI_APPLICATION = 'config.wsgi.application'
-
-# CELERY CONFIGURATION
-BROKER_URL = env('CELERY_BROKER_URL', default='redis://localhost:6379/0')
 
 # Some really nice defaults
 # ACCOUNT_AUTHENTICATION_METHOD = 'username'
@@ -254,17 +247,19 @@ AUTOSLUG_SLUGIFY_FUNCTION = 'slugify.slugify'
 SOCIAL_AUTH_DEFAULT_USERNAME = lambda u: slugify(u)
 SOCIAL_AUTH_ASSOCIATE_BY_EMAIL = True
 
-SOCIAL_AUTH_OPENSTREETMAP_KEY = env('OAUTH_OSM_KEY', default='')
-SOCIAL_AUTH_OPENSTREETMAP_SECRET = env('OAUTH_OSM_SECRET', default='')
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY = env("OAUTH2_OSM_KEY", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET = env("OAUTH2_OSM_SECRET", default="")
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SCOPE = ["read_prefs",  "write_api"]
+SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_USE_PKCE = False
 
 # AUTHENTICATION CONFIGURATION
 # ------------------------------------------------------------------------------
-AUTHENTICATION_BACKENDS = (
-    'social_core.backends.openstreetmap.OpenStreetMapOAuth',
-    'django.contrib.auth.backends.ModelBackend',
-)
+AUTHENTICATION_BACKENDS = [
+    "social_core.backends.openstreetmap_oauth2.OpenStreetMapOAuth2",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
-SOCIAL_AUTH_PIPELINE = (
+SOCIAL_AUTH_PIPELINE = [
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
     'social_core.pipeline.social_auth.auth_allowed',
@@ -276,7 +271,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details'
     # 'social_core.pipeline.social_auth.associate_by_email',
-)
+]
 
 # LOGGING CONFIGURATION
 # ------------------------------------------------------------------------------
@@ -353,16 +348,11 @@ SWAGGER_SETTINGS = {
     }
 
 # OSM SERVER SETTINGS
-OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openstreetmap.org')
+OSM_SERVER_URL = env('OSM_SERVER_URL', default='https://www.openhistoricalmap.org')
 OSM_PLANET_BASE_URL = env(
     'OSM_PLANET_BASE_URL',
-    default='https://planet.openstreetmap.org/replication/changesets/'
+    default='https://planet.openhistoricalmap.org/replication/changesets/'
     )
-
-# FRONTEND SETTINGS
-# -----------------------------------------------------------------------------
-# Version or any valid git branch tag of front-end code
-OSMCHA_FRONTEND_VERSION = env('OSMCHA_FRONTEND_VERSION', default='oh-pages')
 
 # MapRoulette API CONFIG
 MAP_ROULETTE_API_KEY = env('MAP_ROULETTE_API_KEY', default=None)
@@ -372,7 +362,8 @@ MAP_ROULETTE_API_URL = env('MAP_ROULETTE_API_URL', default="https://maproulette.
 # in OSM website
 OAUTH_REDIRECT_URI = env(
     'OAUTH_REDIRECT_URI',
-    default='http://localhost:8000/oauth-landing.html'
+    default='http://127.0.0.1:3000/authorized'
     )
 
 OSMCHA_URL = env('OSMCHA_URL', default='https://osmcha.org')
+OSM_API_USER_AGENT = {"User-Agent": "OSMCha osmcha-django v4"}

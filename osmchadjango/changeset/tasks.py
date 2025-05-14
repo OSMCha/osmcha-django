@@ -10,9 +10,10 @@ except ImportError:
     from yaml import Loader
 
 from django.conf import settings
+from django.db.utils import IntegrityError
 
 import requests
-from requests_oauthlib import OAuth1Session
+from requests_oauthlib import OAuth2Session
 from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
@@ -52,7 +53,11 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     cl = ChangesetList(url, geojson_filter)
     for c in cl.changesets:
         print("Creating changeset {}".format(c["id"]))
-        create_changeset(c["id"])
+        try:
+            create_changeset(c["id"])
+        except IntegrityError as e:
+            print("IntegrityError when importing {}.".format(c["id"]))
+            print(e)
 
 
 def format_url(n):
@@ -76,7 +81,10 @@ def import_replications(start, end):
 
 def get_last_replication_id():
     """Get the id of the last replication file available on Planet OSM."""
-    state = requests.get("{}state.yaml".format(settings.OSM_PLANET_BASE_URL)).content
+    state = requests.get(
+        "{}state.yaml".format(settings.OSM_PLANET_BASE_URL),
+        headers=settings.OSM_API_USER_AGENT
+    ).content
     state = yaml.load(state, Loader)
     return state.get("sequence")
 
@@ -114,12 +122,11 @@ class ChangesetCommentAPI(object):
 
     def __init__(self, user, changeset_id):
         self.changeset_id = changeset_id
-        user_token = user.social_auth.all().first().access_token
-        self.client = OAuth1Session(
-            settings.SOCIAL_AUTH_OPENSTREETMAP_KEY,
-            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_SECRET,
-            resource_owner_key=user_token["oauth_token"],
-            resource_owner_secret=user_token["oauth_token_secret"],
+        user_token = user.social_auth.all().first().extra_data
+        user_token['token_type'] = 'Bearer'
+        self.client = OAuth2Session(
+            settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            token=user_token,
         )
         self.url = "{}/api/0.6/changeset/{}/comment/".format(
             settings.OSM_SERVER_URL, changeset_id
@@ -127,8 +134,13 @@ class ChangesetCommentAPI(object):
 
     def post_comment(self, message=None):
         """Post comment to changeset."""
-        response = self.client.post(
-            self.url, data="text={}".format(quote(message)).encode("utf-8")
+        response = self.client.request(
+            "POST",
+            self.url,
+            headers=settings.OSM_API_USER_AGENT,
+            data="text={}".format(quote(message)).encode("utf-8"),
+            client_id=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_KEY,
+            client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
         )
         if response.status_code == 200:
             print(
