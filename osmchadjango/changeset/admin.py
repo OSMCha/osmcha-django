@@ -3,7 +3,7 @@ from django.contrib.gis import admin
 from .models import Changeset, SuspicionReasons, Tag
 
 
-class ChangesetAdmin(admin.OSMGeoAdmin):
+class ChangesetAdmin(admin.GISModelAdmin):
     search_fields = ['id']
     list_display = ['id', 'user', 'create', 'modify', 'delete', 'checked',
         'date', 'check_user']

@@ -82,7 +82,7 @@ class TestAddFeatureToChangesetView(APITestCase):
 
     def test_non_staff_user_can_not_add_feature(self):
         """Non staff users requests should return a 403 error."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Changeset.objects.filter(id=1234).count(), 0)
@@ -92,7 +92,7 @@ class TestAddFeatureToChangesetView(APITestCase):
         database, it must create the changeset with the basic info contained in
         the feature.
         """
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(self.url, data=self.data)
         self.assertEqual(response.status_code, 200)
         reasons = SuspicionReasons.objects.filter(
@@ -166,7 +166,7 @@ class TestAddFeatureToChangesetView(APITestCase):
         """When creating a changeset, we can inform the id of the reason instead
         of the name.
         """
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         reason = SuspicionReasons.objects.create(name='Deleted address')
         payload = {
             "osm_id": 877656232,
@@ -197,7 +197,7 @@ class TestAddFeatureToChangesetView(APITestCase):
 
     def test_add_feature_to_existent_changeset(self):
         """Adding a feature to an existent changeset."""
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(self.url, data=self.data_3)
         reasons = SuspicionReasons.objects.filter(
             name__in=self.data_3.get('reasons')
@@ -222,7 +222,7 @@ class TestAddFeatureToChangesetView(APITestCase):
         """If a feature with the same url is added twice, it should add the
         suspicion reason to the existing feature.
         """
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(self.url, data=self.data_3)
         self.assertEqual(response.status_code, 200)
 
@@ -246,7 +246,7 @@ class TestAddFeatureToChangesetView(APITestCase):
             )
 
     def test_validation(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         # validate osm_id
         payload = {
             "osm_id": "asdfs",

@@ -51,7 +51,7 @@ class TestSetChangesetTagChanges(APITestCase):
             provider='openstreetmap-oauth2',
             uid='99989',
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
 
         response = self.client.post(
             reverse('changeset:set-tag-changes', args=[self.changeset.id]),
@@ -62,7 +62,7 @@ class TestSetChangesetTagChanges(APITestCase):
         self.assertEqual(self.changeset.tag_changes, {})
 
     def test_staff_user_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             reverse('changeset:set-tag-changes', args=[self.changeset.id]),
             data=self.valid_payload
@@ -72,7 +72,7 @@ class TestSetChangesetTagChanges(APITestCase):
         self.assertEqual(self.changeset.tag_changes, self.valid_payload)
 
     def test_invalid_payloads(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             reverse('changeset:set-tag-changes', args=[self.changeset.id]),
             data=["paved", "unpaved"]

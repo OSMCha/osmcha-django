@@ -4,7 +4,6 @@ Production Configurations using AWS ELB
 - Use djangosecure
 - Use MEMCACHE on Heroku
 '''
-from __future__ import absolute_import, unicode_literals
 
 from .common import *  # noqa
 

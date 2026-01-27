@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from django.urls import reverse
 
@@ -44,7 +43,7 @@ class TestReviewFeaturesAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_remove_review_feature(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse(
                 'changeset:review-harmful-feature',
@@ -77,7 +76,7 @@ class TestReviewFeaturesAPIView(APITestCase):
 
     def test_review_feature_own_changeset(self):
         changeset = ChangesetFactory(id=457890, uid="345", user="test_2")
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse(
                 'changeset:review-harmful-feature',
@@ -93,7 +92,7 @@ class TestReviewFeaturesAPIView(APITestCase):
             user="test_2",
             reviewed_features=[{"id": "node-1234", "user": "test"}]
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse(
                 'changeset:review-harmful-feature',

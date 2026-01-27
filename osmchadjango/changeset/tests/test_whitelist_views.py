@@ -42,7 +42,7 @@ class TestWhitelistUserView(APITestCase):
 
     def test_create_and_list_whitelist(self):
         # test whitelisting a user and getting the list of whitelisted users
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'whitelist_user': 'good_user'})
         self.assertEqual(response.status_code, 201)
         response = self.client.get(self.url)
@@ -50,7 +50,7 @@ class TestWhitelistUserView(APITestCase):
         self.assertEqual(len(response.data.get('results')), 1)
         self.client.logout()
         # the same with another user
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.post(self.url, {'whitelist_user': 'the_user'})
         self.assertEqual(response.status_code, 201)
         response = self.client.get(self.url)
@@ -68,7 +68,7 @@ class TestWhitelistUserView(APITestCase):
             )
 
     def test_whitelist_same_user_two_times(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'whitelist_user': 'good_user'})
         self.assertEqual(response.status_code, 201)
         response = self.client.post(self.url, {'whitelist_user': 'good_user'})
@@ -112,7 +112,7 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_delete_userwhitelist(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('changeset:delete-whitelist-user', args=['good_user'])
             )
@@ -129,7 +129,7 @@ class TestUserWhitelistDestroyAPIView(APITestCase):
         self.assertEqual(response.status_code, 404)
         self.client.logout()
 
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.delete(
             reverse('changeset:delete-whitelist-user', args=['the_user'])
             )

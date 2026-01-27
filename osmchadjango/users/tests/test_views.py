@@ -28,7 +28,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_get_view(self):
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('id'), self.user.id)
@@ -43,7 +43,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
         self.assertFalse('password' in response.data.keys())
 
     def test_update_view(self):
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         data = {
             "username": "test_user",
             "email": "admin@a.com",
@@ -71,7 +71,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
     def test_username_serialization(self):
         self.user.name = 'test user'
         self.user.save()
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('id'), self.user.id)
@@ -83,7 +83,7 @@ class TestCurrentUserDetailAPIView(APITestCase):
             password='password',
             email='b@a.com'
             )
-        self.client.login(username='test_2', password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.get(self.url)
         self.assertEqual(response.data.get('uid'), None)
         self.assertEqual(response.data.get('avatar'), None)
@@ -144,7 +144,7 @@ class TestMappingTeamListCreateAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_create_authenticated(self):
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, data=self.payload)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(MappingTeam.objects.count(), 1)
@@ -161,7 +161,7 @@ class TestMappingTeamListCreateAPIView(APITestCase):
         self.assertEqual(response.json().get('results')[0].get('owner'), 'test')
 
     def test_filters(self):
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         self.client.post(self.url, data=self.payload)
         response = self.client.get(self.url, {'trusted': 'true'})
         self.assertEqual(response.status_code, 200)
@@ -244,7 +244,7 @@ class TestMappingTeamDetailAPIView(APITestCase):
 
     def test_with_owner(self):
         url = reverse('users:mapping-team-detail', args=[self.team.id])
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -269,7 +269,7 @@ class TestMappingTeamDetailAPIView(APITestCase):
             is_staff=True
             )
         url = reverse('users:mapping-team-detail', args=[self.team.id])
-        self.client.login(username='staff_user', password='password')
+        self.client.force_authenticate(user=user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -289,7 +289,7 @@ class TestMappingTeamDetailAPIView(APITestCase):
             email='a@a.com'
             )
         url = reverse('users:mapping-team-detail', args=[self.team.id])
-        self.client.login(username='test_2', password='password')
+        self.client.force_authenticate(user=user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
@@ -350,7 +350,7 @@ class TestMappingTeamTrustingAPIView(APITestCase):
 
     def test_with_owner(self):
         url = reverse('users:trust-mapping-team', args=[self.team.id])
-        self.client.login(username='test', password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(url)
         self.assertEqual(response.status_code, 403)
 
@@ -369,7 +369,7 @@ class TestMappingTeamTrustingAPIView(APITestCase):
             is_staff=True
             )
         url = reverse('users:trust-mapping-team', args=[self.team.id])
-        self.client.login(username='staff_user', password='password')
+        self.client.force_authenticate(user=user)
 
         response = self.client.put(url)
         self.assertEqual(response.status_code, 200)
@@ -391,7 +391,7 @@ class TestMappingTeamTrustingAPIView(APITestCase):
             password='password',
             email='a@a.com'
             )
-        self.client.login(username='test_2', password='password')
+        self.client.force_authenticate(user=user)
 
         url = reverse('users:trust-mapping-team', args=[self.team.id])
         response = self.client.put(url)
@@ -448,12 +448,12 @@ class TestUpdateDeletedUsersView(APITestCase):
         self.assertEqual(request.status_code, 401)
 
     def test_non_staff_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         request = self.client.post(self.url, data={'uids': [1769, 1234]})
         self.assertEqual(request.status_code, 403)
 
     def test_bad_request(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         request = self.client.post(self.url)
         self.assertEqual(request.status_code, 400)
         request = self.client.post(self.url, data={'uid': [1769, 1234]})
@@ -480,7 +480,7 @@ class TestUpdateDeletedUsersView(APITestCase):
             provider='openstreetmap-oauth2',
             uid='1234',
             )
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         request = self.client.post(self.url, data={'uids': [1769, 1234]})
         self.assertEqual(request.status_code, 200)
         self.assertEqual(Changeset.objects.filter(uid='1769').count(), 50)
@@ -495,7 +495,7 @@ class TestUpdateDeletedUsersView(APITestCase):
         self.assertEqual(User.objects.filter(username='user_1769').count(), 1)
 
     def test_view_as_strings(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         request = self.client.post(self.url, data={'uids': ['1769', '1234']})
         self.assertEqual(request.status_code, 200)
         self.assertEqual(Changeset.objects.filter(uid='1769').count(), 50)
