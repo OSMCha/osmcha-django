@@ -6,29 +6,47 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup PostgreSQL with Postgis
-      uses: huaxk/postgis-action@v1.0.0
-      with:
-        postgresql version: latest
-        postgresql db: osmcha
-        postgresql user: ${{ secrets.POSTGRES_USER }}
-        postgresql password: ${{ secrets.POSTGRES_PASSWORD }}
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
-    - name: Install Dependencies
+    - uses: actions/checkout@v6
+
+    - name: Create .env file for CI
       run: |
-        sudo apt-get update -qq -y
-        sudo apt-get install -y binutils libproj-dev python3-gdal libgeos-dev libyaml-dev
-        python -m pip install --upgrade pip
-        pip install -r requirements/test.txt
-    - name: Run Tests
-      run: |
-        coverage run manage.py test --settings=config.settings.tests
-      env:
-        OAUTH2_OSM_KEY: ${{ secrets.OAUTH_OSM_KEY }}
-        OAUTH2_OSM_SECRET: ${{ secrets.OAUTH_OSM_SECRET }}
-        PGUSER: ${{ secrets.POSTGRES_USER }}
-        PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        cat > .env << EOF
+        PGHOST=postgres
+        PGUSER=postgres
+        PGPASSWORD=hunter2
+        PGDATABASE=osmcha
+        POSTGRES_USER=postgres
+        POSTGRES_PASSWORD=hunter2
+        POSTGRES_DB=osmcha
+        REDIS_URL=redis://redis:6379
+        DJANGO_SETTINGS_MODULE=config.settings.tests
+        DJANGO_SECRET_KEY=ci-secret-key-shhh
+        OAUTH2_OSM_KEY=${{ secrets.OAUTH_OSM_KEY }}
+        OAUTH2_OSM_SECRET=${{ secrets.OAUTH_OSM_SECRET }}
+        EOF
+
+    - name: Build Django container image
+      run: docker compose build django
+
+    - name: Start services
+      run: docker compose up -d postgres redis
+
+    - name: Start test container
+      run: docker compose run -d --name testrunner --volume /app django tail -f /dev/null
+
+    - name: Install test dependencies
+      run: docker exec --user root testrunner pip install -r /requirements/test.txt
+
+    - name: Run migrations
+      run: docker exec testrunner python manage.py migrate
+
+    - name: Run tests
+      run: docker exec testrunner coverage run manage.py test --settings=config.settings.tests
+
+    - name: Stop test container
+      if: always()
+      run: docker stop testrunner && docker rm testrunner
+
+    - name: Stop services
+      if: always()
+      run: docker compose down -v
