@@ -20,7 +20,7 @@ This repository contains the backend code. You can report errors or request new 
 
 License: BSD 2-Clause
 
-OSMCha is an `OpenStreetMap US <https://www.openstreetmap.us/>` charter project. You can support this project by `making a donation <https://openstreetmap.app.neoncrm.com/forms/osmcha>`.
+OSMCha is an `OpenStreetMap US <https://www.openstreetmap.us/>` project. You can support this project by `making a donation <https://openstreetmap.app.neoncrm.com/forms/osmcha>`.
 
 Settings
 ------------
