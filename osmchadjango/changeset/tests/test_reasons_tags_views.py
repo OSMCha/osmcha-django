@@ -51,7 +51,7 @@ class TestSuspicionReasonsAPIListView(APITestCase):
         self.assertEqual(len(response.data.get("results")), 1)
 
     def test_admin_user_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:suspicion-reasons-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results')), 3)
@@ -105,7 +105,7 @@ class TestTagAPIListView(APITestCase):
         self.assertEqual(len(response.data.get("results")), 1)
 
     def test_admin_user_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:tags-list'))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results')), 2)
@@ -150,7 +150,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
             provider='openstreetmap-oauth2',
             uid='99989',
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
             data={"changesets": [c.id for c in self.changesets]}
@@ -158,7 +158,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_staff_user_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         # test add reason_1 to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
@@ -168,7 +168,7 @@ class TestBatchAddSuspicionReasons(APITestCase):
         self.assertEqual(self.reason_1.changesets.count(), 4)
 
     def test_bad_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         # test add reason_1 to changesets
         response = self.client.post(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
@@ -221,7 +221,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
             provider='openstreetmap-oauth2',
             uid='99989',
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
 
         # test remove from the changesets
         response = self.client.delete(
@@ -232,7 +232,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
         self.assertEqual(self.reason_1.changesets.count(), 2)
 
     def test_staff_user_request_remove_from_changeset(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         # test remove reason from changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),
@@ -242,7 +242,7 @@ class TestBatchRemoveSuspicionReasons(APITestCase):
         self.assertEqual(self.reason_1.changesets.count(), 0)
 
     def test_bad_request(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         # test remove from the changesets
         response = self.client.delete(
             reverse('changeset:changeset-reasons', args=[self.reason_1.id]),

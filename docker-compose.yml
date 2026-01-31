@@ -2,10 +2,9 @@ version: '2'
 
 services:
   postgres:
-    build: ./compose/postgres
+    image: postgis/postgis:16-3.4
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - postgres_backup:/backups
     env_file: .env
 
   django:
@@ -16,6 +15,7 @@ services:
       - redis
     volumes:
       # copy static files into a shared volume so the frontend can serve them
+      - .:/app
       - staticfiles:/app/staticfiles
     env_file: .env
 
@@ -37,4 +37,3 @@ services:
 volumes:
   staticfiles:
   postgres_data:
-  postgres_backup:

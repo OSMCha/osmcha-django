@@ -40,7 +40,7 @@ class TestChangesetListView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_authenticated_changeset_list_response(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertIn('user', response.data['features'][0]['properties'].keys())
         self.assertIn('uid', response.data['features'][0]['properties'].keys())
@@ -50,7 +50,7 @@ class TestChangesetListView(APITestCase):
             )
 
     def test_pagination(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url, {'page': 2})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 2)
@@ -63,7 +63,7 @@ class TestChangesetListView(APITestCase):
     def test_user_filters(self):
         """Test filters in the changeset list view.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
 
         response = self.client.get(self.url, {'users': 'another_user'})
         self.assertEqual(response.status_code, 200)
@@ -90,7 +90,7 @@ class TestChangesetListView(APITestCase):
         ChangesetFactory(
             bbox=Polygon([(0, 0), (0, 3), (3, 3), (3, 0), (0, 0)])
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url, {'in_bbox': '0,0,1,1', 'area_lt': 10})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 1)
@@ -112,7 +112,7 @@ class TestChangesetListView(APITestCase):
 
         # As all changesets in the DB are from a whitelisted user,
         # the features count will be zero
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url, {'hide_whitelist': 'true'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 0)
@@ -125,7 +125,7 @@ class TestChangesetListView(APITestCase):
             username='test',
             added_by=self.user
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url, {'blacklist': 'false'})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['count'], 53)
@@ -168,7 +168,7 @@ class TestChangesetListView(APITestCase):
                 "dol": ""
                 }])
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         # mapping_teams tests
         response = self.client.get(self.url, {'mapping_teams': self.team.name})
         self.assertEqual(response.status_code, 200)
@@ -226,7 +226,7 @@ class TestChangesetListView(APITestCase):
     def test_metadata_filters(self):
         """Test filters by metadata field in the changeset list view.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
 
         response = self.client.get(self.url, {'metadata': 'changesets_count__min=100'})
         self.assertEqual(response.status_code, 200)
@@ -241,7 +241,7 @@ class TestChangesetListView(APITestCase):
         ChangesetFactory(
             tag_changes={"oneway": ["yes", "no"], "lanes": ["2", "4", "1"]}
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
 
         response = self.client.get(self.url, {'tag_changes': 'oneway=*'})
         self.assertEqual(response.status_code, 200)
@@ -268,7 +268,7 @@ class TestChangesetListView(APITestCase):
     def test_comments_count_filters(self):
         """Test filters by comments_count field in the changeset list view.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
 
         response = self.client.get(self.url, {'comments_count__gte': 2})
         self.assertEqual(response.status_code, 200)
@@ -288,7 +288,7 @@ class TestChangesetListView(APITestCase):
             PaginatedCSVRenderer,
             ChangesetListAPIView().renderer_classes
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url, {'format': 'csv', 'page_size': 60})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['features']), 52)
@@ -316,7 +316,7 @@ class TestChangesetFilteredViews(APITestCase):
             provider='openstreetmap-oauth2',
             uid='123123',
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
 
     def test_suspect_changesets_view(self):
         url = reverse('changeset:suspect-list')
@@ -372,7 +372,7 @@ class TestChangesetListViewOrdering(APITestCase):
             provider='openstreetmap-oauth2',
             uid='123123',
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         HarmfulChangesetFactory.create_batch(
             24, form_create=20, modify=2, delete=40, comments_count=3
             )
@@ -512,7 +512,7 @@ class TestChangesetDetailView(APITestCase):
             provider='openstreetmap-oauth2',
             uid='123123',
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('changeset:detail', args=[self.changeset.id])
             )
@@ -538,7 +538,7 @@ class TestChangesetDetailView(APITestCase):
             provider='openstreetmap-oauth2',
             uid='123123',
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('changeset:detail', args=[self.changeset.id])
             )
@@ -596,7 +596,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.tag_2.changesets.add(self.changeset)
 
     def test_detail_view_by_normal_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data['properties']['reasons']), 2)
@@ -615,7 +615,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
             )
 
     def test_detail_view_by_admin(self):
-        self.client.login(username=self.admin_user.username, password='password')
+        self.client.force_authenticate(user=self.admin_user)
         response = self.client.get(reverse('changeset:detail', args=[self.changeset.id]))
         self.assertEqual(response.status_code, 200)
         self.assertIn(
@@ -673,7 +673,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertEqual(len(response.data['properties']['features']), 0)
 
     def test_list_view_by_normal_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
@@ -688,7 +688,7 @@ class TestReasonsAndTagFieldsInChangesetViews(APITestCase):
         self.assertIn({'id': self.tag_1.id, 'name': 'Vandalism'}, tags)
 
     def test_list_view_by_admin(self):
-        self.client.login(username=self.admin_user.username, password='password')
+        self.client.force_authenticate(user=self.admin_user)
         response = self.client.get(reverse('changeset:list'))
         self.assertEqual(response.status_code, 200)
         reasons = response.data['features'][0]['properties']['reasons']
@@ -760,7 +760,7 @@ class TestCheckChangesetViews(APITestCase):
 
     def test_set_harmful_changeset_not_allowed(self):
         """User can't mark their own changeset as harmful."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset])
             )
@@ -773,7 +773,7 @@ class TestCheckChangesetViews(APITestCase):
 
     def test_set_good_changeset_not_allowed(self):
         """User can't mark their own changeset as good."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-good', args=[self.changeset])
             )
@@ -786,7 +786,7 @@ class TestCheckChangesetViews(APITestCase):
 
     def test_set_harmful_changeset_get(self):
         """GET is not an allowed method in the set_harmful URL."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('changeset:set-harmful', args=[self.changeset_2]),
             )
@@ -802,7 +802,7 @@ class TestCheckChangesetViews(APITestCase):
         """User can set a changeset of another user as harmful with a PUT request.
         We can also set the tags of the changeset sending it as data.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset_2.pk]),
@@ -828,7 +828,7 @@ class TestCheckChangesetViews(APITestCase):
     def test_set_harmful_changeset_with_invalid_tag_id(self):
         """Return a 400 error if a user try to add a invalid tag id to a changeset.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         data = {'tags': [self.tag_1.id, 87765, 898986]}
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset_2.pk]),
@@ -847,7 +847,7 @@ class TestCheckChangesetViews(APITestCase):
         """Test marking a changeset as harmful without sending data (so the
         changeset will not receive tags).
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-harmful', args=[self.changeset_2.pk])
             )
@@ -862,7 +862,7 @@ class TestCheckChangesetViews(APITestCase):
 
     def test_set_good_changeset_get(self):
         """GET is not an allowed method in the set_good URL."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('changeset:set-good', args=[self.changeset_2]),
             )
@@ -878,7 +878,7 @@ class TestCheckChangesetViews(APITestCase):
         """User can set a changeset of another user as good with a PUT request.
         We can also set the tags of the changeset sending it as data.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         data = {'tags': [self.tag_1.id, self.tag_2.id]}
         response = self.client.put(
             reverse('changeset:set-good', args=[self.changeset_2]),
@@ -903,7 +903,7 @@ class TestCheckChangesetViews(APITestCase):
     def test_set_good_changeset_with_invalid_tag_id(self):
         """Return a 400 error if a user try to add a invalid tag id to a changeset.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         data = {'tags': [self.tag_1.id, 87765, 898986]}
         response = self.client.put(
             reverse('changeset:set-good', args=[self.changeset_2.pk]),
@@ -922,7 +922,7 @@ class TestCheckChangesetViews(APITestCase):
         """Test marking a changeset as good without sending data (so the
         changeset will not receive tags).
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-good', args=[self.changeset_2]),
             )
@@ -934,7 +934,7 @@ class TestCheckChangesetViews(APITestCase):
         self.assertIsNotNone(self.changeset_2.check_date)
 
     def test_404(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-good', args=[4988787832]),
             )
@@ -950,7 +950,7 @@ class TestCheckChangesetViews(APITestCase):
         will not change anything on it.
         """
         changeset = HarmfulChangesetFactory(uid=333)
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:set-good', args=[changeset.pk]),
             )
@@ -1009,7 +1009,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertIn(self.tag, self.harmful_changeset.tags.all())
 
     def test_uncheck_harmful_changeset(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.harmful_changeset.pk]),
             )
@@ -1022,7 +1022,7 @@ class TestUncheckChangesetView(APITestCase):
         self.assertEqual(self.harmful_changeset.tags.count(), 1)
 
     def test_uncheck_good_changeset(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.good_changeset.pk]),
             )
@@ -1036,7 +1036,7 @@ class TestUncheckChangesetView(APITestCase):
 
     def test_common_user_uncheck_permission(self):
         """Common user can only uncheck changesets that he checked."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.harmful_changeset_2.pk]),
             )
@@ -1050,7 +1050,7 @@ class TestUncheckChangesetView(APITestCase):
 
     def test_try_to_uncheck_unchecked_changeset(self):
         """It's not possible to uncheck an unchecked changeset!"""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.suspect_changeset.pk]),
             )
@@ -1069,7 +1069,7 @@ class TestUncheckChangesetView(APITestCase):
             provider='openstreetmap-oauth2',
             uid='87873',
             )
-        self.client.login(username=staff_user.username, password='password')
+        self.client.force_authenticate(user=staff_user)
         response = self.client.put(
             reverse('changeset:uncheck', args=[self.good_changeset.pk]),
             )
@@ -1121,7 +1121,7 @@ class TestAddTagToChangeset(APITestCase):
 
     def test_can_not_add_invalid_tag_id(self):
         """When the tag id does not exist, it will return a 404 response."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.changeset.id, 44534])
             )
@@ -1132,7 +1132,7 @@ class TestAddTagToChangeset(APITestCase):
         """A user that is not the creator of the changeset can add tags to an
         unchecked changeset.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
@@ -1149,7 +1149,7 @@ class TestAddTagToChangeset(APITestCase):
 
     def test_add_tag_by_changeset_owner(self):
         """The user that created the changeset can not add tags to it."""
-        self.client.login(username=self.changeset_user.username, password='password')
+        self.client.force_authenticate(user=self.changeset_user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
@@ -1158,7 +1158,7 @@ class TestAddTagToChangeset(APITestCase):
 
     def test_add_tag_to_checked_changeset(self):
         """The user that checked the changeset can add tags to it."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1180,7 +1180,7 @@ class TestAddTagToChangeset(APITestCase):
             provider='openstreetmap-oauth2',
             uid='28763',
             )
-        self.client.login(username=other_user.username, password='password')
+        self.client.force_authenticate(user=other_user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1200,7 +1200,7 @@ class TestAddTagToChangeset(APITestCase):
             provider='openstreetmap-oauth2',
             uid='28763',
             )
-        self.client.login(username=staff_user.username, password='password')
+        self.client.force_authenticate(user=staff_user)
         response = self.client.post(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1246,7 +1246,7 @@ class TestRemoveTagToChangeset(APITestCase):
 
     def test_can_not_remove_invalid_tag_id(self):
         """When the tag id does not exist it will return a 404 response."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.changeset.id, 44534])
             )
@@ -1256,7 +1256,7 @@ class TestRemoveTagToChangeset(APITestCase):
         """A user that is not the creator of the changeset can remote tags to an
         unchecked changeset.
         """
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
@@ -1265,7 +1265,7 @@ class TestRemoveTagToChangeset(APITestCase):
 
     def test_remove_tag_by_changeset_owner(self):
         """The user that created the changeset can not remove its tags."""
-        self.client.login(username=self.changeset_user.username, password='password')
+        self.client.force_authenticate(user=self.changeset_user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.changeset.id, self.tag.id])
             )
@@ -1274,7 +1274,7 @@ class TestRemoveTagToChangeset(APITestCase):
 
     def test_remove_tag_of_checked_changeset(self):
         """The user that checked the changeset can remove its tags."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1295,7 +1295,7 @@ class TestRemoveTagToChangeset(APITestCase):
             provider='openstreetmap-oauth2',
             uid='28763',
             )
-        self.client.login(username=other_user.username, password='password')
+        self.client.force_authenticate(user=other_user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1315,7 +1315,7 @@ class TestRemoveTagToChangeset(APITestCase):
             provider='openstreetmap-oauth2',
             uid='28763',
             )
-        self.client.login(username=staff_user.username, password='password')
+        self.client.force_authenticate(user=staff_user)
         response = self.client.delete(
             reverse('changeset:tags', args=[self.checked_changeset.id, self.tag.id])
             )
@@ -1341,7 +1341,7 @@ class TestThrottling(APITestCase):
 
     def test_set_harmful_throttling(self):
         """User can only check 3 changesets each minute."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         for changeset in self.changesets:
             response = self.client.put(
                 reverse('changeset:set-harmful', args=[changeset.pk]),
@@ -1350,7 +1350,7 @@ class TestThrottling(APITestCase):
         self.assertEqual(Changeset.objects.filter(checked=True).count(), 3)
 
     def test_set_good_throttling(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         for changeset in self.changesets:
             response = self.client.put(
                 reverse('changeset:set-good', args=[changeset.pk]),
@@ -1360,7 +1360,7 @@ class TestThrottling(APITestCase):
 
     def test_mixed_throttling(self):
         """Test if both set_harmful and set_good views are throttled together."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         three_changesets = self.changesets[:3]
         for changeset in three_changesets:
             response = self.client.put(
@@ -1387,7 +1387,7 @@ class TestThrottling(APITestCase):
             provider='openstreetmap-oauth2',
             uid='8987',
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
         for changeset in self.changesets:
             response = self.client.put(
                 reverse('changeset:set-good', args=[changeset.pk]),
@@ -1408,7 +1408,7 @@ class TestThrottling(APITestCase):
             provider='openstreetmap-oauth2',
             uid='8987',
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
         for changeset in self.changesets:
             response = self.client.put(
                 reverse('changeset:set-harmful', args=[changeset.pk]),

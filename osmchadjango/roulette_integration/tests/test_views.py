@@ -39,7 +39,7 @@ class TestChallengeIntegrationListCreateView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_list_challenges_non_staff_user(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 403)
 
@@ -49,13 +49,13 @@ class TestChallengeIntegrationListCreateView(APITestCase):
         self.assertEqual(ChallengeIntegration.objects.count(), 0)
 
     def test_create_challenge_non_staff_user(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.post(self.url, {'challenge_id': 1234, 'reasons': [self.reason_1.id]})
         self.assertEqual(response.status_code, 403)
         self.assertEqual(ChallengeIntegration.objects.count(), 0)
 
     def test_create_and_list_challenges_staf_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'challenge_id': 1234, 'reasons': [self.reason_1.id]})
         self.assertEqual(response.status_code, 201)
         response = self.client.get(self.url)
@@ -100,7 +100,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_list_challenges_non_staff_user(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.get(
             reverse('challenge:detail', args=[self.integration.pk])
             )
@@ -114,7 +114,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
         self.assertEqual(ChallengeIntegration.objects.count(), 1)
 
     def test_delete_challenge_non_staff_user(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.delete(
             reverse('challenge:detail', args=[self.integration.pk])
             )
@@ -122,7 +122,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
         self.assertEqual(ChallengeIntegration.objects.count(), 1)
 
     def test_delete_challenge_staff_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('challenge:detail', args=[self.integration.pk])
             )
@@ -147,7 +147,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
             )
 
     def test_update_challenge_non_staff_user(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.put(
             reverse('challenge:detail', args=[self.integration.pk]),
             {'challenge_id': 12345, 'reasons': [self.reason_1.id]}
@@ -169,7 +169,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
             )
 
     def test_update_challenge_staff_user_put_method(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('challenge:detail', args=[self.integration.pk]),
             {'challenge_id': 12345, 'reasons': [self.reason_1.id]}
@@ -185,7 +185,7 @@ class TestChallengeIntegrationDetailView(APITestCase):
             )
 
     def test_update_challenge_staff_user_patch_method(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.patch(
             reverse('challenge:detail', args=[self.integration.pk]),
             {'challenge_id': 123456, 'reasons': [self.reason_1.id, self.reason_2.id]}

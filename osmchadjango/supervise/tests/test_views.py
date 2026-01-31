@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 import xml.etree.ElementTree as ET
 
 from django.urls import reverse
@@ -75,13 +74,13 @@ class TestAoIListView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_list_view(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results').get('features')), 2)
 
     def test_ordering(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         # test default ordering is -date
@@ -103,7 +102,7 @@ class TestAoIListView(APITestCase):
             )
 
     def test_list_view_with_user_2(self):
-        self.client.login(username=self.user_2.username, password='password')
+        self.client.force_authenticate(user=self.user_2)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results').get('features')), 1)
@@ -159,7 +158,7 @@ class TestAoICreateView(APITestCase):
         self.assertEqual(AreaOfInterest.objects.count(), 0)
 
     def test_create_AOI(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
@@ -174,7 +173,7 @@ class TestAoICreateView(APITestCase):
             )
 
     def test_create_without_geometry_and_bbox(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, self.without_geo_aoi)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
@@ -183,7 +182,7 @@ class TestAoICreateView(APITestCase):
         self.assertEqual(aoi.filters, self.without_geo_aoi.get('filters'))
 
     def test_create_with_bbox(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, self.data_bbox)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(AreaOfInterest.objects.count(), 1)
@@ -198,7 +197,7 @@ class TestAoICreateView(APITestCase):
             )
 
     def test_validation(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'name': 'Empty AoI'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(AreaOfInterest.objects.count(), 0)
@@ -220,7 +219,7 @@ class TestAoICreateView(APITestCase):
             provider='openstreetmap-oauth2',
             uid='4444',
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         aoi = AreaOfInterest.objects.get(name='Golfo da Guiné')
@@ -277,7 +276,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_retrieve_detail_authenticated(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -347,7 +346,7 @@ class TestAoIDetailAPIViews(APITestCase):
             email='c@a.com',
             password='password'
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
@@ -371,7 +370,7 @@ class TestAoIDetailAPIViews(APITestCase):
             email='c@a.com',
             password='password'
             )
-        self.client.login(username=user.username, password='password')
+        self.client.force_authenticate(user=user)
         response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -380,7 +379,7 @@ class TestAoIDetailAPIViews(APITestCase):
 
     def test_update_with_aoi_owner_user(self):
         """User can update his/her AoI"""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
@@ -404,7 +403,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 },
             'name': 'Golfo da Guiné'
             }
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             data
@@ -429,7 +428,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 },
             'name': 'Golfo da Guiné'
             }
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             data
@@ -449,7 +448,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 },
             'name': 'Golfo da Guiné'
             }
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.patch(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             data
@@ -468,7 +467,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 'in_bbox': '4,0,5,1'
                 }
             }
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.patch(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             data
@@ -492,7 +491,7 @@ class TestAoIDetailAPIViews(APITestCase):
                 },
             'name': 'Golfo da Guiné'
             }
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             data
@@ -517,7 +516,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertIsInstance(self.aoi.geometry, LineString)
 
     def test_validation(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.put(
             reverse('supervise:aoi-detail', args=[self.aoi.pk]),
             self.data
@@ -535,7 +534,7 @@ class TestAoIDetailAPIViews(APITestCase):
         self.assertIsNotNone(self.aoi.geometry)
 
     def test_delete_with_aoi_owner_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(
             reverse('supervise:aoi-detail', args=[self.aoi.pk])
             )
@@ -583,7 +582,7 @@ class TestAoIChangesetListView(APITestCase):
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
             )
@@ -634,7 +633,7 @@ class TestAoIChangesetListView(APITestCase):
             bbox=Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0))),
             )
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi_with_in_bbox.pk])
             )
@@ -668,7 +667,7 @@ class TestAoIChangesetListView(APITestCase):
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -679,7 +678,7 @@ class TestAoIChangesetListView(APITestCase):
 
         # test with a second user to assure the results of the hide_whitelist filter
         # are the same, it doesn't matter the user that is accessing
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -713,7 +712,7 @@ class TestAoIChangesetListView(APITestCase):
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -724,7 +723,7 @@ class TestAoIChangesetListView(APITestCase):
 
         # test with a second user to assure the results of the hide_whitelist=False
         # filter are the same, it doesn't matter the user that is accessing
-        self.client.login(username=user_2.username, password='password')
+        self.client.force_authenticate(user=user_2)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -769,7 +768,7 @@ class TestAoIChangesetListView(APITestCase):
         ChangesetFactory()
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -780,7 +779,7 @@ class TestAoIChangesetListView(APITestCase):
 
         # test with a second user to assure the results of the blacklist filter
         # are the same, it doesn't matter the user that is accessing
-        self.client.login(username=user_2.username, password='password')
+        self.client.force_authenticate(user=user_2)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -826,7 +825,7 @@ class TestAoIChangesetListView(APITestCase):
         ChangesetFactory(user='other_user', uid='333')
         ChangesetFactory(user='another_user', uid='4333')
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -835,7 +834,7 @@ class TestAoIChangesetListView(APITestCase):
         self.assertEqual(len(response.data['features']), 3)
         self.client.logout()
 
-        self.client.login(username=user_2.username, password='password')
+        self.client.force_authenticate(user=user_2)
         response = self.client.get(
             reverse('supervise:aoi-list-changesets', args=[aoi.pk])
             )
@@ -1049,7 +1048,7 @@ class TestAoIStatsAPIViews(APITestCase):
         self.assertIn(vandalism, response.data.get('tags'))
 
     def test_stats_with_staff_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('checked_changesets'), 51)
@@ -1136,13 +1135,13 @@ class TestBlacklistedUserListAPIView(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_list_view_normal_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results')), 1)
 
     def test_list_view_staff_user(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data.get('results')), 2)
@@ -1180,13 +1179,13 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
         self.assertEqual(BlacklistedUser.objects.count(), 0)
 
     def test_create_view_normal_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
 
     def test_create_view_staff_user(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.post(self.url, self.data)
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
@@ -1235,7 +1234,7 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_normal_user_get(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
@@ -1249,14 +1248,14 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             uid='4999',
             added_by=self.staff_user,
             )
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(
             reverse('supervise:blacklist-detail', args=[4999])
             )
         self.assertEqual(response.status_code, 404)
 
     def test_staff_user_get(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
@@ -1270,13 +1269,13 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         self.assertEqual(BlacklistedUser.objects.count(), 2)
 
     def test_normal_user_delete(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 204)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
 
     def test_staff_user_delete(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, 204)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
@@ -1287,14 +1286,14 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         self.assertEqual(self.blacklisted.username, 'Bad User')
 
     def test_normal_user_patch(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.patch(self.url, {'username': 'other_user'})
         self.assertEqual(response.status_code, 200)
         self.blacklisted_2.refresh_from_db()
         self.assertEqual(self.blacklisted_2.username, 'other_user')
 
     def test_staff_user_patch(self):
-        self.client.login(username=self.staff_user.username, password='password')
+        self.client.force_authenticate(user=self.staff_user)
         response = self.client.patch(self.url, {'username': 'other_user'})
         self.assertEqual(response.status_code, 200)
         self.blacklisted.refresh_from_db()
