@@ -1,6 +1,6 @@
 # Django 5.2 LTS
 
-django==5.2.8
+django==5.2.11
 
 # Configuration
 django-environ==0.11.2
