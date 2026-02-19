@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from urllib.parse import quote
 
 from django.urls import reverse
@@ -56,7 +55,7 @@ class TestCommentChangesetAPIView(APITestCase):
             status_code = 200
         mock_oauth_client.return_value = MockResponse
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         comment = {'comment': 'Hello! I found an error in your edit'}
         message = """Hello! I found an error in your edit
             ---
@@ -88,7 +87,7 @@ class TestCommentChangesetAPIView(APITestCase):
             status_code = 200
         mock_oauth_client.return_value = MockResponse
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         comment = {'comment': 'Hello! Awesome edit! & :~) óã'}
         message = """Hello! Awesome edit! & :~) óã
             ---
@@ -123,7 +122,7 @@ class TestCommentChangesetAPIView(APITestCase):
             status_code = 200
         mock_oauth_client.return_value = MockResponse
 
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         comment = {'comment': 'Hello! Do you know this area?'}
         message = """Hello! Do you know this area?
             ---\n            \n            Published using OSMCha: https://osmcha.org/changesets/31982802
@@ -146,7 +145,7 @@ class TestCommentChangesetAPIView(APITestCase):
         )
 
     def test_comment_good_changeset_wrong_data(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         comment = {'message': 'Hello! Awesome edit'}
         response = self.client.post(
             reverse('changeset:comment', args=[self.good_changeset.id]),
@@ -157,7 +156,7 @@ class TestCommentChangesetAPIView(APITestCase):
 
     def test_comment_changeset_doesnt_exist(self):
         """Request should fail if the changeset id is not on our database."""
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         comment = {'message': 'Hello! Awesome edit'}
         response = self.client.post(
             reverse('changeset:comment', args=[2323]),

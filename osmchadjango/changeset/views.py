@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
 from django.utils import timezone
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.utils.translation import gettext, gettext_lazy as _
 from django.db.utils import IntegrityError
 from django.db import connection
 from django.conf import settings
@@ -84,7 +83,7 @@ class ChangesetListAPIView(ListAPIView):
         django_filters.rest_framework.DjangoFilterBackend,
         )
     bbox_filter_include_overlapping = True
-    filter_class = ChangesetFilter
+    filterset_class = ChangesetFilter
 
     def get_serializer_class(self):
         if self.request.user.is_staff:
@@ -542,7 +541,7 @@ class ChangesetStatsAPIView(ListAPIView):
         django_filters.rest_framework.DjangoFilterBackend,
         )
     bbox_filter_include_overlapping = True
-    filter_class = ChangesetFilter
+    filterset_class = ChangesetFilter
 
 
 @api_view(['GET'])

@@ -137,7 +137,7 @@ class TestStatsView(APITestCase):
         self.assertIn(minor_errors, results.get('tags'))
 
     def test_stats_view_with_staff_user(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         results = response.data.get('results')
@@ -180,7 +180,7 @@ class TestUserStatsViews(APITestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_user_one_stats(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:user-stats', args=['4321']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('changesets_in_osmcha'), 3)
@@ -188,7 +188,7 @@ class TestUserStatsViews(APITestCase):
         self.assertEqual(response.data.get('harmful_changesets'), 1)
 
     def test_user_without_changesets(self):
-        self.client.login(username=self.user.username, password='password')
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(reverse('changeset:user-stats', args=['1611']))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('changesets_in_osmcha'), 0)

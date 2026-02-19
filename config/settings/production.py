@@ -4,7 +4,6 @@ Production Configurations
 - Use djangosecure
 - Use MEMCACHE on Heroku
 '''
-from __future__ import absolute_import, unicode_literals
 
 from .common import *  # noqa
 
@@ -32,7 +31,6 @@ SECURE_FRAME_DENY = env.bool(
     "DJANGO_SECURE_FRAME_DENY", default=True)
 SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
     "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True)
-SECURE_BROWSER_XSS_FILTER = True
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
 SECURE_SSL_REDIRECT = env.bool('DJANGO_SECURE_SSL_REDIRECT', default=True)

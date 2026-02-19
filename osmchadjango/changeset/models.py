@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.fields import JSONField
-from django.utils.translation import ugettext, ugettext_lazy as _
+from django.db.models import JSONField
+from django.utils.translation import gettext, gettext_lazy as _
 from django.conf import settings
 
 from ..users.models import User
@@ -79,7 +79,7 @@ class Changeset(models.Model):
     bbox = models.PolygonField(null=True)
     area = models.FloatField(blank=True, null=True)
     is_suspect = models.BooleanField()
-    harmful = models.NullBooleanField()
+    harmful = models.BooleanField(null=True, blank=True)
     tags = models.ManyToManyField(Tag, related_name='changesets')
     checked = models.BooleanField(default=False)
     check_user = models.ForeignKey(

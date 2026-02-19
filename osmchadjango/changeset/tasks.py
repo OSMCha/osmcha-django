@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function, unicode_literals
 from os.path import join
 from urllib.parse import quote
 import yaml

@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
+from django.db.models import JSONField
 from django.http.request import HttpRequest
 
 from osmchadjango.changeset.filters import ChangesetFilter

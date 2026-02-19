@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
 
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -144,7 +143,7 @@ class MappingTeamListCreateAPIView(ListCreateAPIView):
     serializer_class = MappingTeamSerializer
     permission_classes = (IsAuthenticated,)
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = MappingTeamFilter
+    filterset_class = MappingTeamFilter
 
     def perform_create(self, serializer):
         serializer.save(
