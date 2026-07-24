@@ -62,3 +62,19 @@ class BlacklistSerializer(ModelSerializer):
     class Meta:
         model = BlacklistedUser
         fields = ('uid', 'username', 'date', 'added_by')
+
+    def validate_uid(self, value):
+        # make sure this uid isn't already on the current user's watchlist.
+        # the database has a unique constriant to enforce this, but checking
+        # pre-emptively lets us return a useful error message instead of a
+        # generic 500 bad request.
+        request = self.context.get('request')
+        if request is not None:
+            existing = BlacklistedUser.objects.filter(
+                added_by=request.user, uid=value
+                )
+            if self.instance is not None:
+                existing = existing.exclude(pk=self.instance.pk)
+            if existing.exists():
+                raise ValidationError('You have already added this user to your watchlist.')
+        return value

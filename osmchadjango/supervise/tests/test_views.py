@@ -1190,6 +1190,24 @@ class TestBlacklistedUserCreateAPIView(APITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(BlacklistedUser.objects.count(), 1)
 
+    def test_create_duplicate_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 201)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('uid', response.data)
+        self.assertEqual(BlacklistedUser.objects.count(), 1)
+
+    def test_same_uid_different_users(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 201)
+        self.client.force_authenticate(user=self.staff_user)
+        response = self.client.post(self.url, self.data)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(BlacklistedUser.objects.count(), 2)
+
 
 class TestBlacklistedUserDetailAPIViews(APITestCase):
     def setUp(self):
