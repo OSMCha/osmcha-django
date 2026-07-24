@@ -234,10 +234,13 @@ class BlacklistedUserListCreateAPIView(ListCreateAPIView):
     queryset = BlacklistedUser.objects.all()
     serializer_class = BlacklistSerializer
     permission_classes = (IsAuthenticated,)
+    pagination_class = None
 
     def get_queryset(self):
         if self.request:
-            return BlacklistedUser.objects.filter(added_by=self.request.user)
+            return BlacklistedUser.objects.filter(
+                added_by=self.request.user
+                ).order_by('-date')
         else:
             BlacklistedUser.objects.none()
 

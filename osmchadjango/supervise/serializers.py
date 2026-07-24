@@ -3,8 +3,7 @@ from django.urls import reverse
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework_gis.fields import GeometryField
 from rest_framework.fields import (
-    SerializerMethodField, HiddenField, CurrentUserDefault, DateTimeField,
-    ReadOnlyField
+    SerializerMethodField, HiddenField, CurrentUserDefault, DateTimeField
     )
 from rest_framework.validators import ValidationError, UniqueTogetherValidator
 from rest_framework.serializers import ModelSerializer
@@ -57,11 +56,10 @@ class AreaOfInterestAnonymousSerializer(AreaOfInterestSerializer):
 
 class BlacklistSerializer(ModelSerializer):
     date = DateTimeField(read_only=True)
-    added_by = ReadOnlyField(source='added_by.username')
 
     class Meta:
         model = BlacklistedUser
-        fields = ('uid', 'username', 'date', 'added_by')
+        fields = ('uid', 'username', 'date')
 
     def validate_uid(self, value):
         # make sure this uid isn't already on the current user's watchlist.
