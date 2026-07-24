@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
+from datetime import datetime, timezone
 
 from django.urls import reverse
 from django.conf import settings
@@ -1138,13 +1139,14 @@ class TestBlacklistedUserListAPIView(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data.get('results')), 1)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(set(response.data[0].keys()), {'uid', 'username', 'date'})
 
     def test_list_view_staff_user(self):
         self.client.force_authenticate(user=self.staff_user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data.get('results')), 2)
+        self.assertEqual(len(response.data), 2)
 
 
 class TestBlacklistedUserCreateAPIView(APITestCase):
@@ -1243,6 +1245,14 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
             uid='3434',
             added_by=self.user,
             )
+        BlacklistedUser.objects.filter(pk=self.blacklisted.pk).update(
+            date=datetime(2020, 1, 1, tzinfo=timezone.utc)
+            )
+        BlacklistedUser.objects.filter(pk=self.blacklisted_2.pk).update(
+            date=datetime(2021, 6, 15, tzinfo=timezone.utc)
+            )
+        self.blacklisted.refresh_from_db()
+        self.blacklisted_2.refresh_from_db()
         self.url = reverse(
             'supervise:blacklist-detail', args=[self.blacklisted.uid]
             )
@@ -1256,9 +1266,8 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
-        self.assertEqual(response.data.get('added_by'), 'test_user')
         self.assertIsNotNone(response.data.get('uid'))
-        self.assertIn('date', response.data.keys())
+        self.assertTrue(response.data.get('date').startswith('2021'))
 
     def test_normal_user_getting_staff_user_blacklist(self):
         blacklisted = BlacklistedUser.objects.create(
@@ -1277,9 +1286,8 @@ class TestBlacklistedUserDetailAPIViews(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.get('username'), 'Bad User')
-        self.assertEqual(response.data.get('added_by'), 'staff_user')
         self.assertIsNotNone(response.data.get('uid'))
-        self.assertIn('date', response.data.keys())
+        self.assertTrue(response.data.get('date').startswith('2020'))
 
     def test_unauthenticated_delete(self):
         response = self.client.delete(self.url)
