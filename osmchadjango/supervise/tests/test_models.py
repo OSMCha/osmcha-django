@@ -122,6 +122,17 @@ class TestAreaOfInterestModel(TestCase):
         self.area_3.save()
         self.assertEqual(list(self.area_3.changesets()), [recent])
 
+    def test_changesets_single_intersects(self):
+        self.assertEqual(str(self.area.changesets().query).count('ST_Intersects'), 1)
+
+        bbox_aoi = AreaOfInterest.objects.create(
+            name='Bbox filter',
+            user=self.user,
+            filters={'in_bbox': '0,0,1,1'},
+            geometry=Polygon.from_bbox((0, 0, 1, 1))
+            )
+        self.assertEqual(str(bbox_aoi.changesets().query).count('ST_Intersects'), 1)
+
     def test_other_geometry_types(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
         ChangesetFactory(
