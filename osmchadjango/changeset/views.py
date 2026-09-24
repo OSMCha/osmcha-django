@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import logging
 
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_lazy as _
@@ -38,6 +39,8 @@ from .tasks import ChangesetCommentAPI
 from .throttling import NonStaffUserThrottle
 from ..roulette_integration.utils import push_feature_to_maproulette
 from ..roulette_integration.models import ChallengeIntegration
+
+logger = logging.getLogger(__name__)
 
 
 class StandardResultsSetPagination(GeoJsonPagination):
@@ -705,7 +708,6 @@ class SetChangesetTagChangesAPIView(ModelViewSet):
     @action(detail=True, methods=['post'])
     def set_tag_changes(self, request, pk):
         """Update the tag_changes field of a Changeset"""
-        print(self.request.data)
         if self.validate_tag_changes(self.request.data) is False:
             return Response(
                 {'detail': 'Payload does not match validation rules.'},
@@ -814,10 +816,8 @@ def add_feature(request):
         changeset_fields_to_update.append('is_suspect')
 
     changeset.save(update_fields=changeset_fields_to_update)
-    print(
-        'Changeset {} {}'.format(
-            changeset.id, 'created' if created else 'updated'
-            )
+    logger.info(
+        'Changeset %s %s', changeset.id, 'created' if created else 'updated'
         )
     add_reasons_to_changeset(changeset, reasons)
     return Response(
@@ -933,10 +933,8 @@ def add_feature_v1(request):
         changeset_fields_to_update.append('is_suspect')
 
     changeset.save(update_fields=changeset_fields_to_update)
-    print(
-        'Changeset {} {}'.format(
-            changeset.id, 'created' if created else 'updated'
-            )
+    logger.info(
+        'Changeset %s %s', changeset.id, 'created' if created else 'updated'
         )
     add_reasons_to_changeset(changeset, reasons)
     return Response(
@@ -954,6 +952,6 @@ def add_reasons_to_changeset(changeset, reasons):
         # In this case, we can safely ignore this attempted DB Insert,
         # since what we wanted inserted has already been done through
         # a separate web request.
-        print('IntegrityError with changeset %s' % changeset.id)
+        logger.warning('IntegrityError with changeset %s', changeset.id)
     except ValueError:
-        print('ValueError with changeset %s' % changeset.id)
+        logger.warning('ValueError with changeset %s', changeset.id)

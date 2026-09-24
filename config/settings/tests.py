@@ -59,3 +59,10 @@ TEMPLATES[0]['OPTIONS']['loaders'] = [
         'django.template.loaders.app_directories.Loader',
     ]),
 ]
+
+# LOGGING
+# ------------------------------------------------------------------------------
+# Many tests deliberately trigger 4xx responses and handled failures; don't
+# clutter the test output with log messages about them
+LOGGING['loggers']['django.request'] = {'level': 'ERROR'}
+LOGGING['loggers']['osmchadjango']['level'] = 'ERROR'

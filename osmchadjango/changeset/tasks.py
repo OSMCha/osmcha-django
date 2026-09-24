@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from datetime import timezone
+import logging
 from os.path import join
 from urllib.parse import quote
 import yaml
@@ -17,6 +19,8 @@ from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
 
+logger = logging.getLogger(__name__)
+
 
 def create_changeset(changeset_id):
     """Analyse and create the changeset in the database."""
@@ -26,6 +30,9 @@ def create_changeset(changeset_id):
     # remove suspicion_reasons
     ch_dict = ch.get_dict()
     ch_dict.pop("suspicion_reasons")
+
+    # osmcha returns naive datetimes; OSM timestamps are in UTC
+    ch_dict["date"] = ch_dict["date"].replace(tzinfo=timezone.utc)
 
     # remove bbox field if it is not a valid geometry
     if ch.bbox == "GEOMETRYCOLLECTION EMPTY":
@@ -41,7 +48,7 @@ def create_changeset(changeset_id):
             reason, created = SuspicionReasons.objects.get_or_create(name=reason)
             reason.changesets.add(changeset)
 
-    print("{c[id]} created".format(c=ch_dict))
+    logger.info("%s created", ch_dict["id"])
     return changeset
 
 
@@ -51,12 +58,11 @@ def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
     """
     cl = ChangesetList(url, geojson_filter)
     for c in cl.changesets:
-        print("Creating changeset {}".format(c["id"]))
+        logger.info("Creating changeset %s", c["id"])
         try:
             create_changeset(c["id"])
         except IntegrityError as e:
-            print("IntegrityError when importing {}.".format(c["id"]))
-            print(e)
+            logger.error("IntegrityError when importing %s: %s", c["id"], e)
 
 
 def format_url(n):
@@ -74,7 +80,7 @@ def import_replications(start, end):
     Import(start=start, end=end).save()
     urls = [format_url(n) for n in range(start, end + 1)]
     for url in urls:
-        print("Importing {}".format(url))
+        logger.info("Importing %s", url)
         get_filter_changeset_file(url)
 
 
@@ -104,13 +110,7 @@ def fetch_latest():
         start = last_import + 1
     else:
         start = sequence - 1000
-    print(
-        "Importing replications from %d to %d"
-        % (
-            start,
-            sequence,
-        )
-    )
+    logger.info("Importing replications from %d to %d", start, sequence)
     import_replications(start, sequence)
 
 
@@ -142,17 +142,14 @@ class ChangesetCommentAPI(object):
             client_secret=settings.SOCIAL_AUTH_OPENSTREETMAP_OAUTH2_SECRET,
         )
         if response.status_code == 200:
-            print(
-                "Comment in the changeset {} posted successfully.".format(
-                    self.changeset_id
-                )
+            logger.info(
+                "Comment in the changeset %s posted successfully.",
+                self.changeset_id
             )
             return {"success": True}
         else:
-            print(
-                """Some error occurred and it wasn't possible to post the
-                comment to the changeset {}.""".format(
-                    self.changeset_id
-                )
+            logger.error(
+                "Failed to post comment to changeset %s: HTTP %s",
+                self.changeset_id, response.status_code
             )
             return {"success": False}

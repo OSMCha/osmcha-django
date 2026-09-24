@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from io import StringIO
 
 from django.test import TestCase
 from django.core.management import call_command
@@ -33,7 +34,7 @@ class TestUpdateUserNameCommand(TestCase):
             )
 
     def test_command(self):
-        call_command('update_user_names')
+        call_command('update_user_names', stdout=StringIO())
         self.user.refresh_from_db()
         self.user_2.refresh_from_db()
         self.assertEqual(self.user.name, 'rosrever')
@@ -56,5 +57,5 @@ class TestClearTokensCommand(TestCase):
 
     def test_command(self):
         self.assertEqual(Token.objects.count(), 1)
-        call_command('clear_tokens')
+        call_command('clear_tokens', stdout=StringIO())
         self.assertEqual(Token.objects.count(), 0)

@@ -295,9 +295,9 @@ LOGGING = {
             'handlers': ['console'],
             'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
         },
-        'osmchadjango.users': {
-            'handlers': ['console', ],
-            'level': "DEBUG",
+        'osmchadjango': {
+            'handlers': ['console'],
+            'level': 'INFO',
         },
     },
 }

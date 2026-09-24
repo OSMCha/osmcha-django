@@ -1,8 +1,9 @@
 import json
-from datetime import date, timedelta
+from datetime import date, datetime, time, timedelta
 
 from django.contrib.gis.geos import Polygon
 from django.db.models import Count, Q
+from django.utils import timezone
 
 from rest_framework_gis.filterset import GeoFilterSet
 from rest_framework_gis.filters import GeometryFilter
@@ -279,7 +280,9 @@ class ChangesetFilter(GeoFilterSet):
         )
 
     def get_past_n_days(self, queryset, field_name, value):
-        start_date = date.today() - timedelta(days=int(value))
+        start_date = timezone.make_aware(
+            datetime.combine(date.today() - timedelta(days=int(value)), time())
+            )
         return queryset.filter(date__gte=start_date)
 
     def split_values(self, value):

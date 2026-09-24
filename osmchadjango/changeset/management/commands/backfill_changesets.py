@@ -1,9 +1,14 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 from django.core.management.base import BaseCommand
+from django.utils import timezone
 
 from ...models import Changeset
 from ...tasks import create_changeset
+
+
+def midnight(d):
+    return timezone.make_aware(datetime.combine(d, time()))
 
 
 class Command(BaseCommand):
@@ -17,14 +22,14 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # if start_date is not defined, set it as yesterday
         try:
-            start_date = date.fromisoformat(options["start_date"])
+            start_date = midnight(date.fromisoformat(options["start_date"]))
         except (ValueError, TypeError):
-            start_date = date.today() - timedelta(days=1)
-        # if end_date is not defined, set it as today
+            start_date = midnight(date.today() - timedelta(days=1))
+        # if end_date is not defined, set it as now
         try:
-            end_date = date.fromisoformat(options["end_date"])
+            end_date = midnight(date.fromisoformat(options["end_date"]))
         except (ValueError, TypeError):
-            end_date = datetime.now()
+            end_date = timezone.now()
 
         cl = Changeset.objects.filter(
             date__gte=start_date, date__lte=end_date
