@@ -1,12 +1,17 @@
 import uuid
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models import JSONField
 from django.http.request import HttpRequest
+from django.utils import timezone
 
 from osmchadjango.changeset.filters import ChangesetFilter
 
 from ..users.models import User
+
+IGNORED_FILTERS = ('date__gte', 'date__lte', 'last_days')
 
 
 class AreaOfInterest(models.Model):
@@ -21,13 +26,20 @@ class AreaOfInterest(models.Model):
         return '{} by {}'.format(self.name, self.user.username)
 
     def changesets(self, request=None):
-        """Return the changesets that match the filters, including the geometry
-        of the AreaOfInterest. Fake a request object in order to execute the
+        """Return the changesets from the last AOI_WINDOW_DAYS days that match
+        the filters, including the geometry of the AreaOfInterest. Date filters
+        saved on the AoI are ignored, so that queries are always bounded to a
+        recent time window. Fake a request object in order to execute the
         query with the user that created the AoI, not with the request user.
         """
+        filters = {
+            k: v for k, v in self.filters.items() if k not in IGNORED_FILTERS
+            }
         request = HttpRequest
         request.user = self.user
-        qs = ChangesetFilter(self.filters, request=request).qs
+        qs = ChangesetFilter(filters, request=request).qs.filter(
+            date__gte=timezone.now() - timedelta(days=settings.AOI_WINDOW_DAYS)
+            )
         if self.geometry is not None:
             return qs.filter(
                 bbox__intersects=self.geometry

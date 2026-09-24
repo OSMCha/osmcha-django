@@ -312,6 +312,9 @@ CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 # are reviewed
 ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
 
+# Areas of Interest only match changesets from the last AOI_WINDOW_DAYS days
+AOI_WINDOW_DAYS = env.int('AOI_WINDOW_DAYS', default=30)
+
 # Your common stuff: Below this line define 3rd party library settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

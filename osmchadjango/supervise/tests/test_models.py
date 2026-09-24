@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
+from django.utils import timezone
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
@@ -102,6 +103,24 @@ class TestAreaOfInterestModel(TestCase):
         self.assertIn(changeset, self.area.changesets())
         self.assertEqual(self.area_2.changesets().count(), 0)
         self.assertEqual(self.area_3.changesets().count(), 2)
+
+    @override_settings(AOI_WINDOW_DAYS=30)
+    def test_changesets_date_window(self):
+        recent = ChangesetFactory(
+            harmful=False, date=timezone.now() - timedelta(days=29)
+            )
+        ChangesetFactory(harmful=False, date=timezone.now() - timedelta(days=31))
+        self.assertEqual(list(self.area_3.changesets()), [recent])
+
+        # date filters saved on the AoI are ignored
+        self.area_3.filters = {
+            'harmful': 'False',
+            'date__gte': '2020-01-01',
+            'date__lte': '2020-12-31',
+            'last_days': '365',
+            }
+        self.area_3.save()
+        self.assertEqual(list(self.area_3.changesets()), [recent])
 
     def test_other_geometry_types(self):
         ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
