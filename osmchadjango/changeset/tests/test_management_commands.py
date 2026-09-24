@@ -1,4 +1,4 @@
-from datetime import timedelta, datetime, date
+from datetime import timedelta, datetime, date, timezone as dt_timezone
 import json
 from io import StringIO
 
@@ -41,7 +41,7 @@ class TestDeleteOldData(TestCase):
         # two changesets that shouldn't be deleted
         self.changeset = ChangesetFactory()
         self.checked_changeset = GoodChangesetFactory()
-        call_command('delete_old_data')
+        call_command('delete_old_data', stdout=StringIO())
 
     def test_command(self):
         self.assertEqual(Changeset.objects.count(), 3)
@@ -71,7 +71,9 @@ class TestMergeReasons(TestCase):
         self.reason_1.changesets.add(self.changesets[0])
 
     def test_merge(self):
-        call_command('merge_reasons', self.reason_2.id, self.reason_1.id)
+        call_command(
+            'merge_reasons', self.reason_2.id, self.reason_1.id, stdout=StringIO()
+            )
         self.assertEqual(SuspicionReasons.objects.count(), 1)
         self.assertEqual(
             SuspicionReasons.objects.filter(name='New mapper').count(), 1
@@ -107,8 +109,8 @@ class TestMergeReasons(TestCase):
 
 class TestBackfillChangesets(TestCase):
     def setUp(self):
-        ChangesetFactory(id='1234', date=datetime(2021,1,2))
-        ChangesetFactory(id='1238', date=datetime(2021,1,3))
+        ChangesetFactory(id='1234', date=datetime(2021, 1, 2, tzinfo=dt_timezone.utc))
+        ChangesetFactory(id='1238', date=datetime(2021, 1, 3, tzinfo=dt_timezone.utc))
 
     def test_backfill(self):
         call_command(

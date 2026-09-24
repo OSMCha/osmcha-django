@@ -135,7 +135,7 @@ class TestChangesetFilter(TestCase):
         self.assertEqual(ChangesetFilter({'comments_count__gte': 11}).qs.count(), 0)
 
     def test_last_days_filter(self):
-        ChangesetFactory(date=date.today() - timedelta(days=5))
+        ChangesetFactory(date=timezone.now() - timedelta(days=5))
 
         self.assertEqual(
             ChangesetFilter({'last_days': 0}).qs.count(), 4

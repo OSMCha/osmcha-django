@@ -10,4 +10,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         [update_user_name(user) for user in User.objects.all()]
-        print('Usernames updated.')
+        self.stdout.write('Usernames updated.')

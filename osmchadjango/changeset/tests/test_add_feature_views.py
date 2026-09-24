@@ -1,6 +1,6 @@
 import sys
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest import mock, skipIf
 import requests
 
@@ -388,8 +388,9 @@ class TestCreateFeatureV1(APITestCase):
             id=self.fixture['properties'].get('osm:changeset'),
             uid=self.fixture['properties'].get('osm:uid'),
             user=self.fixture['properties'].get('osm:user'),
-            date=datetime.utcfromtimestamp(
-                self.fixture['properties'].get('osm:timestamp') / 1000
+            date=datetime.fromtimestamp(
+                self.fixture['properties'].get('osm:timestamp') / 1000,
+                tz=timezone.utc
                 ),
             is_suspect=False
             )

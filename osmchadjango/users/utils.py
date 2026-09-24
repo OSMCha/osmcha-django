@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
+
 from django.conf import settings
 
 from social_django.models import UserSocialAuth
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 def save_real_username(backend, user, response, *args, **kwargs):
@@ -28,10 +32,10 @@ def update_user_name(user):
         if user.name != display_name:
             user.name = display_name
             user.save(update_fields=['name'])
-            print('User with uid {} updated successfully.'.format(uid))
+            logger.info('User with uid %s updated successfully.', uid)
     except UserSocialAuth.DoesNotExist:
-        print(
-            'User {} does not have a social_auth instance.'.format(user.username)
+        logger.warning(
+            'User %s does not have a social_auth instance.', user.username
             )
     except requests.exceptions.JSONDecodeError:
-        print('It was not possible to update user with uid {}.'.format(uid))
+        logger.warning('It was not possible to update user with uid %s.', uid)
