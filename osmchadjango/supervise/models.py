@@ -40,7 +40,8 @@ class AreaOfInterest(models.Model):
         qs = ChangesetFilter(filters, request=request).qs.filter(
             date__gte=timezone.now() - timedelta(days=settings.AOI_WINDOW_DAYS)
             )
-        if self.geometry is not None:
+        # ChangesetFilter already applies the 'geometry' filter, but not 'in_bbox'
+        if self.geometry is not None and 'geometry' not in filters:
             return qs.filter(
                 bbox__intersects=self.geometry
                 )
