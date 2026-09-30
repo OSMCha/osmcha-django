@@ -1,4 +1,4 @@
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
 from .middleware import format_route
 
@@ -19,7 +19,7 @@ class TestFormatRoute(SimpleTestCase):
         )
 
 
-class TestRouteHeader(SimpleTestCase):
+class TestRouteHeader(TestCase):
     def test_matched_route(self):
         response = self.client.get("/api/v1/health")
         self.assertEqual(response["X-Route"], "/api/v1/health")
