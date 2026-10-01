@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
         for c in cl.changesets:
             try:
-                create_changeset(c['id'])
+                create_changeset(c)
                 imported.append(c['id'])
             except Exception as e:
                 self.stdout.write("Failed to import changeset {}: {}".format(c["id"], e))

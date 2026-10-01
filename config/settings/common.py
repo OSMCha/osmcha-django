@@ -309,6 +309,10 @@ LOGGING = {
 # define CHANGESETS_FILTER as a path to a GeoJSON file.
 CHANGESETS_FILTER = env('DJANGO_CHANGESETS_FILTER', default=None)
 
+# Number of changesets from each replication file to analyse concurrently
+# during fetchchangesets (each one makes several OSM API requests).
+FETCH_CHANGESETS_WORKERS = env.int('FETCH_CHANGESETS_WORKERS', default=4)
+
 # Enable/disable the functionality to post comments to changesets when they
 # are reviewed
 ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
