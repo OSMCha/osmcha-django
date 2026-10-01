@@ -1,6 +1,8 @@
+import socket
+
 from django.core.management.base import BaseCommand
 
-from ...tasks import fetch_latest
+from ...tasks import fetch_latest, TIMEOUT
 
 
 class Command(BaseCommand):
@@ -8,4 +10,7 @@ class Command(BaseCommand):
     or the last 1000."""
 
     def handle(self, *args, **options):
+        # osmcha downloads replication files with urlretrieve, which has no
+        # timeout parameter but honors the socket default.
+        socket.setdefaulttimeout(TIMEOUT)
         fetch_latest()

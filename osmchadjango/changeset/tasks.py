@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timezone
+from functools import partial
 import logging
 from os.path import join
+from types import SimpleNamespace
 from urllib.parse import quote
 import yaml
 
@@ -11,20 +14,33 @@ except ImportError:
     from yaml import Loader
 
 from django.conf import settings
-from django.db.utils import IntegrityError
 
 import requests
 from requests_oauthlib import OAuth2Session
+import osmcha.changeset
 from osmcha.changeset import Analyse, ChangesetList
 
 from .models import Changeset, SuspicionReasons, Import
 
 logger = logging.getLogger(__name__)
 
+# Timeout (seconds) for HTTP requests to the OSM API and planet server.
+TIMEOUT = 60
 
-def create_changeset(changeset_id):
-    """Analyse and create the changeset in the database."""
-    ch = Analyse(changeset_id)
+# osmcha makes its OSM API requests without a timeout, so a stalled connection
+# hangs forever. TODO: remove once osmcha sets timeouts itself.
+osmcha.changeset.requests = SimpleNamespace(
+    get=partial(requests.get, timeout=TIMEOUT), compat=requests.compat
+)
+
+
+def create_changeset(changeset):
+    """
+    Analyse and create the changeset in the database. `changeset` is either
+    a changeset id or a dict from osmcha's ChangesetList; passing the dict
+    avoids refetching the changeset's metadata from the OSM API.
+    """
+    ch = Analyse(changeset)
     ch.full_analysis()
 
     # remove suspicion_reasons
@@ -52,17 +68,25 @@ def create_changeset(changeset_id):
     return changeset
 
 
-def get_filter_changeset_file(url, geojson_filter=settings.CHANGESETS_FILTER):
-    """Filter changesets from a replication file by the area defined in the
-    GeoJSON file.
+def import_changeset(c):
+    """
+    Create a changeset from a ChangesetList entry, logging any errors
+    """
+    logger.info("Creating changeset %s", c["id"])
+    try:
+        create_changeset(c)
+    except Exception:
+        logger.exception("Error when importing %s", c["id"])
+
+
+def get_filter_changeset_file(url, pool, geojson_filter=settings.CHANGESETS_FILTER):
+    """
+    Import the changesets in a replication file (optionally filtered by the
+    area defined in the GeoJSON file) concurrently on the given executor.
+    Returns once all of them are done.
     """
     cl = ChangesetList(url, geojson_filter)
-    for c in cl.changesets:
-        logger.info("Creating changeset %s", c["id"])
-        try:
-            create_changeset(c["id"])
-        except IntegrityError as e:
-            logger.error("IntegrityError when importing %s: %s", c["id"], e)
+    list(pool.map(import_changeset, cl.changesets))
 
 
 def format_url(n):
@@ -74,28 +98,37 @@ def format_url(n):
 
 
 def import_replications(start, end):
-    """Recieves a start and an end number, and import each replication file in
-    this interval.
     """
-    Import(start=start, end=end).save()
-    urls = [format_url(n) for n in range(start, end + 1)]
-    for url in urls:
-        logger.info("Importing %s", url)
-        get_filter_changeset_file(url)
+    Import each replication file from start to end (inclusive). Progress is
+    recorded after each file, so an interrupted import resumes where it left
+    off on the next run.
+    """
+    imp = Import.objects.create(start=start, end=start - 1)
+    with ThreadPoolExecutor(settings.FETCH_CHANGESETS_WORKERS) as pool:
+        for n in range(start, end + 1):
+            url = format_url(n)
+            logger.info("Importing %s", url)
+            get_filter_changeset_file(url, pool)
+            imp.end = n
+            imp.save()
 
 
 def get_last_replication_id():
-    """Get the id of the last replication file available on Planet OSM."""
+    """
+    Get the id of the last replication file available on Planet OSM.
+    """
     state = requests.get(
         "{}state.yaml".format(settings.OSM_PLANET_BASE_URL),
-        headers=settings.OSM_API_USER_AGENT
+        headers=settings.OSM_API_USER_AGENT,
+        timeout=TIMEOUT,
     ).content
     state = yaml.load(state, Loader)
     return state.get("sequence")
 
 
 def fetch_latest():
-    """Function to import all the replication files since the last import or the
+    """
+    Function to import all the replication files since the last import or the
     last 1000.
     FIXME: define error in except line
     """
