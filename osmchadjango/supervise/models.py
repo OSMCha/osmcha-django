@@ -35,18 +35,19 @@ class AreaOfInterest(models.Model):
         filters = {
             k: v for k, v in self.filters.items() if k not in IGNORED_FILTERS
             }
+
+        # Pass the parsed geometry rather than the saved filter value, because
+        # ChangesetFilter silently skips a 'geometry' value it can't parse (such
+        # as a GeoJSON object rather than a string). This also covers 'in_bbox',
+        # which ChangesetFilter doesn't apply itself.
+        if self.geometry is not None:
+            filters['geometry'] = self.geometry
+
         request = HttpRequest
         request.user = self.user
-        qs = ChangesetFilter(filters, request=request).qs.filter(
+        return ChangesetFilter(filters, request=request).qs.filter(
             date__gte=timezone.now() - timedelta(days=settings.AOI_WINDOW_DAYS)
             )
-        # ChangesetFilter already applies the 'geometry' filter, but not 'in_bbox'
-        if self.geometry is not None and 'geometry' not in filters:
-            return qs.filter(
-                bbox__intersects=self.geometry
-                )
-        else:
-            return qs
 
     class Meta:
         unique_together = ('user', 'name',)

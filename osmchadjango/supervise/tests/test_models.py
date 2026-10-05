@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 
 from django.test import TestCase, override_settings
@@ -121,6 +122,23 @@ class TestAreaOfInterestModel(TestCase):
             }
         self.area_3.save()
         self.assertEqual(list(self.area_3.changesets()), [recent])
+
+    def test_changesets_geojson_object_geometry(self):
+        """The 'geometry' filter may be saved as a GeoJSON object rather than
+        a string; it must still be applied.
+        """
+        inside = ChangesetFactory(
+            bbox=Polygon(((30, 30), (30, 30.5), (30.5, 30.5), (30, 30)))
+            )
+        ChangesetFactory(bbox=Polygon(((10, 10), (10, 11), (11, 11), (10, 10))))
+        aoi = AreaOfInterest.objects.create(
+            name='GeoJSON object',
+            user=self.user,
+            filters={'geometry': json.loads(self.m_polygon_2.geojson)},
+            geometry=self.m_polygon_2
+            )
+        self.assertEqual(list(aoi.changesets()), [inside])
+        self.assertEqual(str(aoi.changesets().query).count('ST_Intersects'), 1)
 
     def test_changesets_single_intersects(self):
         self.assertEqual(str(self.area.changesets().query).count('ST_Intersects'), 1)
