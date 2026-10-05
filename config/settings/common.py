@@ -317,7 +317,8 @@ FETCH_CHANGESETS_WORKERS = env.int('FETCH_CHANGESETS_WORKERS', default=4)
 # are reviewed
 ENABLE_POST_CHANGESET_COMMENTS = env('DJANGO_ENABLE_CHANGESET_COMMENTS', default=False)
 
-# Areas of Interest only match changesets from the last AOI_WINDOW_DAYS days
+# Area of Interest RSS feeds only include changesets from the last
+# AOI_WINDOW_DAYS days, regardless of the date filters saved on the AoI
 AOI_WINDOW_DAYS = env.int('AOI_WINDOW_DAYS', default=30)
 
 # Your common stuff: Below this line define 3rd party library settings

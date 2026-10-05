@@ -1,7 +1,6 @@
 import uuid
 from datetime import timedelta
 
-from django.conf import settings
 from django.contrib.gis.db import models
 from django.db.models import JSONField
 from django.http.request import HttpRequest
@@ -10,8 +9,6 @@ from django.utils import timezone
 from osmchadjango.changeset.filters import ChangesetFilter
 
 from ..users.models import User
-
-IGNORED_FILTERS = ('date__gte', 'date__lte', 'last_days')
 
 
 class AreaOfInterest(models.Model):
@@ -25,16 +22,15 @@ class AreaOfInterest(models.Model):
     def __str__(self):
         return '{} by {}'.format(self.name, self.user.username)
 
-    def changesets(self, request=None):
-        """Return the changesets from the last AOI_WINDOW_DAYS days that match
-        the filters, including the geometry of the AreaOfInterest. Date filters
-        saved on the AoI are ignored, so that queries are always bounded to a
-        recent time window. Fake a request object in order to execute the
-        query with the user that created the AoI, not with the request user.
+    def changesets(self, request=None, window_days=None):
+        """Return the changesets that match the filters, including the geometry
+        of the AreaOfInterest. If window_days is given, results are further
+        limited to changesets from the last window_days days (this caps any
+        saved date__gte filter, but doesn't override it). Fake a request object
+        in order to execute the query with the user that created the AoI, not
+        with the request user.
         """
-        filters = {
-            k: v for k, v in self.filters.items() if k not in IGNORED_FILTERS
-            }
+        filters = dict(self.filters)
 
         # Pass the parsed geometry rather than the saved filter value, because
         # ChangesetFilter silently skips a 'geometry' value it can't parse (such
@@ -45,9 +41,10 @@ class AreaOfInterest(models.Model):
 
         request = HttpRequest
         request.user = self.user
-        return ChangesetFilter(filters, request=request).qs.filter(
-            date__gte=timezone.now() - timedelta(days=settings.AOI_WINDOW_DAYS)
-            )
+        qs = ChangesetFilter(filters, request=request).qs
+        if window_days is not None:
+            qs = qs.filter(date__gte=timezone.now() - timedelta(days=window_days))
+        return qs
 
     class Meta:
         unique_together = ('user', 'name',)
