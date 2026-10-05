@@ -1,7 +1,7 @@
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_timezone
 
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.utils import timezone
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString
 from django.core.exceptions import ValidationError
@@ -105,23 +105,47 @@ class TestAreaOfInterestModel(TestCase):
         self.assertEqual(self.area_2.changesets().count(), 0)
         self.assertEqual(self.area_3.changesets().count(), 2)
 
-    @override_settings(AOI_WINDOW_DAYS=30)
-    def test_changesets_date_window(self):
+    def test_changesets_date_filters(self):
         recent = ChangesetFactory(
-            harmful=False, date=timezone.now() - timedelta(days=29)
+            harmful=False, date=timezone.now() - timedelta(days=2)
             )
-        ChangesetFactory(harmful=False, date=timezone.now() - timedelta(days=31))
-        self.assertEqual(list(self.area_3.changesets()), [recent])
+        old = ChangesetFactory(harmful=False, date=datetime(2020, 6, 1, tzinfo=dt_timezone.utc))
+        self.assertEqual(list(self.area_3.changesets()), [recent, old])
 
-        # date filters saved on the AoI are ignored
         self.area_3.filters = {
             'harmful': 'False',
             'date__gte': '2020-01-01',
             'date__lte': '2020-12-31',
-            'last_days': '365',
             }
         self.area_3.save()
-        self.assertEqual(list(self.area_3.changesets()), [recent])
+        self.assertEqual(list(self.area_3.changesets()), [old])
+
+    def test_changesets_window_days(self):
+        recent = ChangesetFactory(
+            harmful=False, date=timezone.now() - timedelta(days=2)
+            )
+        older = ChangesetFactory(
+            harmful=False, date=timezone.now() - timedelta(days=20)
+            )
+        ChangesetFactory(harmful=False, date=timezone.now() - timedelta(days=31))
+        self.assertEqual(
+            list(self.area_3.changesets(window_days=30)), [recent, older]
+            )
+
+        # a saved date__gte older than the window doesn't extend it
+        self.area_3.filters = {'harmful': 'False', 'date__gte': '2020-01-01'}
+        self.area_3.save()
+        self.assertEqual(
+            list(self.area_3.changesets(window_days=30)), [recent, older]
+            )
+
+        # a saved date__gte within the window is applied
+        self.area_3.filters = {
+            'harmful': 'False',
+            'date__gte': (timezone.now() - timedelta(days=5)).isoformat(),
+            }
+        self.area_3.save()
+        self.assertEqual(list(self.area_3.changesets(window_days=30)), [recent])
 
     def test_changesets_geojson_object_geometry(self):
         """The 'geometry' filter may be saved as a GeoJSON object rather than

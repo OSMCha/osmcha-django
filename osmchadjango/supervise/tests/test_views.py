@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
+from django.test import override_settings
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point, LineString, GEOSGeometry
@@ -976,6 +977,31 @@ class TestAoIChangesetListView(APITestCase):
                 )
             )
         self.assertEqual(len(items), 2)
+
+    @override_settings(AOI_WINDOW_DAYS=30)
+    def test_feed_view_is_limited_to_window(self):
+        bbox = Polygon(((0, 0), (0, 0.5), (0.7, 0.5), (0, 0)))
+        ChangesetFactory(harmful=False, bbox=bbox)
+        ChangesetFactory(
+            harmful=False,
+            bbox=bbox,
+            date=datetime.now(timezone.utc) - timedelta(days=31)
+            )
+
+        response = self.client.get(
+            reverse('supervise:aoi-changesets-feed', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        items = [i for i in ET.fromstring(response.content)[0] if i.tag == 'item']
+        self.assertEqual(len(items), 1)
+
+        # the JSON endpoint isn't limited to the window
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(
+            reverse('supervise:aoi-list-changesets', args=[self.aoi.pk])
+            )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['count'], 2)
 
 
 class TestAoIStatsAPIViews(APITestCase):

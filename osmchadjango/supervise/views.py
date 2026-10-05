@@ -128,7 +128,7 @@ class AOIListChangesetsFeedView(Feed):
         return reverse('supervise:aoi-detail', args=[obj.id])
 
     def items(self, obj):
-        items = obj.changesets()[:50]
+        items = obj.changesets(window_days=settings.AOI_WINDOW_DAYS)[:50]
         # HACK: we want the <link> for each feed <item> to contain both the
         # changeset ID and the AOI ID, but only the changeset is available in
         # item_link() (passed in as the 'item' argument). As a workaround we'll
